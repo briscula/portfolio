@@ -1,3 +1,19 @@
+// Load environment variables first (before any other imports)
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Try to load .env from multiple locations (monorepo-friendly)
+const envPaths = [
+  path.resolve(__dirname, '../.env'), // apps/api/.env
+  path.resolve(__dirname, '../../.env'), // apps/.env
+  path.resolve(__dirname, '../../../.env'), // monorepo root
+  path.resolve(__dirname, '../../../packages/database/.env'), // packages/database/.env
+];
+
+for (const envPath of envPaths) {
+  dotenv.config({ path: envPath });
+}
+
 import { NestFactory, HttpAdapterHost, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
