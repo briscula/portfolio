@@ -1,16 +1,5 @@
 {
-  "version": 2,
-  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @repo/database db:generate && pnpm --filter @repo/api build",
-  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
-  "functions": {
-    "api/index.js": {
-      "maxDuration": 30
-    }
-  },
-  "rewrites": [
-    {
-      "source": "/(.*)",
-      "destination": "/api"
-    }
-  ]
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && pnpm --filter @repo/api build",
+  "installCommand": "echo 'Skipping install'",
+  "framework": null
 }
