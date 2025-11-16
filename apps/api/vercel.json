@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && pnpm --filter @repo/database build && cd apps/api && pnpm build",
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && cd apps/api && pnpm build",
   "installCommand": "cd ../.. && pnpm install",
   "builds": [
     {
