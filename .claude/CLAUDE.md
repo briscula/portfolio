@@ -1,133 +1,337 @@
-# Claude Agent Prompt: Monorepo Migration
+# Portfolio Monorepo - Claude Guide
 
-## Your Mission
+This is a **Turborepo monorepo** containing a Next.js frontend and NestJS backend for portfolio management, with shared Prisma database schema and TypeScript configurations.
 
-You are an expert DevOps engineer tasked with migrating two separate TypeScript repositories (a Next.js frontend and a NestJS backend) into a unified Turborepo monorepo.
+## 🏗️ Monorepo Structure
 
-**Primary Objectives**:
-1. Preserve all existing functionality
-2. Enable sharing of Prisma types between frontend and backend
-3. Maintain existing Vercel deployment setup (two separate projects)
-4. Create a clean, well-documented monorepo structure
-5. Ensure zero downtime and no data loss
+```
+portfolio/
+├── apps/
+│   ├── web/              # Next.js 15 frontend (App Router)
+│   └── api/              # NestJS backend API
+├── packages/
+│   ├── database/         # Shared Prisma schema & client
+│   ├── shared/           # Shared utilities and types
+│   ├── typescript-config/# Shared TypeScript configs
+│   └── eslint-config/    # Shared ESLint configs
+├── .env.example          # Environment variable template
+├── package.json          # Root workspace config
+├── pnpm-workspace.yaml   # pnpm workspace definition
+└── turbo.json           # Turborepo pipeline config
+```
 
-## Repository Information
+## 🚀 Quick Start
 
-**Backend Repository**:
-- URL: `{{BACKEND_REPO_URL}}`
-- Tech: NestJS + Prisma + TypeScript
-- Current Vercel Project: `{{BACKEND_VERCEL_PROJECT}}`
-- Domain: `{{BACKEND_DOMAIN}}`
+### Prerequisites
+- Node.js >= 18.0.0
+- pnpm >= 8.0.0
+- PostgreSQL database
 
-**Frontend Repository**:
-- URL: `{{FRONTEND_REPO_URL}}`
-- Tech: Next.js (App Router) + TypeScript
-- Current Vercel Project: `{{FRONTEND_VERCEL_PROJECT}}`
-- Domain: `{{FRONTEND_DOMAIN}}`
+### Setup
 
-## Instructions
+```bash
+# 1. Install dependencies
+pnpm install
 
-1. **Read the Full Migration Guide**:
-   - Carefully read `MONOREPO_MIGRATION_GUIDE.md`
-   - Understand the complete architecture and goals
-   - Review all phases before starting
+# 2. Set up environment variables
+cp .env.example .env
+# Edit .env with your DATABASE_URL and other secrets
 
-2. **Execute Phase by Phase**:
-   - Follow each phase in order (1 through 10)
-   - Complete all steps within each phase
-   - Verify each phase before moving to the next
-   - Mark completed phases in the checklist
+# 3. Generate Prisma client
+pnpm db:generate
 
-3. **Critical Rules**:
-   - ❌ NEVER commit actual environment variables (only .env.example files)
-   - ❌ NEVER run database migrations without explicit confirmation
-   - ❌ NEVER delete or modify original repositories
-   - ✅ ALWAYS test builds after each major change
-   - ✅ ALWAYS preserve git history references
-   - ✅ ALWAYS ask for confirmation before Vercel changes
+# 4. Run database migrations
+pnpm db:migrate
 
-4. **Communication**:
-   - Provide clear updates after each phase
-   - Report any errors immediately with full context
-   - Ask questions if anything is ambiguous
-   - Suggest improvements if you see issues
+# 5. (Optional) Seed database
+pnpm --filter @repo/database db:seed
 
-5. **Verification**:
-   - Run the verification checklist in Phase 9
-   - Don't skip any verification steps
-   - Report results of each verification item
+# 6. Start development servers
+pnpm dev
+```
 
-6. **Documentation**:
-   - Create all documentation files as specified
-   - Include actual repo URLs and commit hashes
-   - Document any deviations from the plan
+## 📦 Common Commands
 
-## Expected Deliverables
+### Development
+```bash
+# Start all apps in development mode
+pnpm dev
 
-At the end of this migration, you should provide:
+# Start specific app only
+pnpm --filter @repo/web dev      # Frontend only
+pnpm --filter @repo/api dev      # Backend only
+```
 
-1. **Fully Functional Monorepo**:
-   - ✅ Turborepo setup with pnpm workspaces
-   - ✅ Frontend in `apps/web`
-   - ✅ Backend in `apps/api`
-   - ✅ Shared Prisma in `packages/database`
-   - ✅ Shared types/configs in `packages/*`
+### Building
+```bash
+# Build all apps and packages
+pnpm build
 
-2. **Documentation**:
-   - ✅ README.md (updated)
-   - ✅ SETUP.md (complete setup instructions)
-   - ✅ MIGRATION.md (migration history and references)
+# Build specific app
+pnpm --filter @repo/web build
+pnpm --filter @repo/api build
+```
 
-3. **Deployment**:
-   - ✅ Both Vercel projects configured and tested
-   - ✅ Successful test deployments
-   - ✅ Same domains and functionality as before
+### Database (Prisma)
+```bash
+# Generate Prisma client (after schema changes)
+pnpm db:generate
 
-4. **Verification Report**:
-   - ✅ All checklist items completed
-   - ✅ Build verification results
-   - ✅ Runtime verification results
-   - ✅ Deployment verification results
+# Create and apply migration
+pnpm db:migrate
 
-## Success Criteria
+# Open Prisma Studio
+pnpm db:studio
 
-The migration is complete when:
+# Seed database
+pnpm --filter @repo/database db:seed
+```
 
-1. Both apps build successfully with `turbo run build`
-2. Both apps run in dev mode with `turbo run dev`
-3. Frontend and backend can communicate
-4. Shared Prisma types work correctly (no type errors)
-5. Both Vercel deployments work on the same domains
-6. All documentation is complete
-7. Verification checklist is 100% complete
+### Testing & Quality
+```bash
+# Run all tests
+pnpm test
 
-## Getting Started
+# Type checking
+pnpm typecheck
 
-1. Create a new directory for the monorepo
-2. Clone both repositories to temporary locations
-3. Begin with Phase 1 of the migration guide
-4. Work through each phase systematically
-5. Report progress regularly
+# Linting
+pnpm lint
 
-## Questions to Ask Before Starting
+# Format code
+pnpm format
+```
 
-Before you begin, confirm:
-- Do you have access to both repository URLs?
-- Do you have the Vercel project names and domains?
-- Do you have example .env files from both projects?
-- Should we preserve git history or start fresh? (Default: start fresh with references)
-- Any custom build scripts or deployment hooks to preserve?
+### Clean
+```bash
+# Clean all build artifacts and node_modules
+pnpm clean
+```
 
-## Emergency Rollback
+## 🔧 Package References
 
-If anything goes wrong:
-1. Original repositories remain untouched
-2. Stop the migration immediately
-3. Report the issue with full details
-4. We can always start over or adjust the plan
+### Workspace Packages
+
+All internal packages use `workspace:*` protocol:
+
+```json
+{
+  "dependencies": {
+    "@repo/database": "workspace:*",
+    "@repo/shared": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@repo/eslint-config": "workspace:*"
+  }
+}
+```
+
+### Importing from Shared Packages
+
+**Backend (NestJS)**:
+```typescript
+import { PrismaClient, Prisma, User, Portfolio } from '@repo/database';
+```
+
+**Frontend (Next.js)**:
+```typescript
+import type { Portfolio, Transaction } from '@repo/database';
+```
+
+## 🗄️ Database Management
+
+### Single Source of Truth
+- **Schema location**: `packages/database/prisma/schema.prisma`
+- **Migrations**: `packages/database/prisma/migrations/`
+
+### Important Notes
+- ⚠️ Never create Prisma schema files in apps - use the shared package
+- ⚠️ Always run `pnpm db:generate` after schema changes
+- ⚠️ All apps import from `@repo/database`, never from `@prisma/client`
+
+### Running Prisma Commands
+
+Use the `--filter` flag to target the database package:
+
+```bash
+# Generate client
+pnpm --filter @repo/database db:generate
+
+# Create migration
+pnpm --filter @repo/database db:migrate
+
+# Deploy migrations (production)
+pnpm --filter @repo/database prisma migrate deploy
+
+# Open Prisma Studio
+pnpm --filter @repo/database db:studio
+```
+
+Or use root-level shortcuts:
+```bash
+pnpm db:generate
+pnpm db:migrate
+pnpm db:studio
+```
+
+## 🌍 Environment Variables
+
+### Structure
+- **Root** `.env` - Shared variables (DATABASE_URL, Auth0 config)
+- **Backend** `apps/api/.env` - Backend-specific overrides (optional)
+- **Frontend** `apps/web/.env.local` - Frontend-specific variables
+
+### Required Variables
+
+See `.env.example` for the complete list. Key variables:
+
+```env
+# Database
+DATABASE_URL="postgresql://user:password@host:5432/db"
+
+# Auth0
+AUTH0_DOMAIN="your-tenant.auth0.com"
+AUTH0_AUDIENCE="https://your-api-identifier.com"
+
+# Application
+NODE_ENV="development"
+PORT=3000
+LOG_LEVEL="debug"
+```
+
+### Loading Order
+
+The backend (`apps/api/src/main.ts`) loads `.env` files in this order:
+1. `apps/api/.env`
+2. `apps/.env`
+3. Root `.env`
+4. `packages/database/.env`
+
+## 📚 App-Specific Documentation
+
+For detailed app-specific guidance, see:
+- **Backend**: `apps/api/.claude/CLAUDE.md`
+- **Frontend**: `apps/web/.claude/CLAUDE.md`
+
+## 🏛️ Architecture Decisions
+
+### Why Turborepo?
+- Incremental builds with caching
+- Parallel task execution
+- Shared pipeline configuration
+
+### Why pnpm?
+- Efficient disk space usage
+- Fast installs
+- Better monorepo support than npm/yarn
+
+### Why Shared Prisma Package?
+- Single source of truth for database schema
+- Type safety across frontend and backend
+- No schema duplication
+- Easier to maintain and migrate
+
+### Package Organization
+- `apps/*` - Deployable applications (web, api)
+- `packages/*` - Shared libraries and configurations
+
+## 🚨 Common Issues
+
+### Prisma Client Not Found
+```bash
+# Solution: Generate the client
+pnpm db:generate
+```
+
+### Type Errors from @repo/database
+```bash
+# Solution: Ensure Prisma client is generated
+pnpm db:generate
+# Then rebuild
+pnpm build
+```
+
+### Changes Not Picked Up
+```bash
+# Solution: Clear Turbo cache
+rm -rf .turbo
+pnpm build
+```
+
+### Port Conflicts
+- Frontend runs on port 3001 by default
+- Backend runs on port 3000/4000 (check apps/api/.env)
+
+## 🔄 Git Workflow
+
+### Branch Protection
+- Pushes to `main` require specific branch naming
+- Feature branches: Use `claude/*` prefix for Claude Code work
+- Example: `claude/feature-name-sessionid`
+
+### Commits
+```bash
+# Stage changes
+git add .
+
+# Commit with descriptive message
+git commit -m "feat: add new feature"
+
+# Push to feature branch
+git push origin claude/feature-name
+```
+
+## 📖 Additional Resources
+
+- **Migration History**: See `PRISMA_MIGRATION_FIXES.md` for Prisma consolidation details
+- **Setup Guide**: `SETUP.md`
+- **Deployment**: `DEPLOYMENT.md`
+- **Migration Log**: `MIGRATION.md`
+
+## 💡 Development Tips
+
+### Fast Feedback Loop
+```bash
+# Terminal 1: Frontend
+pnpm --filter @repo/web dev
+
+# Terminal 2: Backend
+pnpm --filter @repo/api dev
+
+# Terminal 3: Watch tests
+pnpm --filter @repo/web test:watch
+```
+
+### Debugging
+- Backend logs controlled by `LOG_LEVEL` env var
+- Frontend: Use React DevTools and browser console
+- Database: Use Prisma Studio (`pnpm db:studio`)
+
+### Adding New Packages
+
+**Internal Package**:
+1. Create in `packages/your-package/`
+2. Add `package.json` with `"name": "@repo/your-package"`
+3. Reference with `"@repo/your-package": "workspace:*"` in apps
+
+**External Package**:
+```bash
+# Install in specific app
+pnpm --filter @repo/web add package-name
+
+# Install in root (affects all)
+pnpm add -w package-name
+```
+
+## ✅ Pre-commit Checklist
+
+Before committing:
+- [ ] `pnpm build` succeeds
+- [ ] `pnpm typecheck` passes
+- [ ] `pnpm lint` passes
+- [ ] `pnpm test` passes
+- [ ] Environment variables not committed
+- [ ] No debugging code left in
 
 ---
 
-**Remember**: Take your time, verify each step, and communicate clearly. This is a critical migration that sets the foundation for future development.
-
-Good luck! 🚀
+**Need Help?** Check the app-specific CLAUDE.md files in `apps/api/.claude/` and `apps/web/.claude/` for detailed guidance on each application.

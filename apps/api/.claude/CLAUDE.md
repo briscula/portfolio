@@ -1,52 +1,85 @@
-# CLAUDE.md
+# Backend API - Claude Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This is the **NestJS backend API** for portfolio management with multi-provider authentication (Auth0 + Email/Password). It handles stock investments, transactions, and dividend analytics using Prisma ORM with PostgreSQL.
+
+**Note**: This is part of a Turborepo monorepo. For monorepo-wide commands, see the root `.claude/CLAUDE.md`.
 
 ## Project Overview
 
-A NestJS-based portfolio management API with multi-provider authentication (Auth0 + Email/Password) for tracking stock investments, transactions, and dividend analytics. Uses Prisma ORM with PostgreSQL.
+A NestJS-based portfolio management API with:
+- Multi-provider authentication (Auth0 + Email/Password)
+- Stock investment tracking
+- Transaction management (BUY, SELL, DIVIDEND, TAX, SPLIT)
+- Dividend analytics and reporting
+- Prisma ORM with PostgreSQL
 
 ## Development Commands
 
 ### Setup & Installation
 ```bash
-pnpm install                    # Install dependencies
+# From repository root
+pnpm install                    # Install all monorepo dependencies
 ```
 
 ### Running the Application
 ```bash
-pnpm run start:dev              # Start in watch mode (development)
-pnpm run start                  # Start normally
-pnpm run start:prod             # Production mode
+# From repository root (recommended)
+pnpm --filter @repo/api dev     # Start backend in watch mode
+
+# Or from apps/api directory
+pnpm dev                        # Start in watch mode (development)
+pnpm start                      # Start normally
+pnpm start:prod                 # Production mode
 ```
 
 ### Database Management
+
+**⚠️ Important**: Database commands should be run from the **root** or target the `@repo/database` package.
+
 ```bash
-npx prisma generate             # Generate Prisma client after schema changes
-npx prisma migrate dev          # Create and apply new migration
-npx prisma migrate deploy       # Apply migrations (production)
-npx prisma db seed              # Seed database with initial data
-npx prisma studio               # Open Prisma Studio UI
+# From repository root (recommended)
+pnpm db:generate                # Generate Prisma client after schema changes
+pnpm db:migrate                 # Create and apply new migration
+pnpm db:studio                  # Open Prisma Studio UI
+pnpm --filter @repo/database db:seed  # Seed database with initial data
+
+# Production migrations
+pnpm --filter @repo/database prisma migrate deploy
 ```
+
+**Schema location**: `packages/database/prisma/schema.prisma` (NOT in apps/api!)
 
 ### Testing
 ```bash
-pnpm run test                   # Run unit tests
-pnpm run test:watch             # Run tests in watch mode
-pnpm run test:cov               # Run tests with coverage
-pnpm run test:e2e               # Run end-to-end tests
-pnpm run test:debug             # Debug tests
+# From apps/api directory
+pnpm test                       # Run unit tests
+pnpm test:watch                 # Run tests in watch mode
+pnpm test:cov                   # Run tests with coverage
+pnpm test:e2e                   # Run end-to-end tests
+pnpm test:debug                 # Debug tests
+
+# From repository root
+pnpm --filter @repo/api test
 ```
 
 ### Code Quality
 ```bash
-pnpm run lint                   # Run ESLint with auto-fix
-pnpm run format                 # Format code with Prettier
+# From apps/api directory
+pnpm lint                       # Run ESLint with auto-fix
+pnpm format                     # Format code with Prettier
+
+# From repository root
+pnpm --filter @repo/api lint
 ```
 
 ### Build
 ```bash
-pnpm run build                  # Build for production
+# From repository root
+pnpm build                      # Build all apps and packages
+pnpm --filter @repo/api build   # Build backend only
+
+# From apps/api directory
+pnpm build                      # Build for production
 ```
 
 ## Architecture
@@ -143,8 +176,11 @@ Swagger UI available at `/api` endpoint when running locally:
 ## Important Files & Patterns
 
 ### Database Schema
-- `prisma/schema.prisma` - Single source of truth for data models
-- After schema changes, always run `npx prisma generate` and create a migration
+- **Schema location**: `packages/database/prisma/schema.prisma` (shared across monorepo)
+- After schema changes:
+  1. Run `pnpm db:generate` from root
+  2. Run `pnpm db:migrate` to create migration
+- ⚠️ **Never** import from `@prisma/client`, always use `@repo/database`
 
 ### DTOs & Validation
 - Use `class-validator` decorators in DTOs

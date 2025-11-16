@@ -1,6 +1,8 @@
-# CLAUDE.md
+# Frontend Web - Claude Guide
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This is the **Next.js 15 frontend** for portfolio management, using the App Router with TypeScript, Auth0 authentication, and Mock Service Worker for development.
+
+**Note**: This is part of a Turborepo monorepo. For monorepo-wide commands, see the root `.claude/CLAUDE.md`.
 
 ## Documentation First
 
@@ -18,21 +20,23 @@ The `docs/` directory contains comprehensive architecture documentation and feat
 ### Development Commands
 
 ```bash
-# Standard development (port 3001)
-npm run dev
+# From repository root (recommended)
+pnpm --filter @repo/web dev       # Standard development (port 3001)
+pnpm --filter @repo/web dev:mock  # Development with MSW API mocking
 
-# Development with MSW API mocking
-npm run dev:mock
+# Or from apps/web directory
+pnpm dev                          # Standard development (port 3001)
+pnpm dev:mock                     # Development with MSW API mocking
 
 # Testing
-npm test              # Run all tests
-npm run test:watch    # Watch mode
-npm run test:coverage # With coverage
+pnpm test                         # Run all tests
+pnpm test:watch                   # Watch mode
+pnpm test:coverage                # With coverage
 
 # Build & Deploy
-npm run build
-npm start
-npm run lint
+pnpm build                        # Build for production
+pnpm start                        # Start production server
+pnpm lint                         # Run ESLint
 ```
 
 ### Environment Variables
