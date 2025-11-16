@@ -1,18 +1,18 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && pnpm turbo build --filter=@repo/api...",
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && pnpm --filter @repo/database build",
   "installCommand": "cd ../.. && pnpm install",
   "builds": [
     {
-      "src": "dist/main.js",
+      "src": "src/main.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/main.js",
-      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+      "dest": "src/main.ts",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
     }
   ]
 }
