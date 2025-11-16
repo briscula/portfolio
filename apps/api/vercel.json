@@ -1,5 +1,18 @@
 {
+  "version": 2,
   "buildCommand": "cd ../.. && pnpm install && pnpm turbo build --filter=@repo/api...",
   "installCommand": "cd ../.. && pnpm install",
-  "outputDirectory": "dist"
+  "builds": [
+    {
+      "src": "dist/main.js",
+      "use": "@vercel/node"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "dist/main.js",
+      "methods": ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    }
+  ]
 }
