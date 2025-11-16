@@ -14,7 +14,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class TransactionsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createTransactionDto: CreateTransactionDto, userId: string) {
+  async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<any> {
     // Ensure portfolioId is provided
     if (!createTransactionDto.portfolioId) {
       throw new BadRequestException('Portfolio ID is required');
