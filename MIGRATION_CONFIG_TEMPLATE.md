@@ -7,7 +7,7 @@
 ## Repository Information
 
 ### Backend Repository
-- **Git URL**: `{{BACKEND_REPO_URL}}`
+- **Git URL**: `https://github.com/briscula/portfolio-api`
   - Example: `https://github.com/yourusername/backend-api.git`
   - Or: `git@github.com:yourusername/backend-api.git`
 
@@ -21,7 +21,7 @@
   - Language: TypeScript
 
 ### Frontend Repository
-- **Git URL**: `{{FRONTEND_REPO_URL}}`
+- **Git URL**: `https://github.com/briscula/portfolio-front`
   - Example: `https://github.com/yourusername/frontend-web.git`
   - Or: `git@github.com:yourusername/frontend-web.git`
 

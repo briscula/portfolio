@@ -1,0 +1,82 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "login": "Iniciar Sesión",
+    "logout": "Cerrar Sesión",
+    "welcome": "Bienvenido",
+    "getStarted": "Comenzar",
+    "viewDemo": "Ver Demo"
+  },
+  "navigation": {
+    "home": "Inicio",
+    "dashboard": "Panel",
+    "portfolio": "Cartera"
+  },
+  "auth": {
+    "welcomeBack": "Bienvenido de nuevo",
+    "pleaseLogin": "Por favor, inicia sesión para ver los datos de dividendos",
+    "loginRequired": "Inicio de Sesión Requerido"
+  },
+  "dashboard": {
+    "title": "Panel de Control",
+    "welcomeMessage": "¡Bienvenido a tu panel de cartera de dividendos!",
+    "userInformation": "Información del Usuario",
+    "email": "Correo Electrónico",
+    "name": "Nombre"
+  },
+  "dividends": {
+    "overview": "Resumen de Dividendos",
+    "monthlyOverview": "Resumen Mensual de Dividendos",
+    "noDataAvailable": "No hay datos de dividendos disponibles",
+    "errorLoadingData": "Error al cargar los datos de dividendos",
+    "showingFallbackData": "Mostrando datos de respaldo",
+    "month": "Mes",
+    "dividends": "Dividendos",
+    "currency": "€",
+    "months": {
+      "january": "Enero",
+      "february": "Febrero",
+      "march": "Marzo", 
+      "april": "Abril",
+      "may": "Mayo",
+      "june": "Junio",
+      "july": "Julio",
+      "august": "Agosto",
+      "september": "Septiembre",
+      "october": "Octubre",
+      "november": "Noviembre",
+      "december": "Diciembre"
+    },
+    "monthsShort": {
+      "jan": "Ene",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Abr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Ago",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dic"
+    }
+  },
+  "home": {
+    "title": "Bienvenido a Cartera de Dividendos",
+    "subtitle": "Rastrea y gestiona tus inversiones de dividendos",
+    "appName": "Cartera de Dividendos"
+  },
+  "login": {
+    "title": "Inicia sesión en tu cuenta",
+    "subtitle": "Accede a tu cartera de dividendos",
+    "signInButton": "Iniciar sesión con Auth0"
+  },
+  "demo": {
+    "title": "Demo",
+    "backToHome": "Volver al Inicio",
+    "chartTitle": "Demo del Gráfico de Dividendos",
+    "description": "Esta es una demostración de la biblioteca de gráficos Nivo que muestra datos mensuales de dividendos a lo largo de varios años."
+  }
+}

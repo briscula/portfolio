@@ -1,0 +1,82 @@
+{
+  "common": {
+    "loading": "Loading...",
+    "error": "Error",
+    "login": "Login",
+    "logout": "Logout",
+    "welcome": "Welcome",
+    "getStarted": "Get Started",
+    "viewDemo": "View Demo"
+  },
+  "navigation": {
+    "home": "Home",
+    "dashboard": "Dashboard",
+    "portfolio": "Portfolio"
+  },
+  "auth": {
+    "welcomeBack": "Welcome back",
+    "pleaseLogin": "Please log in to view dividend data",
+    "loginRequired": "Login Required"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "welcomeMessage": "Welcome to your dividend portfolio dashboard!",
+    "userInformation": "User Information",
+    "email": "Email",
+    "name": "Name"
+  },
+  "dividends": {
+    "overview": "Dividend Overview",
+    "monthlyOverview": "Monthly Dividend Overview",
+    "noDataAvailable": "No dividend data available",
+    "errorLoadingData": "Error loading dividend data",
+    "showingFallbackData": "Showing fallback data",
+    "month": "Month",
+    "dividends": "Dividends",
+    "currency": "€",
+    "months": {
+      "january": "January",
+      "february": "February", 
+      "march": "March",
+      "april": "April",
+      "may": "May",
+      "june": "June",
+      "july": "July",
+      "august": "August",
+      "september": "September",
+      "october": "October",
+      "november": "November",
+      "december": "December"
+    },
+    "monthsShort": {
+      "jan": "Jan",
+      "feb": "Feb",
+      "mar": "Mar",
+      "apr": "Apr",
+      "may": "May",
+      "jun": "Jun",
+      "jul": "Jul",
+      "aug": "Aug",
+      "sep": "Sep",
+      "oct": "Oct",
+      "nov": "Nov",
+      "dec": "Dec"
+    }
+  },
+  "home": {
+    "title": "Welcome to Dividend Portfolio",
+    "subtitle": "Track and manage your dividend investments",
+    "appName": "Dividend Portfolio"
+  },
+  "login": {
+    "title": "Sign in to your account",
+    "subtitle": "Access your dividend portfolio",
+    "signInButton": "Sign in with Auth0"
+  },
+  "demo": {
+    "title": "Demo",
+    "backToHome": "Back to Home",
+    "chartTitle": "Dividend Chart Demo",
+    "description": "This is a demonstration of the Nivo charting library showing monthly dividend data across multiple years."
+  }
+}
