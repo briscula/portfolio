@@ -1,5 +1,6 @@
 {
   "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && pnpm --filter @repo/api build",
   "installCommand": "echo 'Skipping install'",
-  "framework": null
+  "framework": null,
+  "outputDirectory": "dist"
 }
