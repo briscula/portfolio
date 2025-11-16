@@ -17,7 +17,7 @@ for (const envPath of envPaths) {
 
 import { NestFactory, HttpAdapterHost, Reflector } from '@nestjs/core';
 import { ExpressAdapter } from '@nestjs/platform-express';
-import { AppModule } from '../src/app.module';
+import { AppModule } from '../dist/app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import {
   ClassSerializerInterceptor,
@@ -25,7 +25,7 @@ import {
   INestApplication,
   LogLevel,
 } from '@nestjs/common';
-import { PrismaClientExceptionFilter } from '../src/prisma-client-exception/prisma-client-exception.filter';
+import { PrismaClientExceptionFilter } from '../dist/prisma-client-exception/prisma-client-exception.filter';
 import express from 'express';
 
 let app: INestApplication;
