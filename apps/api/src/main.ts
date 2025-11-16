@@ -168,10 +168,11 @@ async function bootstrap() {
   await app.listen(port);
 
   const logger = new Logger('Bootstrap');
-  logger.log(`🚀 Application is running on: http://localhost:${port}`);
+  logger.log(`🚀 Portfolio API is running on: http://localhost:${port}`);
   logger.log(`📚 Swagger UI available at: http://localhost:${port}/api`);
   logger.debug(`🔧 Log level: ${process.env.LOG_LEVEL || 'log'}`);
   logger.debug(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(`✨ Monorepo deployment ready`);
 }
 
 function getLogLevels(): LogLevel[] {
