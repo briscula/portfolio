@@ -1,7 +1,7 @@
 // Vercel Serverless Function Entry Point
 // Load environment variables first (before any other imports)
-import * as dotenv from 'dotenv';
-import * as path from 'path';
+const dotenv = require('dotenv');
+const path = require('path');
 
 // Try to load .env from multiple locations (monorepo-friendly)
 const envPaths = [
@@ -15,27 +15,25 @@ for (const envPath of envPaths) {
   dotenv.config({ path: envPath });
 }
 
-import { NestFactory, HttpAdapterHost, Reflector } from '@nestjs/core';
-import { ExpressAdapter } from '@nestjs/platform-express';
-import { AppModule } from '../dist/app.module';
-import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
-import {
+const { NestFactory, HttpAdapterHost, Reflector } = require('@nestjs/core');
+const { ExpressAdapter } = require('@nestjs/platform-express');
+const { AppModule } = require('../dist/app.module');
+const { SwaggerModule, DocumentBuilder } = require('@nestjs/swagger');
+const {
   ClassSerializerInterceptor,
   ValidationPipe,
-  INestApplication,
-  LogLevel,
-} from '@nestjs/common';
-import { PrismaClientExceptionFilter } from '../dist/prisma-client-exception/prisma-client-exception.filter';
-import express from 'express';
+} = require('@nestjs/common');
+const { PrismaClientExceptionFilter } = require('../dist/prisma-client-exception/prisma-client-exception.filter');
+const express = require('express');
 
-let app: INestApplication;
+let app;
 
-function getLogLevels(): LogLevel[] {
+function getLogLevels() {
   const logLevel = process.env.LOG_LEVEL?.toLowerCase() || 'log';
   const environment = process.env.NODE_ENV || 'development';
 
   // Define log level hierarchy
-  const levels: Record<string, LogLevel[]> = {
+  const levels = {
     error: ['error'],
     warn: ['error', 'warn'],
     log: ['error', 'warn', 'log'],
@@ -75,7 +73,7 @@ async function createNestServer() {
     });
 
     // Helper function to check if origin is allowed
-    const isOriginAllowed = (origin: string | undefined): boolean => {
+    const isOriginAllowed = (origin) => {
       if (!origin) return true; // Allow requests with no origin
 
       // Exact matches (local development and production)
@@ -209,7 +207,7 @@ async function createNestServer() {
   return app.getHttpAdapter().getInstance();
 }
 
-export default async (req: any, res: any) => {
+module.exports = async (req, res) => {
   const server = await createNestServer();
   return server(req, res);
 };
