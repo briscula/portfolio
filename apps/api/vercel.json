@@ -1,6 +1,16 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/api vercel-build",
-  "installCommand": "pnpm install",
-  "framework": null,
-  "outputDirectory": "dist"
+  "version": 2,
+  "buildCommand": "cd ../.. && pnpm install --frozen-lockfile && pnpm --filter @repo/database db:generate && pnpm --filter @repo/api build",
+  "installCommand": "cd ../.. && pnpm install --frozen-lockfile",
+  "functions": {
+    "api/index.ts": {
+      "maxDuration": 30
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/(.*)",
+      "destination": "/api"
+    }
+  ]
 }
