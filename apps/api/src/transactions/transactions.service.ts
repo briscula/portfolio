@@ -79,7 +79,7 @@ export class TransactionsService {
     portfolioId: string,
     page: number = 1,
     limit: number = 50,
-  ) {
+  ): Promise<any> {
     const skip = (page - 1) * limit;
 
     return this.prisma.transaction.findMany({
