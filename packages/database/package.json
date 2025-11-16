@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
+  "types": "./node_modules/.prisma/client/index.d.ts",
   "scripts": {
     "build": "tsc",
     "postinstall": "prisma generate",
