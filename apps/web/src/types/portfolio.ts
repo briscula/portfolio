@@ -1,23 +1,20 @@
 /**
  * Centralized portfolio-related type definitions
+ *
+ * Base types imported from shared Prisma schema (@repo/database)
+ * Extended types for frontend-specific use cases
  */
 
+import type { Portfolio as PrismaPortfolio, Currency } from '@repo/database';
+
 /**
- * Portfolio entity from the API
+ * Portfolio entity from the API (extends Prisma Portfolio)
+ * Includes currency relation for API responses
  */
-export interface Portfolio {
-  id: string;
-  userId: string;
-  name: string;
-  description: string | null;
-  currencyCode: string;
-  createdAt: string;
-  updatedAt: string;
-  currency: {
-    code: string;
-    name: string;
-    symbol: string;
-  };
+export interface Portfolio extends Omit<PrismaPortfolio, 'createdAt' | 'updatedAt'> {
+  createdAt: string;  // ISO string from API
+  updatedAt: string;  // ISO string from API
+  currency: Currency;
 }
 
 /**
