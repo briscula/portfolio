@@ -1,7 +1,4 @@
 {
   "buildCommand": "cd ../.. && pnpm install && pnpm turbo build --filter=@repo/api...",
-  "installCommand": "cd ../.. && pnpm install",
-  "devCommand": "pnpm dev",
-  "framework": null,
-  "outputDirectory": "dist"
+  "installCommand": "cd ../.. && pnpm install"
 }
