@@ -165,6 +165,8 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
+  await app.init();
+
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
@@ -174,6 +176,8 @@ async function bootstrap() {
   logger.debug(`🔧 Log level: ${process.env.LOG_LEVEL || 'log'}`);
   logger.debug(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   logger.log(`✨ Monorepo deployment ready`);
+
+  return app;
 }
 
 function getLogLevels(): LogLevel[] {
@@ -200,4 +204,10 @@ function getLogLevels(): LogLevel[] {
   }
 }
 
-bootstrap();
+// For local development
+if (require.main === module) {
+  bootstrap();
+}
+
+// For Vercel serverless
+export default bootstrap;
