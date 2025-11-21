@@ -1,5 +1,6 @@
 # compiled output
-/dist
+# NestJS
+# Note: dist/ is committed for Vercel deployment
 /node_modules
 
 # Environment variables
