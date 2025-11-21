@@ -2,7 +2,8 @@
 // NOTE: Run `pnpm db:generate` from root or packages/database to generate types
 
 // Export the PrismaClient and Prisma namespace from the generated client
-export { PrismaClient, Prisma } from '.prisma/client';
+// Use relative path that works after compilation
+export { PrismaClient, Prisma } from '../node_modules/.prisma/client';
 
 // Export all types from the generated Prisma Client
 export type {
@@ -15,12 +16,12 @@ export type {
   Transaction,
   UserAuthAccount,
   UserPosition,
-} from '.prisma/client';
+} from '../node_modules/.prisma/client';
 
 // Export enums - both as namespace and individual types
-export { $Enums } from '.prisma/client';
+export { $Enums } from '../node_modules/.prisma/client';
 export type {
   AuthProvider,
   TransactionType,
   CorporateActionType,
-} from '.prisma/client';
+} from '../node_modules/.prisma/client';

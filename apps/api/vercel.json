@@ -1,17 +1,17 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database build && cd apps/api && pnpm build && node scripts/copy-workspace-deps.js",
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database build",
   "installCommand": "cd ../.. && pnpm install",
   "builds": [
     {
-      "src": "dist/main.js",
+      "src": "src/main.ts",
       "use": "@vercel/node"
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "dist/main.js",
+      "dest": "src/main.ts",
       "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"]
     }
   ]
