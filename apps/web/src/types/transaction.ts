@@ -1,35 +1,26 @@
 /**
  * Centralized transaction-related type definitions
+ *
+ * Base types imported from shared Prisma schema (@repo/database)
+ * Extended types for frontend-specific use cases
  */
 
-/**
- * Transaction types supported by the API
- */
-export type TransactionType = 'DIVIDEND' | 'BUY' | 'SELL' | 'TAX' | 'SPLIT';
+import type { Transaction as PrismaTransaction, $Enums, Portfolio, Currency } from '@repo/database';
 
 /**
- * Transaction entity from the API
+ * Transaction types supported by the API (from Prisma enum)
  */
-export interface Transaction {
-  id: number;
-  portfolioId: string;
-  stockSymbol: string;
-  type: TransactionType;
-  quantity: number;
-  reference: string;
-  amount: number;
-  totalAmount: number;
-  tax: number;
-  taxPercentage: number;
-  notes: string;
-  createdAt: string;
-  updatedAt: string;
+export type TransactionType = $Enums.TransactionType;
+
+/**
+ * Transaction entity from the API (extends Prisma Transaction)
+ * Dates are ISO strings from API responses
+ */
+export interface Transaction extends Omit<PrismaTransaction, 'createdAt' | 'updatedAt'> {
+  createdAt: string;  // ISO string from API
+  updatedAt: string;  // ISO string from API
   portfolio?: {
     currencyCode: string;
-    currency?: {
-      code: string;
-      name: string;
-      symbol: string;
-    };
+    currency?: Currency;
   };
 }

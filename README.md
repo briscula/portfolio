@@ -229,3 +229,4 @@ Matteo Briscula
 ---
 
 **Built with** [Turborepo](https://turbo.build/repo) • [Next.js](https://nextjs.org) • [NestJS](https://nestjs.com) • [Prisma](https://prisma.io)
+

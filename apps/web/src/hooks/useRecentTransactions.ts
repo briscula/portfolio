@@ -41,8 +41,10 @@ function transactionToActivityItem(transaction: Transaction): ActivityItem {
         return `Sold ${transaction.stockSymbol}`;
       case 'TAX':
         return `Tax on ${transaction.stockSymbol}`;
-      case 'SPLIT':
-        return `${transaction.stockSymbol} Stock Split`;
+      case 'CASH_DEPOSIT':
+        return `Cash Deposit`;
+      case 'CASH_WITHDRAWAL':
+        return `Cash Withdrawal`;
       default:
         return `${transaction.stockSymbol} Transaction`;
     }
@@ -51,15 +53,17 @@ function transactionToActivityItem(transaction: Transaction): ActivityItem {
   const getAmount = (transaction: Transaction): string => {
     switch (transaction.type) {
       case 'DIVIDEND':
-        return `$${Math.abs(transaction.amount).toFixed(2)}`;
+        return `$${Math.abs(transaction.cost).toFixed(2)}`;
       case 'BUY':
-        return `${transaction.quantity} shares • $${Math.abs(transaction.amount).toFixed(2)}`;
+        return `${transaction.quantity} shares • $${Math.abs(transaction.cost).toFixed(2)}`;
       case 'SELL':
-        return `${transaction.quantity} shares • $${Math.abs(transaction.amount).toFixed(2)}`;
+        return `${transaction.quantity} shares • $${Math.abs(transaction.cost).toFixed(2)}`;
       case 'TAX':
-        // Use amount field for tax amount if tax field is 0
-        const taxAmount = transaction.tax !== 0 ? transaction.tax : transaction.amount;
-        return `$${Math.abs(taxAmount).toFixed(2)}`;
+        // Use tax field for tax amount
+        return `$${Math.abs(transaction.tax).toFixed(2)}`;
+      case 'CASH_DEPOSIT':
+      case 'CASH_WITHDRAWAL':
+        return `$${Math.abs(transaction.cost).toFixed(2)}`;
       default:
         return `${transaction.quantity} shares`;
     }

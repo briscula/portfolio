@@ -180,7 +180,7 @@ export class PortfoliosController {
     @Param('id') portfolioId: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
-  ) {
+  ): Promise<any> {
     const userId = await AuthUtils.getUserIdFromToken(req, this.usersService);
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 50;
@@ -218,7 +218,7 @@ export class PortfoliosController {
     @Request() req: any,
     @Param('id') portfolioId: string,
     @Body() createTransactionDto: CreateTransactionDto,
-  ) {
+  ): Promise<any> {
     const userId = await AuthUtils.getUserIdFromToken(req, this.usersService);
 
     // Override the portfolioId in the DTO to match the URL parameter

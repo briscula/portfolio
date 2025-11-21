@@ -57,7 +57,8 @@ export class TransactionService {
       case 'SELL':
         return 'stock_removed';
       case 'TAX':
-      case 'SPLIT':
+      case 'CASH_DEPOSIT':
+      case 'CASH_WITHDRAWAL':
       default:
         return 'stock_added'; // fallback
     }
@@ -76,35 +77,36 @@ export class TransactionService {
         return `Sold ${stockSymbol}`;
       case 'TAX':
         return `Tax on ${stockSymbol}`;
-      case 'SPLIT':
-        return `${stockSymbol} Stock Split`;
+      case 'CASH_DEPOSIT':
+        return `Cash Deposit`;
+      case 'CASH_WITHDRAWAL':
+        return `Cash Withdrawal`;
       default:
         return `${stockSymbol} Transaction`;
     }
   }
 
   getAmount(transaction: Transaction): string {
-    const { type, quantity, amount, tax, portfolio } = transaction;
+    const { type, quantity, cost, tax, portfolio } = transaction;
     const currencyCode = portfolio?.currencyCode || 'USD';
 
     switch (type) {
       case 'DIVIDEND':
         // Show absolute value for dividends
-        return formatCurrency(amount, currencyCode);
+        return formatCurrency(cost, currencyCode);
 
       case 'BUY':
       case 'SELL':
         // Show shares and total amount
-        return `${quantity} shares • ${formatCurrency(amount, currencyCode)}`;
+        return `${quantity} shares • ${formatCurrency(cost, currencyCode)}`;
 
       case 'TAX':
-        // Use tax field if available, otherwise use amount field
-        const taxAmount = tax !== 0 ? tax : amount;
-        return formatCurrency(taxAmount, currencyCode);
+        // Use tax field for tax amount
+        return formatCurrency(tax, currencyCode);
 
-      case 'SPLIT':
-        // For stock splits, just show the number of shares
-        return `${quantity} shares`;
+      case 'CASH_DEPOSIT':
+      case 'CASH_WITHDRAWAL':
+        return formatCurrency(cost, currencyCode);
 
       default:
         return `${quantity} shares`;
@@ -150,17 +152,16 @@ export class TransactionService {
     transactions.forEach(transaction => {
       switch (transaction.type) {
         case 'BUY':
-          totalBuys += Math.abs(transaction.amount);
+          totalBuys += Math.abs(transaction.cost);
           break;
         case 'SELL':
-          totalSells += Math.abs(transaction.amount);
+          totalSells += Math.abs(transaction.cost);
           break;
         case 'DIVIDEND':
-          totalDividends += Math.abs(transaction.amount);
+          totalDividends += Math.abs(transaction.cost);
           break;
         case 'TAX':
-          const taxAmount = transaction.tax !== 0 ? transaction.tax : transaction.amount;
-          totalTax += Math.abs(taxAmount);
+          totalTax += Math.abs(transaction.tax);
           break;
       }
     });

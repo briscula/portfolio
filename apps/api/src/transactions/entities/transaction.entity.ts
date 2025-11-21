@@ -1,4 +1,4 @@
-import { $Enums, Transaction } from '@prisma/client';
+import { $Enums, Transaction } from '@repo/database';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TransactionEntity implements Transaction {

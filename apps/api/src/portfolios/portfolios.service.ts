@@ -3,6 +3,7 @@ import { CreatePortfolioDto } from './dto/create-portfolio.dto';
 import { UpdatePortfolioDto } from './dto/update-portfolio.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { CurrencyDto } from './dto/currency.dto';
+import { Portfolio } from '@repo/database';
 
 @Injectable()
 export class PortfoliosService {
@@ -65,7 +66,10 @@ export class PortfoliosService {
     };
   }
 
-  create(createPortfolioDto: CreatePortfolioDto, userId: string) {
+  async create(
+    createPortfolioDto: CreatePortfolioDto,
+    userId: string,
+  ): Promise<Portfolio> {
     const { name, description } = createPortfolioDto;
 
     return this.prisma.portfolio.create({

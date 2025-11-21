@@ -11,10 +11,9 @@ coverage/
 .next/
 out/
 build
-dist/
 
 # NestJS
-dist/
+# Note: dist/ is committed for Vercel deployment
 
 # Production
 build
