@@ -2,13 +2,14 @@ const fs = require('fs');
 const path = require('path');
 
 /**
- * Copy workspace dependencies into dist/node_modules for Vercel serverless deployment
+ * Copy workspace dependencies to node_modules for Vercel serverless deployment
  * This ensures @repo/database and other workspace packages are available at runtime
  * and avoids symlink issues that cause "invalid deployment package" errors
  */
 
-const distDir = path.join(__dirname, '../dist');
-const nodeModulesDir = path.join(distDir, 'node_modules');
+// Copy to the app's node_modules, not dist/node_modules
+const apiDir = path.join(__dirname, '..');
+const nodeModulesDir = path.join(apiDir, 'node_modules');
 const repoDir = path.join(nodeModulesDir, '@repo');
 
 // Create directories
@@ -78,3 +79,22 @@ if (fs.existsSync(sharedSrc)) {
 
 console.log('✅ Workspace dependencies copied successfully!');
 console.log(`   Location: ${repoDir}`);
+
+// Verify the copy was successful
+const databasePackageJson = path.join(repoDir, 'database', 'package.json');
+if (fs.existsSync(databasePackageJson)) {
+  console.log('✓ Verified: @repo/database/package.json exists');
+  const pkg = JSON.parse(fs.readFileSync(databasePackageJson, 'utf8'));
+  console.log(`  Main entry: ${pkg.main}`);
+} else {
+  console.error('✗ Error: @repo/database/package.json not found!');
+  process.exit(1);
+}
+
+// Verify Prisma client exists
+const prismaClient = path.join(repoDir, 'database', 'node_modules', '.prisma', 'client', 'index.js');
+if (fs.existsSync(prismaClient)) {
+  console.log('✓ Verified: Prisma client exists');
+} else {
+  console.warn('⚠ Warning: Prisma client not found at expected location');
+}
