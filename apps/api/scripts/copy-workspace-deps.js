@@ -4,6 +4,7 @@ const path = require('path');
 /**
  * Copy workspace dependencies into dist/node_modules for Vercel serverless deployment
  * This ensures @repo/database and other workspace packages are available at runtime
+ * and avoids symlink issues that cause "invalid deployment package" errors
  */
 
 const distDir = path.join(__dirname, '../dist');
@@ -18,23 +19,38 @@ if (!fs.existsSync(repoDir)) {
   fs.mkdirSync(repoDir, { recursive: true });
 }
 
-// Copy @repo/database
 console.log('📦 Copying workspace dependencies for Vercel deployment...');
 
-const databaseSrc = path.join(__dirname, '../../../packages/database');
-const databaseDest = path.join(repoDir, 'database');
-
-// Copy function
-function copyRecursiveSync(src, dest) {
+// Copy function that dereferences symlinks
+function copyRecursiveSync(src, dest, options = {}) {
   const exists = fs.existsSync(src);
-  const stats = exists && fs.statSync(src);
+  const stats = exists && fs.lstatSync(src); // Use lstatSync to detect symlinks
   const isDirectory = exists && stats.isDirectory();
+  const isSymlink = exists && stats.isSymbolicLink();
+
+  if (isSymlink) {
+    // Follow symlinks
+    const realPath = fs.realpathSync(src);
+    copyRecursiveSync(realPath, dest, options);
+    return;
+  }
 
   if (isDirectory) {
     if (!fs.existsSync(dest)) {
       fs.mkdirSync(dest, { recursive: true });
     }
     fs.readdirSync(src).forEach((childItemName) => {
+      // Skip node_modules in source (except .prisma)
+      if (childItemName === 'node_modules' && !src.includes('.prisma')) {
+        // Copy only .prisma from node_modules
+        const prismaPath = path.join(src, 'node_modules', '.prisma');
+        if (fs.existsSync(prismaPath)) {
+          const prismaDestPath = path.join(dest, 'node_modules', '.prisma');
+          console.log(`  ↳ Copying Prisma client from ${prismaPath}...`);
+          copyRecursiveSync(prismaPath, prismaDestPath);
+        }
+        return;
+      }
       copyRecursiveSync(
         path.join(src, childItemName),
         path.join(dest, childItemName)
@@ -45,7 +61,10 @@ function copyRecursiveSync(src, dest) {
   }
 }
 
-// Copy database package
+// Copy @repo/database
+const databaseSrc = path.join(__dirname, '../../../packages/database');
+const databaseDest = path.join(repoDir, 'database');
+
 console.log('  ↳ Copying @repo/database...');
 copyRecursiveSync(databaseSrc, databaseDest);
 
@@ -58,3 +77,4 @@ if (fs.existsSync(sharedSrc)) {
 }
 
 console.log('✅ Workspace dependencies copied successfully!');
+console.log(`   Location: ${repoDir}`);
