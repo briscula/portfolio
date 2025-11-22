@@ -1,5 +1,8 @@
 {
   "version": 2,
+  "buildCommand": "pnpm --filter @repo/database db:generate && pnpm build && node scripts/copy-workspace-deps.js",
+  "installCommand": "pnpm install --frozen-lockfile",
+  "outputDirectory": "dist",
   "builds": [
     {
       "src": "dist/main.js",
