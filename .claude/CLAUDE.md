@@ -148,6 +148,17 @@ import type { Portfolio, Transaction } from '@repo/database';
 - ⚠️ Always run `pnpm db:generate` after schema changes
 - ⚠️ All apps import from `@repo/database`, never from `@prisma/client`
 
+### Transaction Model Fields
+The Transaction model uses **amount-based naming** (not cost-based):
+- `amount` - The base transaction amount (quantity × price). Positive for BUY/DIVIDEND, negative for SELL
+- `totalAmount` - The total transaction amount including fees and taxes (amount + commission + tax)
+- `tax` - Tax paid for the transaction
+- `taxPercentage` - Tax percentage applied
+- `commission` - Commission/fees paid
+- `reference` - Optional transaction reference ID
+
+This naming convention is more semantically accurate across all transaction types (BUY, SELL, DIVIDEND, TAX, etc.).
+
 ### Running Prisma Commands
 
 Use the `--filter` flag to target the database package:
@@ -206,11 +217,30 @@ The backend (`apps/api/src/main.ts`) loads `.env` files in this order:
 3. Root `.env`
 4. `packages/database/.env`
 
-## 📚 App-Specific Documentation
+## 🏛️ Architecture Overview
 
-For detailed app-specific guidance, see:
-- **Backend**: `apps/api/.claude/CLAUDE.md`
-- **Frontend**: `apps/web/.claude/CLAUDE.md`
+### Backend API (NestJS)
+- **Location**: `apps/api/`
+- **Port**: 3000 (development)
+- **Key Features**:
+  - Multi-provider authentication (Auth0 + Email/Password)
+  - Stock investment tracking
+  - Transaction management (BUY, SELL, DIVIDEND, TAX, CASH_DEPOSIT, CASH_WITHDRAWAL)
+  - Dividend analytics and reporting
+  - Swagger documentation at `/api`
+
+### Frontend Web (Next.js)
+- **Location**: `apps/web/`
+- **Port**: 3001 (development)
+- **Framework**: Next.js 15 with App Router
+- **Key Features**:
+  - Portfolio dashboard
+  - Transaction management UI
+  - Dividend analytics visualizations
+  - Auth0 authentication
+  - Mock Service Worker (MSW) for development
+  - i18n support (en, es)
+- **Documentation**: See `apps/web/docs/` for architecture, features, and reports
 
 ## 🏛️ Architecture Decisions
 
@@ -280,12 +310,47 @@ git commit -m "feat: add new feature"
 git push origin claude/feature-name
 ```
 
+## 🚀 Turborepo & Performance
+
+### Turborepo Features Enabled
+- ✅ Task pipeline with dependencies (`^build` = build dependencies first)
+- ✅ Local caching (outputs cached in `.turbo/`)
+- ✅ Parallel execution across packages
+- ✅ Smart inputs for db:generate (only regenerates when schema changes)
+- ✅ Environment variable awareness for builds
+
+### Enable Remote Caching (Recommended)
+For 10-50x faster deployments:
+```bash
+pnpm dlx turbo login
+pnpm dlx turbo link
+```
+
+See `TURBOREPO_GUIDE.md` for complete optimization guide.
+
+## 📦 Deployment
+
+### Recommended: Separate Frontend & Backend
+Deploy as two separate Vercel projects for:
+- Independent scaling
+- Faster deployments (only deploy what changed)
+- Better resource usage
+- Isolated failures
+
+See `VERCEL_DEPLOYMENT.md` for complete deployment guide.
+
+### Database Package Fix for Vercel
+The `@repo/database` package uses bare imports (`.prisma/client`) that work correctly in both:
+- **Development**: Via pnpm symlinks
+- **Vercel**: Via `scripts/copy-workspace-deps.js` script that physically copies dependencies
+
 ## 📖 Additional Resources
 
-- **Migration History**: See `PRISMA_MIGRATION_FIXES.md` for Prisma consolidation details
-- **Setup Guide**: `SETUP.md`
-- **Deployment**: `DEPLOYMENT.md`
-- **Migration Log**: `MIGRATION.md`
+- **Turborepo Guide**: `TURBOREPO_GUIDE.md` - Maximize monorepo performance
+- **Deployment Guide**: `VERCEL_DEPLOYMENT.md` - Separate frontend/backend deployment
+- **Migration History**: `PRISMA_MIGRATION_FIXES.md` - Prisma consolidation details
+- **Setup Guide**: `SETUP.md` - Initial setup instructions
+- **Legacy Deployment**: `DEPLOYMENT.md` - Original deployment docs
 
 ## 💡 Development Tips
 
@@ -322,6 +387,19 @@ pnpm --filter @repo/web add package-name
 pnpm add -w package-name
 ```
 
+## 🔐 Authentication
+
+### Backend Auth Strategy
+- **Auth0 OAuth**: JWT validation using Auth0's JWKS (primary)
+- **Email/Password**: Local JWT signing (planned)
+- **Guard**: `UnifiedAuthGuard` in `apps/api/src/auth/`
+- **User Object**: Contains `userId`, `email`, `provider`, `providerSub`, `scopes`
+
+### Database Schema
+- `User` table - Core user data (UUID-based)
+- `UserAuthAccount` table - Provider-specific auth data (supports multiple providers per user)
+- `AuthProvider` enum - `AUTH0` | `EMAIL_PASSWORD`
+
 ## ✅ Pre-commit Checklist
 
 Before committing:
@@ -334,4 +412,8 @@ Before committing:
 
 ---
 
-**Need Help?** Check the app-specific CLAUDE.md files in `apps/api/.claude/` and `apps/web/.claude/` for detailed guidance on each application.
+**Latest Updates:**
+- Transaction model uses `amount`/`totalAmount` (not `cost`/`netCost`)
+- Database package fixed for Vercel deployment
+- Turborepo optimizations enabled
+- See `TURBOREPO_GUIDE.md` and `VERCEL_DEPLOYMENT.md` for deployment best practices
