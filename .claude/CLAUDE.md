@@ -1,426 +1,166 @@
-# Portfolio Monorepo - Claude Guide
+# Claude Code - Portfolio Monorepo
 
-This is a **Turborepo monorepo** containing a Next.js frontend and NestJS backend for portfolio management, with shared Prisma database schema and TypeScript configurations.
+**Claude Code specific instructions and settings.**
 
-## 🏗️ Monorepo Structure
+---
 
+## 🎯 Quick Start
+
+**Before coding, read these in order:**
+
+1. **[`AGENTS.md`](../AGENTS.md)** - Instructions for all AI agents
+2. **[`.docs/INDEX.md`](../.docs/INDEX.md)** - **Complete project documentation** (source of truth!)
+3. **This file** - Claude-specific guidelines
+
+**The `.docs/INDEX.md` contains everything:** commands, architecture, database schema, auth, deployment, troubleshooting, etc.
+
+---
+
+## 🤖 Claude Code Specific Guidelines
+
+### Tool Usage
+
+**File Operations:**
+- ✅ Use `Read`, `Edit`, `Write` tools for file operations
+- ❌ DON'T use bash commands (`cat`, `grep`, `sed`) for file operations
+- ✅ Use `Glob` for finding files by pattern
+- ✅ Use `Grep` for searching file contents
+
+**Exploration:**
+- ✅ Use `Task` tool with `subagent_type=Explore` for codebase exploration
+- ❌ DON'T run multiple grep/glob commands manually when exploring
+
+**Git Operations:**
+- ✅ Follow the Git Safety Protocol in tool descriptions
+- ✅ Create meaningful commit messages
+- ✅ Add Claude Code attribution footer to commits
+- ❌ NEVER run destructive git commands without user approval
+- ❌ NEVER skip hooks or force push to main/master
+
+### Communication Style
+
+- ✅ Be concise and direct
+- ✅ Use markdown for formatting
+- ✅ Output text directly (not via echo/bash)
+- ❌ DON'T use emojis unless user requests
+- ❌ DON'T use excessive validation or praise
+
+### Task Management
+
+- ✅ Use `TodoWrite` tool for complex multi-step tasks
+- ✅ Mark todos as completed immediately after finishing
+- ✅ Keep todo list updated and relevant
+- ❌ DON'T batch multiple completions
+
+---
+
+## 📋 Common Workflows
+
+### Database Schema Changes
 ```
-portfolio/
-├── apps/
-│   ├── web/              # Next.js 15 frontend (App Router)
-│   └── api/              # NestJS backend API
-├── packages/
-│   ├── database/         # Shared Prisma schema & client
-│   ├── shared/           # Shared utilities and types
-│   ├── typescript-config/# Shared TypeScript configs
-│   └── eslint-config/    # Shared ESLint configs
-├── .env.example          # Environment variable template
-├── package.json          # Root workspace config
-├── pnpm-workspace.yaml   # pnpm workspace definition
-└── turbo.json           # Turborepo pipeline config
-```
-
-## 🚀 Quick Start
-
-### Prerequisites
-- Node.js >= 18.0.0
-- pnpm >= 8.0.0
-- PostgreSQL database
-
-### Setup
-
-```bash
-# 1. Install dependencies
-pnpm install
-
-# 2. Set up environment variables
-cp .env.example .env
-# Edit .env with your DATABASE_URL and other secrets
-
-# 3. Generate Prisma client
-pnpm db:generate
-
-# 4. Run database migrations
-pnpm db:migrate
-
-# 5. (Optional) Seed database
-pnpm --filter @repo/database db:seed
-
-# 6. Start development servers
-pnpm dev
-```
-
-## 📦 Common Commands
-
-### Development
-```bash
-# Start all apps in development mode
-pnpm dev
-
-# Start specific app only
-pnpm --filter @repo/web dev      # Frontend only
-pnpm --filter @repo/api dev      # Backend only
-```
-
-### Building
-```bash
-# Build all apps and packages
-pnpm build
-
-# Build specific app
-pnpm --filter @repo/web build
-pnpm --filter @repo/api build
+1. Read packages/database/prisma/schema.prisma
+2. Make changes
+3. Run: pnpm db:generate
+4. Run: pnpm db:migrate
+5. Update affected services/DTOs
+6. Build and test
 ```
 
-### Database (Prisma)
-```bash
-# Generate Prisma client (after schema changes)
-pnpm db:generate
-
-# Create and apply migration
-pnpm db:migrate
-
-# Open Prisma Studio
-pnpm db:studio
-
-# Seed database
-pnpm --filter @repo/database db:seed
+### Adding API Endpoint
+```
+1. Read .docs/INDEX.md for backend architecture
+2. Create DTO
+3. Update service
+4. Update controller
+5. Add Swagger annotations
+6. Write tests
+7. Build and test
 ```
 
-### Testing & Quality
-```bash
-# Run all tests
-pnpm test
-
-# Type checking
-pnpm typecheck
-
-# Linting
-pnpm lint
-
-# Format code
-pnpm format
+### Fixing Build Errors
+```
+1. Run: pnpm typecheck (identify issues)
+2. If Prisma-related: pnpm db:generate
+3. Fix type errors
+4. Run: pnpm build
+5. Run: pnpm test
 ```
 
-### Clean
-```bash
-# Clean all build artifacts and node_modules
-pnpm clean
-```
+---
 
-## 🔧 Package References
+## ⚡ Critical Reminders
 
-### Workspace Packages
-
-All internal packages use `workspace:*` protocol:
-
-```json
-{
-  "dependencies": {
-    "@repo/database": "workspace:*",
-    "@repo/shared": "workspace:*",
-    "@repo/typescript-config": "workspace:*",
-    "@repo/eslint-config": "workspace:*"
-  }
-}
-```
-
-### Importing from Shared Packages
-
-**Backend (NestJS)**:
-```typescript
-import { PrismaClient, Prisma, User, Portfolio } from '@repo/database';
-```
-
-**Frontend (Next.js)**:
-```typescript
-import type { Portfolio, Transaction } from '@repo/database';
-```
-
-## 🗄️ Database Management
-
-### Single Source of Truth
+### Database
 - **Schema location**: `packages/database/prisma/schema.prisma`
-- **Migrations**: `packages/database/prisma/migrations/`
+- **Import from**: `@repo/database` (NEVER `@prisma/client`)
+- **After changes**: Always `pnpm db:generate`
 
-### Important Notes
-- ⚠️ Never create Prisma schema files in apps - use the shared package
-- ⚠️ Always run `pnpm db:generate` after schema changes
-- ⚠️ All apps import from `@repo/database`, never from `@prisma/client`
+### Transaction Model
+- **Use**: `amount`, `totalAmount`
+- **DON'T use**: `cost`, `netCost` (these are old field names)
 
-### Transaction Model Fields
-The Transaction model uses **amount-based naming** (not cost-based):
-- `amount` - The base transaction amount (quantity × price). Positive for BUY/DIVIDEND, negative for SELL
-- `totalAmount` - The total transaction amount including fees and taxes (amount + commission + tax)
-- `tax` - Tax paid for the transaction
-- `taxPercentage` - Tax percentage applied
-- `commission` - Commission/fees paid
-- `reference` - Optional transaction reference ID
+### Package Manager
+- **Use**: `pnpm` (not npm or yarn)
+- **Install packages**: `pnpm --filter @repo/web add package-name`
 
-This naming convention is more semantically accurate across all transaction types (BUY, SELL, DIVIDEND, TAX, etc.).
+### Turborepo
+- **Build**: `pnpm build` (caches automatically, only rebuilds changes)
+- **Dev**: `pnpm dev` (runs all apps in parallel)
+- **Clean cache**: `rm -rf .turbo && pnpm build`
 
-### Running Prisma Commands
+---
 
-Use the `--filter` flag to target the database package:
+## 📖 Documentation Reference
 
-```bash
-# Generate client
-pnpm --filter @repo/database db:generate
+**All documentation is in `.docs/INDEX.md` - that's your primary reference.**
 
-# Create migration
-pnpm --filter @repo/database db:migrate
+Quick links:
+- **Complete Overview**: [`.docs/INDEX.md`](../.docs/INDEX.md)
+- **Setup**: [`.docs/setup/SETUP.md`](../.docs/setup/SETUP.md)
+- **Turborepo**: [`.docs/setup/TURBOREPO_GUIDE.md`](../.docs/setup/TURBOREPO_GUIDE.md)
+- **Deployment**: [`.docs/deployment/VERCEL_DEPLOYMENT.md`](../.docs/deployment/VERCEL_DEPLOYMENT.md)
+- **Frontend Docs**: `apps/web/docs/`
 
-# Deploy migrations (production)
-pnpm --filter @repo/database prisma migrate deploy
+---
 
-# Open Prisma Studio
-pnpm --filter @repo/database db:studio
-```
+## ✅ Pre-Commit Checklist
 
-Or use root-level shortcuts:
-```bash
-pnpm db:generate
-pnpm db:migrate
-pnpm db:studio
-```
-
-## 🌍 Environment Variables
-
-### Structure
-- **Root** `.env` - Shared variables (DATABASE_URL, Auth0 config)
-- **Backend** `apps/api/.env` - Backend-specific overrides (optional)
-- **Frontend** `apps/web/.env.local` - Frontend-specific variables
-
-### Required Variables
-
-See `.env.example` for the complete list. Key variables:
-
-```env
-# Database
-DATABASE_URL="postgresql://user:password@host:5432/db"
-
-# Auth0
-AUTH0_DOMAIN="your-tenant.auth0.com"
-AUTH0_AUDIENCE="https://your-api-identifier.com"
-
-# Application
-NODE_ENV="development"
-PORT=3000
-LOG_LEVEL="debug"
-```
-
-### Loading Order
-
-The backend (`apps/api/src/main.ts`) loads `.env` files in this order:
-1. `apps/api/.env`
-2. `apps/.env`
-3. Root `.env`
-4. `packages/database/.env`
-
-## 🏛️ Architecture Overview
-
-### Backend API (NestJS)
-- **Location**: `apps/api/`
-- **Port**: 3000 (development)
-- **Key Features**:
-  - Multi-provider authentication (Auth0 + Email/Password)
-  - Stock investment tracking
-  - Transaction management (BUY, SELL, DIVIDEND, TAX, CASH_DEPOSIT, CASH_WITHDRAWAL)
-  - Dividend analytics and reporting
-  - Swagger documentation at `/api`
-
-### Frontend Web (Next.js)
-- **Location**: `apps/web/`
-- **Port**: 3001 (development)
-- **Framework**: Next.js 15 with App Router
-- **Key Features**:
-  - Portfolio dashboard
-  - Transaction management UI
-  - Dividend analytics visualizations
-  - Auth0 authentication
-  - Mock Service Worker (MSW) for development
-  - i18n support (en, es)
-- **Documentation**: See `apps/web/docs/` for architecture, features, and reports
-
-## 🏛️ Architecture Decisions
-
-### Why Turborepo?
-- Incremental builds with caching
-- Parallel task execution
-- Shared pipeline configuration
-
-### Why pnpm?
-- Efficient disk space usage
-- Fast installs
-- Better monorepo support than npm/yarn
-
-### Why Shared Prisma Package?
-- Single source of truth for database schema
-- Type safety across frontend and backend
-- No schema duplication
-- Easier to maintain and migrate
-
-### Package Organization
-- `apps/*` - Deployable applications (web, api)
-- `packages/*` - Shared libraries and configurations
-
-## 🚨 Common Issues
-
-### Prisma Client Not Found
-```bash
-# Solution: Generate the client
-pnpm db:generate
-```
-
-### Type Errors from @repo/database
-```bash
-# Solution: Ensure Prisma client is generated
-pnpm db:generate
-# Then rebuild
-pnpm build
-```
-
-### Changes Not Picked Up
-```bash
-# Solution: Clear Turbo cache
-rm -rf .turbo
-pnpm build
-```
-
-### Port Conflicts
-- Frontend runs on port 3001 by default
-- Backend runs on port 3000/4000 (check apps/api/.env)
-
-## 🔄 Git Workflow
-
-### Branch Protection
-- Pushes to `main` require specific branch naming
-- Feature branches: Use `claude/*` prefix for Claude Code work
-- Example: `claude/feature-name-sessionid`
-
-### Commits
-```bash
-# Stage changes
-git add .
-
-# Commit with descriptive message
-git commit -m "feat: add new feature"
-
-# Push to feature branch
-git push origin claude/feature-name
-```
-
-## 🚀 Turborepo & Performance
-
-### Turborepo Features Enabled
-- ✅ Task pipeline with dependencies (`^build` = build dependencies first)
-- ✅ Local caching (outputs cached in `.turbo/`)
-- ✅ Parallel execution across packages
-- ✅ Smart inputs for db:generate (only regenerates when schema changes)
-- ✅ Environment variable awareness for builds
-
-### Enable Remote Caching (Recommended)
-For 10-50x faster deployments:
-```bash
-pnpm dlx turbo login
-pnpm dlx turbo link
-```
-
-See `TURBOREPO_GUIDE.md` for complete optimization guide.
-
-## 📦 Deployment
-
-### Recommended: Separate Frontend & Backend
-Deploy as two separate Vercel projects for:
-- Independent scaling
-- Faster deployments (only deploy what changed)
-- Better resource usage
-- Isolated failures
-
-See `VERCEL_DEPLOYMENT.md` for complete deployment guide.
-
-### Database Package Fix for Vercel
-The `@repo/database` package uses bare imports (`.prisma/client`) that work correctly in both:
-- **Development**: Via pnpm symlinks
-- **Vercel**: Via `scripts/copy-workspace-deps.js` script that physically copies dependencies
-
-## 📖 Additional Resources
-
-See `.docs/` directory for comprehensive guides:
-
-### Setup & Getting Started
-- **Setup Guide**: `.docs/setup/SETUP.md` - Initial project setup
-- **Turborepo Guide**: `.docs/setup/TURBOREPO_GUIDE.md` - Performance optimization
-
-### Deployment
-- **Vercel Deployment**: `.docs/deployment/VERCEL_DEPLOYMENT.md` - Recommended approach
-- **Legacy Deployment**: `.docs/deployment/DEPLOYMENT.md` - Original deployment docs
-
-### Archive
-- **Migration History**: `.docs/archive/` - Monorepo migration documentation
-
-## 💡 Development Tips
-
-### Fast Feedback Loop
-```bash
-# Terminal 1: Frontend
-pnpm --filter @repo/web dev
-
-# Terminal 2: Backend
-pnpm --filter @repo/api dev
-
-# Terminal 3: Watch tests
-pnpm --filter @repo/web test:watch
-```
-
-### Debugging
-- Backend logs controlled by `LOG_LEVEL` env var
-- Frontend: Use React DevTools and browser console
-- Database: Use Prisma Studio (`pnpm db:studio`)
-
-### Adding New Packages
-
-**Internal Package**:
-1. Create in `packages/your-package/`
-2. Add `package.json` with `"name": "@repo/your-package"`
-3. Reference with `"@repo/your-package": "workspace:*"` in apps
-
-**External Package**:
-```bash
-# Install in specific app
-pnpm --filter @repo/web add package-name
-
-# Install in root (affects all)
-pnpm add -w package-name
-```
-
-## 🔐 Authentication
-
-### Backend Auth Strategy
-- **Auth0 OAuth**: JWT validation using Auth0's JWKS (primary)
-- **Email/Password**: Local JWT signing (planned)
-- **Guard**: `UnifiedAuthGuard` in `apps/api/src/auth/`
-- **User Object**: Contains `userId`, `email`, `provider`, `providerSub`, `scopes`
-
-### Database Schema
-- `User` table - Core user data (UUID-based)
-- `UserAuthAccount` table - Provider-specific auth data (supports multiple providers per user)
-- `AuthProvider` enum - `AUTH0` | `EMAIL_PASSWORD`
-
-## ✅ Pre-commit Checklist
-
-Before committing:
+Before completing tasks:
+- [ ] Read relevant documentation in `.docs/INDEX.md`
 - [ ] `pnpm build` succeeds
 - [ ] `pnpm typecheck` passes
 - [ ] `pnpm lint` passes
 - [ ] `pnpm test` passes
-- [ ] Environment variables not committed
-- [ ] No debugging code left in
+- [ ] No secrets committed
+- [ ] Git commit follows Safety Protocol
 
 ---
 
-**Latest Updates:**
-- Transaction model uses `amount`/`totalAmount` (not `cost`/`netCost`)
-- Database package fixed for Vercel deployment
-- Turborepo optimizations enabled
-- See `TURBOREPO_GUIDE.md` and `VERCEL_DEPLOYMENT.md` for deployment best practices
+## 🎓 Claude Code Best Practices
+
+### When Starting a New Task
+1. Read `.docs/INDEX.md` for context
+2. Use `Grep`/`Glob` to find relevant files
+3. Use `Read` to understand existing code
+4. Make changes
+5. Test thoroughly
+6. Create clear commit message
+
+### When Stuck
+1. Check `.docs/INDEX.md` Common Issues section
+2. Check git history for recent changes
+3. Read frontend docs in `apps/web/docs/`
+4. Use `Task` tool with `Explore` agent
+
+### When Making Breaking Changes
+1. Explain impact to user
+2. Update documentation
+3. Update tests
+4. Verify build passes
+5. Clear about migration steps if needed
+
+---
+
+**Remember**: `.docs/INDEX.md` is the source of truth. Reference it liberally, keep it updated.
+
+**Last Updated**: 2025-11-22
