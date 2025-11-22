@@ -54,11 +54,11 @@ __decorate([
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 1002.5 }),
     __metadata("design:type", Number)
-], TransactionEntity.prototype, "cost", void 0);
+], TransactionEntity.prototype, "amount", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 1008.49 }),
     __metadata("design:type", Number)
-], TransactionEntity.prototype, "netCost", void 0);
+], TransactionEntity.prototype, "totalAmount", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ example: 0 }),
     __metadata("design:type", Number)

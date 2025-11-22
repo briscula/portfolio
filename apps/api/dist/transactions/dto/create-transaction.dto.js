@@ -63,13 +63,13 @@ __decorate([
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
-], CreateTransactionDto.prototype, "cost", void 0);
+], CreateTransactionDto.prototype, "amount", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)(),
     (0, class_validator_1.IsNumber)(),
     (0, class_validator_1.Min)(0),
     __metadata("design:type", Number)
-], CreateTransactionDto.prototype, "netCost", void 0);
+], CreateTransactionDto.prototype, "totalAmount", void 0);
 __decorate([
     (0, swagger_1.ApiProperty)({ default: 0 }),
     (0, class_validator_1.IsOptional)(),

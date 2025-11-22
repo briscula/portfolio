@@ -9,8 +9,8 @@ export declare class TransactionEntity implements Transaction {
     commission: number;
     currencyCode: string;
     notes: string | null;
-    cost: number;
-    netCost: number;
+    amount: number;
+    totalAmount: number;
     tax: number;
     taxPercentage: number;
     reference: string | null;

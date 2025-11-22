@@ -7,8 +7,8 @@ export declare class CreateTransactionDto {
     commission?: number;
     currencyCode?: string;
     reference?: string;
-    cost: number;
-    netCost: number;
+    amount: number;
+    totalAmount: number;
     tax?: number;
     taxPercentage?: number;
     date?: Date;

@@ -71,11 +71,11 @@ let PositionsService = class PositionsService {
                 type: { in: ['BUY', 'SELL'] }
             },
             _sum: {
-                cost: true
+                amount: true
             }
         });
-        const netCost = result._sum.cost || 0;
-        return Math.abs(netCost);
+        const netAmount = result._sum.amount || 0;
+        return Math.abs(netAmount);
     }
     transformPositionsForResponse(positions) {
         return positions.map((position) => ({
@@ -154,7 +154,7 @@ let PositionsService = class PositionsService {
         }
         const allTransactions = await this.prisma.transaction.findMany({
             where: { portfolioId },
-            select: { type: true, stockSymbol: true, cost: true, createdAt: true }
+            select: { type: true, stockSymbol: true, amount: true, createdAt: true }
         });
         const skip = (page - 1) * limit;
         const positions = await this.prisma.transaction.groupBy({
@@ -165,7 +165,7 @@ let PositionsService = class PositionsService {
             },
             _sum: {
                 quantity: true,
-                cost: true
+                amount: true
             },
             _max: {
                 createdAt: true
@@ -177,7 +177,7 @@ let PositionsService = class PositionsService {
             positions: positions.map(p => ({
                 stockSymbol: p.stockSymbol,
                 quantity: p._sum.quantity,
-                cost: p._sum.cost
+                amount: p._sum.amount
             }))
         });
         const stockSymbols = positions.map(p => p.stockSymbol);
@@ -197,7 +197,7 @@ let PositionsService = class PositionsService {
                 companyName: stock?.companyName || position.stockSymbol,
                 sector: stock?.sector || null,
                 currentQuantity: position._sum.quantity || 0,
-                totalCost: position._sum.cost || 0,
+                totalCost: position._sum.amount || 0,
                 lastTransactionDate: position._max.createdAt,
                 portfolioName: portfolio.name
             };

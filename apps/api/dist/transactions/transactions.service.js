@@ -59,8 +59,8 @@ let TransactionsService = class TransactionsService {
                         createTransactionDto.stockSymbol +
                         ' ' +
                         createTransactionDto.quantity,
-                cost: createTransactionDto.cost,
-                netCost: createTransactionDto.netCost,
+                amount: createTransactionDto.amount,
+                totalAmount: createTransactionDto.totalAmount,
                 tax: createTransactionDto.tax || 0,
                 taxPercentage: createTransactionDto.taxPercentage || 0,
                 createdAt: createTransactionDto.date,

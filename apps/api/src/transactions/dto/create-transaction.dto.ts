@@ -48,12 +48,12 @@ export class CreateTransactionDto {
   @ApiProperty({ example: 100.25 })
   @IsNumber()
   @Min(0)
-  cost: number;
+  amount: number;
 
   @ApiProperty()
   @IsNumber()
   @Min(0)
-  netCost: number;
+  totalAmount: number;
 
   @ApiProperty({ default: 0 })
   @IsOptional()

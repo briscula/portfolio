@@ -10,7 +10,8 @@
         "dist/**",
         ".next/**",
         "!.next/cache/**"
-      ]
+      ],
+      "env": ["DATABASE_URL", "NODE_ENV"]
     },
     "dev": {
       "cache": false,
@@ -18,14 +19,17 @@
     },
     "test": {
       "dependsOn": ["^build"],
-      "outputs": ["coverage/**"]
+      "outputs": ["coverage/**"],
+      "cache": true
     },
     "lint": {
-      "outputs": []
+      "outputs": [],
+      "cache": true
     },
     "typecheck": {
       "dependsOn": ["^build"],
-      "outputs": []
+      "outputs": [],
+      "cache": true
     },
     "clean": {
       "cache": false
@@ -34,8 +38,9 @@
       "cache": false
     },
     "db:generate": {
-      "cache": false,
-      "outputs": ["node_modules/.prisma/**"]
+      "cache": true,
+      "outputs": ["node_modules/.prisma/**"],
+      "inputs": ["prisma/schema.prisma"]
     }
   }
 }
