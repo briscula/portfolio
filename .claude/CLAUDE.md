@@ -346,11 +346,18 @@ The `@repo/database` package uses bare imports (`.prisma/client`) that work corr
 
 ## 📖 Additional Resources
 
-- **Turborepo Guide**: `TURBOREPO_GUIDE.md` - Maximize monorepo performance
-- **Deployment Guide**: `VERCEL_DEPLOYMENT.md` - Separate frontend/backend deployment
-- **Migration History**: `PRISMA_MIGRATION_FIXES.md` - Prisma consolidation details
-- **Setup Guide**: `SETUP.md` - Initial setup instructions
-- **Legacy Deployment**: `DEPLOYMENT.md` - Original deployment docs
+See `.docs/` directory for comprehensive guides:
+
+### Setup & Getting Started
+- **Setup Guide**: `.docs/setup/SETUP.md` - Initial project setup
+- **Turborepo Guide**: `.docs/setup/TURBOREPO_GUIDE.md` - Performance optimization
+
+### Deployment
+- **Vercel Deployment**: `.docs/deployment/VERCEL_DEPLOYMENT.md` - Recommended approach
+- **Legacy Deployment**: `.docs/deployment/DEPLOYMENT.md` - Original deployment docs
+
+### Archive
+- **Migration History**: `.docs/archive/` - Monorepo migration documentation
 
 ## 💡 Development Tips
 
