@@ -1,16 +1,11 @@
 {
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && cd apps/api && pnpm build:standalone",
+  "version": 2,
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && cd apps/api && pnpm build && node scripts/copy-workspace-deps.js",
   "installCommand": "cd ../.. && pnpm install",
-  "builds": [
+  "rewrites": [
     {
-      "src": "standalone/index.js",
-      "use": "@vercel/node"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "standalone/index.js"
+      "source": "/(.*)",
+      "destination": "/api"
     }
   ]
 }
