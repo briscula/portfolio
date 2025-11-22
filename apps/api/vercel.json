@@ -1,4 +1,6 @@
 {
+  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && cd apps/api && pnpm build:standalone",
+  "installCommand": "cd ../.. && pnpm install",
   "builds": [
     {
       "src": "standalone/index.js",
