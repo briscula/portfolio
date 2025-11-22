@@ -120,6 +120,9 @@ importers:
       '@typescript-eslint/parser':
         specifier: ^6.21.0
         version: 6.21.0(eslint@8.57.1)(typescript@5.9.3)
+      '@vercel/ncc':
+        specifier: ^0.38.4
+        version: 0.38.4
       eslint:
         specifier: ^8.57.1
         version: 8.57.1
@@ -3801,6 +3804,11 @@ packages:
     requiresBuild: true
     dev: true
     optional: true
+
+  /@vercel/ncc@0.38.4:
+    resolution: {integrity: sha512-8LwjnlP39s08C08J5NstzriPvW1SP8Zfpp1BvC2sI35kPeZnHfxVkCwu4/+Wodgnd60UtT1n8K8zw+Mp7J9JmQ==}
+    hasBin: true
+    dev: true
 
   /@webassemblyjs/ast@1.14.1:
     resolution: {integrity: sha512-nuBEDgQfm1ccRp/8bCQrx1frohyufl4JlbMMZ4P1wpeOfDhF6FQkxZJ1b/e+PLwr6X1Nhw6OLme5usuBWYBvuQ==}
