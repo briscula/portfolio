@@ -1,7 +1,8 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database build && cd apps/api && pnpm build && node scripts/copy-workspace-deps.js",
+  "buildCommand": "cd ../.. && pnpm install && pnpm turbo build --filter=@repo/api... && cd apps/api && node scripts/copy-workspace-deps.js",
   "installCommand": "cd ../.. && pnpm install",
+  "outputDirectory": "apps/api",
   "builds": [
     {
       "src": "dist/main.js",
