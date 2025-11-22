@@ -1,6 +1,5 @@
 {
   "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && cd apps/api && pnpm build && node scripts/copy-workspace-deps.js",
   "builds": [
     {
       "src": "dist/main.js",
