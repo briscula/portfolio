@@ -53,17 +53,17 @@ function transactionToActivityItem(transaction: Transaction): ActivityItem {
   const getAmount = (transaction: Transaction): string => {
     switch (transaction.type) {
       case 'DIVIDEND':
-        return `$${Math.abs(transaction.cost).toFixed(2)}`;
+        return `$${Math.abs(transaction.amount).toFixed(2)}`;
       case 'BUY':
-        return `${transaction.quantity} shares • $${Math.abs(transaction.cost).toFixed(2)}`;
+        return `${transaction.quantity} shares • $${Math.abs(transaction.amount).toFixed(2)}`;
       case 'SELL':
-        return `${transaction.quantity} shares • $${Math.abs(transaction.cost).toFixed(2)}`;
+        return `${transaction.quantity} shares • $${Math.abs(transaction.amount).toFixed(2)}`;
       case 'TAX':
         // Use tax field for tax amount
         return `$${Math.abs(transaction.tax).toFixed(2)}`;
       case 'CASH_DEPOSIT':
       case 'CASH_WITHDRAWAL':
-        return `$${Math.abs(transaction.cost).toFixed(2)}`;
+        return `$${Math.abs(transaction.amount).toFixed(2)}`;
       default:
         return `${transaction.quantity} shares`;
     }

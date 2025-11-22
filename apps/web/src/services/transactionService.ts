@@ -87,18 +87,18 @@ export class TransactionService {
   }
 
   getAmount(transaction: Transaction): string {
-    const { type, quantity, cost, tax, portfolio } = transaction;
+    const { type, quantity, amount, tax, portfolio } = transaction;
     const currencyCode = portfolio?.currencyCode || 'USD';
 
     switch (type) {
       case 'DIVIDEND':
         // Show absolute value for dividends
-        return formatCurrency(cost, currencyCode);
+        return formatCurrency(amount, currencyCode);
 
       case 'BUY':
       case 'SELL':
         // Show shares and total amount
-        return `${quantity} shares • ${formatCurrency(cost, currencyCode)}`;
+        return `${quantity} shares • ${formatCurrency(amount, currencyCode)}`;
 
       case 'TAX':
         // Use tax field for tax amount
@@ -106,7 +106,7 @@ export class TransactionService {
 
       case 'CASH_DEPOSIT':
       case 'CASH_WITHDRAWAL':
-        return formatCurrency(cost, currencyCode);
+        return formatCurrency(amount, currencyCode);
 
       default:
         return `${quantity} shares`;
@@ -152,13 +152,13 @@ export class TransactionService {
     transactions.forEach(transaction => {
       switch (transaction.type) {
         case 'BUY':
-          totalBuys += Math.abs(transaction.cost);
+          totalBuys += Math.abs(transaction.amount);
           break;
         case 'SELL':
-          totalSells += Math.abs(transaction.cost);
+          totalSells += Math.abs(transaction.amount);
           break;
         case 'DIVIDEND':
-          totalDividends += Math.abs(transaction.cost);
+          totalDividends += Math.abs(transaction.amount);
           break;
         case 'TAX':
           totalTax += Math.abs(transaction.tax);
