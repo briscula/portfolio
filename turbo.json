@@ -1,46 +1,40 @@
 {
-  "$schema": "https://turbo.build/schema.json",
-  "globalDependencies": [
-    "**/.env.*local"
-  ],
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [
-        "dist/**",
-        ".next/**",
-        "!.next/cache/**"
+      "env": [
+        // env vars will impact hashes of all "build" tasks
+        "SOME_ENV_VAR"
       ],
-      "env": ["DATABASE_URL", "NODE_ENV"]
+      "outputs": ["dist/**"]
+    },
+    "web#build": {
+      // override settings for the "build" task for the "web" app
+      "dependsOn": ["^build"],
+      "env": ["SOME_OTHER_ENV_VAR"],
+      "outputs": [".next/**", "!.next/cache/**"]
+    },
+    "lint": {
+      "dependsOn": ["^lint"]
+    },
+    "check-types": {
+      "dependsOn": ["^check-types"]
     },
     "dev": {
       "cache": false,
       "persistent": true
     },
-    "test": {
-      "dependsOn": ["^build"],
-      "outputs": ["coverage/**"],
-      "cache": true
-    },
-    "lint": {
-      "outputs": [],
-      "cache": true
-    },
-    "typecheck": {
-      "dependsOn": ["^build"],
-      "outputs": [],
-      "cache": true
-    },
-    "clean": {
+    "db:generate": {
       "cache": false
     },
     "db:migrate": {
-      "cache": false
+      "cache": false,
+      "persistent": true
     },
-    "db:generate": {
-      "cache": true,
-      "outputs": ["node_modules/.prisma/**"],
-      "inputs": ["prisma/schema.prisma"]
+    "db:deploy": {
+      "cache": false
     }
   }
 }
