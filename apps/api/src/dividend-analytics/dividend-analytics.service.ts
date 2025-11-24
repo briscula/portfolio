@@ -64,40 +64,40 @@ export class DividendAnalyticsService {
     const whereClause =
       conditions.length > 0 ? conditions.join(' AND ') : '1=1';
 
-    const companySummaries = await this.prisma.$queryRawUnsafe<any[]>(
+    const companySummaries = (await this.prisma.$queryRawUnsafe(
       `WITH dividend_data AS (
-        SELECT 
+        SELECT
           t."stockSymbol",
           s."companyName",
           EXTRACT(YEAR FROM t."createdAt") as year,
-          SUM(CASE WHEN t."type" = 'DIVIDEND' THEN t."cost" ELSE 0 END) as total_dividends,
+          SUM(CASE WHEN t."type" = 'DIVIDEND' THEN t."amount" ELSE 0 END) as total_dividends,
           COUNT(CASE WHEN t."type" = 'DIVIDEND' THEN 1 END) as dividend_count,
-          SUM(CASE WHEN t."type" = 'BUY' THEN t."cost" ELSE 0 END) as total_cost
+          SUM(CASE WHEN t."type" = 'BUY' THEN t."amount" ELSE 0 END) as total_cost
         FROM "transaction" t
         LEFT JOIN "stock" s ON t."stockSymbol" = s."symbol"
         WHERE ${whereClause}
         GROUP BY t."stockSymbol", s."companyName", EXTRACT(YEAR FROM t."createdAt")
         HAVING COUNT(CASE WHEN t."type" = 'DIVIDEND' THEN 1 END) > 0
       )
-      SELECT 
+      SELECT
         "stockSymbol",
         "companyName",
         "year",
         "total_dividends",
         "dividend_count",
         "total_cost",
-        CASE 
+        CASE
           WHEN "total_cost" > 0 THEN ("total_dividends" / "total_cost") * 100
-          ELSE 0 
+          ELSE 0
         END as yield_on_cost,
-        CASE 
+        CASE
           WHEN "dividend_count" > 0 THEN "total_dividends" / "dividend_count"
-          ELSE 0 
+          ELSE 0
         END as avg_dividend_per_payment
       FROM dividend_data
       ORDER BY "stockSymbol", "year" DESC`,
       ...params,
-    );
+    )) as any[];
 
     return companySummaries.map((row: any) => ({
       stockSymbol: row.stockSymbol,
@@ -161,12 +161,12 @@ export class DividendAnalyticsService {
 
     const whereClause = conditions.join(' AND ');
 
-    const monthlyAggregates = await this.prisma.$queryRawUnsafe<any[]>(
-      `SELECT 
+    const monthlyAggregates = (await this.prisma.$queryRawUnsafe(
+      `SELECT
         EXTRACT(YEAR FROM "createdAt") as year,
         EXTRACT(MONTH FROM "createdAt") as month,
         TO_CHAR("createdAt", 'Month') as month_name,
-        SUM("cost") as total_dividends,
+        SUM("amount") as total_dividends,
         COUNT(*) as dividend_count,
         ARRAY_AGG(DISTINCT "stockSymbol") as companies
       FROM "transaction"
@@ -174,7 +174,7 @@ export class DividendAnalyticsService {
       GROUP BY EXTRACT(YEAR FROM "createdAt"), EXTRACT(MONTH FROM "createdAt"), TO_CHAR("createdAt", 'Month')
       ORDER BY year DESC, month DESC`,
       ...params,
-    );
+    )) as any[];
 
     // Group by month and create chart data
     const monthGroups = new Map<string, any[]>();
@@ -208,7 +208,7 @@ export class DividendAnalyticsService {
     ];
 
     // Get all unique years
-    const years = [
+    const years: string[] = [
       ...new Set(monthlyAggregates.map((row: any) => row.year.toString())),
     ].sort();
 

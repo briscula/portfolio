@@ -1,9 +1,15 @@
 /**
  * Centralized position-related type definitions
+ *
+ * Note: Position is a computed/aggregate type (not a Prisma model)
+ * Backend calculates positions from Transaction data
  */
+
+import type { Stock } from '@repo/database';
 
 /**
  * Position entity representing a stock holding in a portfolio
+ * Computed from transactions on the backend
  */
 export interface Position {
   userId: number;
@@ -51,3 +57,8 @@ export interface PositionsResponse {
   data: Position[];
   pagination: PaginationInfo;
 }
+
+/**
+ * Re-export Stock type from Prisma for convenience
+ */
+export type { Stock };

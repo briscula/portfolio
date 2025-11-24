@@ -14,7 +14,7 @@ import { PrismaService } from '../prisma/prisma.service';
 export class TransactionsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createTransactionDto: CreateTransactionDto, userId: string) {
+  async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<any> {
     // Ensure portfolioId is provided
     if (!createTransactionDto.portfolioId) {
       throw new BadRequestException('Portfolio ID is required');
@@ -63,8 +63,8 @@ export class TransactionsService {
             createTransactionDto.stockSymbol +
             ' ' +
             createTransactionDto.quantity,
-        cost: createTransactionDto.cost,
-        netCost: createTransactionDto.netCost,
+        amount: createTransactionDto.amount,
+        totalAmount: createTransactionDto.totalAmount,
         tax: createTransactionDto.tax || 0,
         taxPercentage: createTransactionDto.taxPercentage || 0,
         createdAt: createTransactionDto.date,
@@ -79,7 +79,7 @@ export class TransactionsService {
     portfolioId: string,
     page: number = 1,
     limit: number = 50,
-  ) {
+  ): Promise<any> {
     const skip = (page - 1) * limit;
 
     return this.prisma.transaction.findMany({

@@ -1,4 +1,4 @@
-import { $Enums, Transaction } from '@prisma/client';
+import { $Enums, Transaction } from '@repo/database';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class TransactionEntity implements Transaction {
@@ -30,10 +30,10 @@ export class TransactionEntity implements Transaction {
   notes: string | null;
 
   @ApiProperty({ example: 1002.5 })
-  cost: number;
+  amount: number;
 
   @ApiProperty({ example: 1008.49 })
-  netCost: number;
+  totalAmount: number;
 
   @ApiProperty({ example: 0 })
   tax: number;

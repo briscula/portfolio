@@ -1,7 +1,6 @@
 import { ArgumentsHost, Catch, HttpStatus } from '@nestjs/common';
 import { BaseExceptionFilter } from '@nestjs/core';
-import { Prisma } from '@prisma/client';
-import { Response } from 'express';
+import { Prisma } from '@repo/database';
 
 // @Catch()
 // export class PrismaClientExceptionFilter<T> implements ExceptionFilter {
@@ -15,7 +14,7 @@ export class PrismaClientExceptionFilter extends BaseExceptionFilter {
     console.error(exception.message); // 3
 
     const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
+    const response = ctx.getResponse();
     const message = exception.message.replace(/\n/g, '');
 
     switch (exception.code) {

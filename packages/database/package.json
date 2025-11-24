@@ -2,9 +2,11 @@
   "name": "@repo/database",
   "version": "0.0.0",
   "private": true,
-  "main": "./src/index.ts",
-  "types": "./src/index.ts",
+  "main": "./dist/index.js",
+  "types": "./node_modules/.prisma/client/index.d.ts",
   "scripts": {
+    "build": "tsc",
+    "postinstall": "prisma generate",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",

@@ -57,7 +57,8 @@ export class TransactionService {
       case 'SELL':
         return 'stock_removed';
       case 'TAX':
-      case 'SPLIT':
+      case 'CASH_DEPOSIT':
+      case 'CASH_WITHDRAWAL':
       default:
         return 'stock_added'; // fallback
     }
@@ -76,8 +77,10 @@ export class TransactionService {
         return `Sold ${stockSymbol}`;
       case 'TAX':
         return `Tax on ${stockSymbol}`;
-      case 'SPLIT':
-        return `${stockSymbol} Stock Split`;
+      case 'CASH_DEPOSIT':
+        return `Cash Deposit`;
+      case 'CASH_WITHDRAWAL':
+        return `Cash Withdrawal`;
       default:
         return `${stockSymbol} Transaction`;
     }
@@ -98,13 +101,12 @@ export class TransactionService {
         return `${quantity} shares • ${formatCurrency(amount, currencyCode)}`;
 
       case 'TAX':
-        // Use tax field if available, otherwise use amount field
-        const taxAmount = tax !== 0 ? tax : amount;
-        return formatCurrency(taxAmount, currencyCode);
+        // Use tax field for tax amount
+        return formatCurrency(tax, currencyCode);
 
-      case 'SPLIT':
-        // For stock splits, just show the number of shares
-        return `${quantity} shares`;
+      case 'CASH_DEPOSIT':
+      case 'CASH_WITHDRAWAL':
+        return formatCurrency(amount, currencyCode);
 
       default:
         return `${quantity} shares`;
@@ -159,8 +161,7 @@ export class TransactionService {
           totalDividends += Math.abs(transaction.amount);
           break;
         case 'TAX':
-          const taxAmount = transaction.tax !== 0 ? transaction.tax : transaction.amount;
-          totalTax += Math.abs(taxAmount);
+          totalTax += Math.abs(transaction.tax);
           break;
       }
     });

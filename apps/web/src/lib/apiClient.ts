@@ -1,3 +1,5 @@
+'use client';
+
 import { useAuth } from '../contexts/AuthContext';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';

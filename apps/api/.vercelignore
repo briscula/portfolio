@@ -1,0 +1,12 @@
+!standalone
+node_modules
+.turbo
+coverage
+.env*
+!.env.example
+*.test.ts
+*.spec.ts
+test
+.git
+.vscode
+README.md

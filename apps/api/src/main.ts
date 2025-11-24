@@ -1,3 +1,19 @@
+// Load environment variables first (before any other imports)
+import * as dotenv from 'dotenv';
+import * as path from 'path';
+
+// Try to load .env from multiple locations (monorepo-friendly)
+const envPaths = [
+  path.resolve(__dirname, '../.env'), // apps/api/.env
+  path.resolve(__dirname, '../../.env'), // apps/.env
+  path.resolve(__dirname, '../../../.env'), // monorepo root
+  path.resolve(__dirname, '../../../packages/database/.env'), // packages/database/.env
+];
+
+for (const envPath of envPaths) {
+  dotenv.config({ path: envPath });
+}
+
 import { NestFactory, HttpAdapterHost, Reflector } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -25,6 +41,34 @@ async function bootstrap() {
     next();
   });
 
+  // Helper function to check if origin is allowed
+  const isOriginAllowed = (origin: string | undefined): boolean => {
+    if (!origin) return true; // Allow requests with no origin
+
+    // Exact matches (local development and production)
+    const allowedOrigins = [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://localhost:5173',
+      'http://localhost:8080',
+      'http://localhost:4200',
+      'https://portfolio.mcebox.com',
+      process.env.FRONTEND_URL,
+    ].filter(Boolean);
+
+    if (allowedOrigins.includes(origin)) {
+      return true;
+    }
+
+    // Pattern matches for preview/staging deployments
+    const allowedPatterns = [
+      /^https:\/\/.*\.mcebox\.com$/, // Any subdomain of mcebox.com
+      /^https:\/\/.*\.vercel\.app$/, // Vercel preview deployments
+    ];
+
+    return allowedPatterns.some((pattern) => pattern.test(origin));
+  };
+
   // Handle CORS preflight requests FIRST
   app.use((req, res, next) => {
     if (req.method === 'OPTIONS') {
@@ -41,18 +85,8 @@ async function bootstrap() {
       });
 
       const origin = req.headers.origin;
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:5173',
-        'http://localhost:8080',
-        'http://localhost:4200',
-        'https://portfolio.mcebox.com',
-        'https://preview.portfolio.mcebox.com',
-        process.env.FRONTEND_URL,
-      ].filter(Boolean);
 
-      if (allowedOrigins.includes(origin)) {
+      if (isOriginAllowed(origin)) {
         console.log(`✅ CORS preflight allowed for origin: ${origin}`);
         res.header('Access-Control-Allow-Origin', origin);
         res.header(
@@ -78,25 +112,8 @@ async function bootstrap() {
   app.enableCors({
     origin: (origin, callback) => {
       console.log(`🌐 CORS origin check: ${origin}`);
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:3001',
-        'http://localhost:5173', // Vite default
-        'http://localhost:8080', // Vue CLI default
-        'http://localhost:4200', // Angular default
-        'http://localhost:3000', // React default
-        'https://portfolio.mcebox.com', // Your production domain
-        'https://preview.portfolio.mcebox.com',
-        process.env.FRONTEND_URL, // From environment variable
-      ].filter(Boolean);
 
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        console.log('✅ CORS: No origin (allowed)');
-        return callback(null, true);
-      }
-
-      if (allowedOrigins.includes(origin)) {
+      if (isOriginAllowed(origin)) {
         console.log(`✅ CORS: Origin ${origin} is allowed`);
         return callback(null, true);
       } else {
@@ -148,14 +165,19 @@ async function bootstrap() {
   const { httpAdapter } = app.get(HttpAdapterHost);
   app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter));
 
+  await app.init();
+
   const port = process.env.PORT || 3000;
   await app.listen(port);
 
   const logger = new Logger('Bootstrap');
-  logger.log(`🚀 Application is running on: http://localhost:${port}`);
+  logger.log(`🚀 Portfolio API is running on: http://localhost:${port}`);
   logger.log(`📚 Swagger UI available at: http://localhost:${port}/api`);
   logger.debug(`🔧 Log level: ${process.env.LOG_LEVEL || 'log'}`);
   logger.debug(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(`✨ Monorepo deployment ready`);
+
+  return app;
 }
 
 function getLogLevels(): LogLevel[] {
@@ -182,4 +204,13 @@ function getLogLevels(): LogLevel[] {
   }
 }
 
-bootstrap();
+// For local development
+if (require.main === module) {
+  bootstrap();
+}
+
+// For Vercel serverless
+export default bootstrap;
+
+// Trigger new deployment
+
