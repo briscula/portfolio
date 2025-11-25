@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node ./scripts/copy-workspace-deps.js && pnpm --filter @repo/database db:generate && nest build && ncc build dist/main.js -o standalone",
+  "buildCommand": "pnpm run build",
   "installCommand": "pnpm install",
   "outputDirectory": "standalone",
   "framework": "nestjs",
