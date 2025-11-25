@@ -11,7 +11,7 @@
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch",
-    "vercel-build": "nest build",
+    "vercel-build": "pnpm --filter @repo/database db:generate && pnpm exec nest build && pnpm exec ncc build dist/main.js -o standalone",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
