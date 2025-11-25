@@ -1,13 +1,17 @@
 {
+  "version": 2,
   "buildCommand": "pnpm run build",
   "installCommand": "pnpm install",
-  "outputDirectory": "standalone",
-  "framework": "nestjs",
+  "builds": [
+    {
+      "src": "standalone/index.js",
+      "use": "@vercel/node"
+    }
+  ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "standalone/index.js",
-      "methods": ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"]
+      "dest": "standalone/index.js"
     }
   ]
 }
