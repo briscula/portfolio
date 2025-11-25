@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { $Enums } from '@prisma/client';
+import { $Enums } from '@repo/database';
 import {
   IsDateString,
   IsOptional,

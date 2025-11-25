@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Portfolio } from '@prisma/client';
+import { Portfolio } from '@repo/database';
 import { Exclude } from 'class-transformer';
 import { CurrencyDto } from '../dto/currency.dto';
 
