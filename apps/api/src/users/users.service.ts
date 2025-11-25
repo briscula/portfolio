@@ -1,6 +1,6 @@
 import { Injectable, ConflictException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { AuthProvider } from '@repo/database';
+import { AuthProvider, User } from '@repo/database';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -81,7 +81,7 @@ export class UsersService {
   }
 
   // Create new user with email/password
-  async create(userData: { name: string; email: string; password: string }) {
+  async create(userData: { name: string; email: string; password: string }): Promise<User> {
     // Check if user already exists
     const existingUser = await this.findByEmail(userData.email);
     if (existingUser) {

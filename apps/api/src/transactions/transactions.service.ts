@@ -9,12 +9,13 @@ import {
   PaginationMetaDto,
 } from './dto/paginated-transactions.dto';
 import { PrismaService } from '../prisma/prisma.service';
+import { Transaction } from '@repo/database';
 
 @Injectable()
 export class TransactionsService {
   constructor(private prisma: PrismaService) {}
 
-  async create(createTransactionDto: CreateTransactionDto, userId: string) {
+  async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<Transaction> {
     // Ensure portfolioId is provided
     if (!createTransactionDto.portfolioId) {
       throw new BadRequestException('Portfolio ID is required');
