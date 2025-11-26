@@ -1,21 +1,5 @@
 {
   "version": 2,
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm run vercel-build",
-  "outputDirectory": "apps/api/dist",
-  "builds": [
-    {
-      "src": "apps/api/dist/main.js",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["apps/api/dist/**", "node_modules/**"]
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "apps/api/dist/main.js"
-    }
-  ]
+  "buildCommand": "pnpm build --filter=api"
 }
