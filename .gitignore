@@ -42,6 +42,9 @@ yarn-error.log*
 # Turbo
 .turbo
 
+# TypeScript
+*.tsbuildinfo
+
 # Prisma
 *.db
 *.db-journal
@@ -62,4 +65,7 @@ Thumbs.db
 
 # Temporary migration files
 /tmp
+
+# Claude Code local settings
+.claude/settings.local.json
 

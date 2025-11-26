@@ -8,6 +8,8 @@ import AppLayout from '@/components/AppLayout';
 import { ActivityList, Button } from '@/components/ui';
 import { useTransactions } from '@/hooks/useTransactions';
 import { usePortfolios } from '@/hooks/usePortfolio';
+import { useApiClient } from '@/lib/apiClient';
+import { PlusIcon, PencilIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
 
 
