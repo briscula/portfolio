@@ -1,5 +1,5 @@
 {
   "version": 2,
   "installCommand": "pnpm install",
-  "buildCommand": "pnpm run build --filter=api"
+  "buildCommand": "pnpm --filter=api run build"
 }
