@@ -9,9 +9,8 @@
     "node": ">=22.x"
   },
   "scripts": {
-    "build": "nest build",
+    "build": "pnpm --filter \"@repo/database...\" build && nest build",
     "dev": "nest start --watch",
-    "vercel-build": "pnpm --filter \"@repo/database...\" build && nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
