@@ -1,7 +1,5 @@
 {
   "version": 2,
   "buildCommand": "cd ../.. && pnpm install && pnpm run build --filter=@repo/api",
-  "installCommand": "cd ../.. && pnpm install",
-  "framework": null,
-  "outputDirectory": "dist"
+  "installCommand": "cd ../.. && pnpm install"
 }
