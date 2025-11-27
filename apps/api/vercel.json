@@ -1,7 +1,4 @@
 {
-  "version": 2,
-  "buildCommand": "cd ../.. && pnpm install && pnpm --filter @repo/database build && pnpm --filter @repo/shared build",
-  "installCommand": "cd ../.. && pnpm install",
   "rewrites": [
     {
       "source": "/(.*)",
