@@ -100,8 +100,8 @@ GET /dividend-analytics/company-summaries?portfolioId=1&startYear=2023
 
 For accurate dividend analysis, ensure your transactions include:
 
-1. **Dividend Transactions**: Set `type: 'DIVIDEND'` with the dividend amount in `netCost`
-2. **Buy Transactions**: Set `type: 'BUY'` with the purchase cost in `netCost`
+1. **Dividend Transactions**: Set `type: 'DIVIDEND'` with the dividend amount in `amount`
+2. **Buy Transactions**: Set `type: 'BUY'` with the purchase cost in `amount`
 3. **Stock Information**: Ensure stocks are properly linked with company names
 
 ## Yield on Cost Calculation

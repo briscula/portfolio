@@ -141,10 +141,10 @@ model Transaction {
   currencyCode  String          @db.VarChar(10)
   /// Additional notes about the transaction.
   notes         String?
-  /// The total cost of the transaction (quantity * price).
-  cost          Float           @default(0)
-  /// The net cost of the transaction (cost + commission + tax).
-  netCost       Float           @default(0)
+  /// The total amount of the transaction (quantity * price).
+  amount        Float           @default(0)
+  /// The total amount including fees/taxes.
+  totalAmount   Float           @default(0)
   /// The tax paid for the transaction.
   tax           Float           @default(0)
   /// The tax percentage for the transaction.

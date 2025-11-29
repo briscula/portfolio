@@ -13,7 +13,7 @@ import { Transaction } from '@repo/database';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<Transaction> {
     // Ensure portfolioId is provided
@@ -60,12 +60,12 @@ export class TransactionsService {
         reference:
           createTransactionDto.reference ||
           createTransactionDto.date +
-            ' ' +
-            createTransactionDto.stockSymbol +
-            ' ' +
-            createTransactionDto.quantity,
-        cost: createTransactionDto.cost,
-        netCost: createTransactionDto.netCost,
+          ' ' +
+          createTransactionDto.stockSymbol +
+          ' ' +
+          createTransactionDto.quantity,
+        amount: createTransactionDto.amount,
+        totalAmount: createTransactionDto.totalAmount,
         tax: createTransactionDto.tax || 0,
         taxPercentage: createTransactionDto.taxPercentage || 0,
         createdAt: createTransactionDto.date,

@@ -11,7 +11,7 @@ import { DividendAnalyticsQueryDto } from './dto/dividend-analytics-query.dto';
 
 @Injectable()
 export class DividendAnalyticsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   async getCompanyDividendSummaries(
     userId: string,
@@ -70,9 +70,9 @@ export class DividendAnalyticsService {
           t."stockSymbol",
           s."companyName",
           EXTRACT(YEAR FROM t."createdAt") as year,
-          SUM(CASE WHEN t."type" = 'DIVIDEND' THEN t."cost" ELSE 0 END) as total_dividends,
+          SUM(CASE WHEN t."type" = 'DIVIDEND' THEN t."amount" ELSE 0 END) as total_dividends,
           COUNT(CASE WHEN t."type" = 'DIVIDEND' THEN 1 END) as dividend_count,
-          SUM(CASE WHEN t."type" = 'BUY' THEN t."cost" ELSE 0 END) as total_cost
+          SUM(CASE WHEN t."type" = 'BUY' THEN t."amount" ELSE 0 END) as total_cost
         FROM "transaction" t
         LEFT JOIN "stock" s ON t."stockSymbol" = s."symbol"
         WHERE ${whereClause}
@@ -166,7 +166,7 @@ export class DividendAnalyticsService {
         EXTRACT(YEAR FROM "createdAt") as year,
         EXTRACT(MONTH FROM "createdAt") as month,
         TO_CHAR("createdAt", 'Month') as month_name,
-        SUM("cost") as total_dividends,
+        SUM("amount") as total_dividends,
         COUNT(*) as dividend_count,
         ARRAY_AGG(DISTINCT "stockSymbol") as companies
       FROM "transaction"
@@ -217,12 +217,12 @@ export class DividendAnalyticsService {
     for (let month = 1; month <= 12; month++) {
       const monthKey = month.toString().padStart(2, '0');
       const monthIndex = month - 1;
-      
+
       // Create yearly data for this month across all years
       const yearlyData = years.map(year => {
         // Check if we have data for this month/year combination
         const existingData = monthGroups.get(monthKey)?.find(data => data.year === year);
-        
+
         if (existingData) {
           return existingData;
         } else {

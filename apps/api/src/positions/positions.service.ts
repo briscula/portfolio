@@ -7,7 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class PositionsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService) { }
 
   /**
    * Validate UUID format (supports both v4 and v7)
@@ -91,21 +91,21 @@ export class PositionsService {
       throw new NotFoundException('Portfolio not found or access denied.');
     }
 
-    // Calculate net portfolio value by summing all transaction costs (BUY = positive, SELL = negative)
+    // Calculate net portfolio value by summing all transaction amounts (BUY = positive, SELL = negative)
     const result = await this.prisma.transaction.aggregate({
-      where: { 
+      where: {
         portfolioId,
         type: { in: ['BUY', 'SELL'] }
       },
       _sum: {
-        cost: true
+        amount: true
       }
     });
-    
-    // Return the net cost (positive means net investment, negative means net proceeds)
+
+    // Return the net amount (positive means net investment, negative means net proceeds)
     // For percentage calculations, we want the absolute value of current holdings
-    const netCost = result._sum.cost || 0;
-    return Math.abs(netCost);
+    const netAmount = result._sum.amount || 0;
+    return Math.abs(netAmount);
   }
 
   /**
@@ -114,7 +114,7 @@ export class PositionsService {
   private transformPositionsForResponse(positions: any[]) {
     return positions.map((position) => ({
       ...position,
-      totalCost: Math.abs(position.totalCost),
+      totalAmount: Math.abs(position.totalAmount),
     }));
   }
 
@@ -124,12 +124,12 @@ export class PositionsService {
   private applyPercentages(positions: any[], totalValue: number) {
     return positions.map((position) => ({
       ...position,
-      totalCost: Math.abs(position.totalCost), // Ensure totalCost is positive for display
+      totalAmount: Math.abs(position.totalAmount), // Ensure totalCost is positive for display
       portfolioPercentage:
         totalValue > 0
           ? parseFloat(
-              ((Math.abs(position.totalCost) / totalValue) * 100).toFixed(2),
-            )
+            ((Math.abs(position.totalAmount) / totalValue) * 100).toFixed(2),
+          )
           : 0,
     }));
   }
@@ -152,8 +152,8 @@ export class PositionsService {
           bValue = b.portfolioPercentage;
           break;
         case 'totalCost':
-          aValue = Math.abs(a.totalCost);
-          bValue = Math.abs(b.totalCost);
+          aValue = Math.abs(a.totalAmount);
+          bValue = Math.abs(b.totalAmount);
           break;
         case 'totalDividends':
           aValue = a.totalDividends;
@@ -222,7 +222,7 @@ export class PositionsService {
     // Debug: Check what transactions exist for this portfolio
     const allTransactions = await this.prisma.transaction.findMany({
       where: { portfolioId },
-      select: { type: true, stockSymbol: true, cost: true, createdAt: true }
+      select: { type: true, stockSymbol: true, amount: true, createdAt: true }
     });
 
     const skip = (page - 1) * limit;
@@ -236,7 +236,7 @@ export class PositionsService {
       },
       _sum: {
         quantity: true,
-        cost: true
+        amount: true
       },
       _max: {
         createdAt: true
@@ -249,7 +249,7 @@ export class PositionsService {
       positions: positions.map(p => ({
         stockSymbol: p.stockSymbol,
         quantity: p._sum.quantity,
-        cost: p._sum.cost
+        cost: p._sum.amount
       }))
     });
 
@@ -270,13 +270,13 @@ export class PositionsService {
     // Transform aggregated data into position objects
     const allPositions = positions.map(position => {
       const stock = stockMap[position.stockSymbol];
-      
+
       return {
         stockSymbol: position.stockSymbol,
         companyName: stock?.companyName || position.stockSymbol,
         sector: stock?.sector || null,
         currentQuantity: position._sum.quantity || 0,
-        totalCost: position._sum.cost || 0, // Keep original sign for proper calculation
+        totalCost: position._sum.amount || 0, // Keep original sign for proper calculation
         lastTransactionDate: position._max.createdAt,
         portfolioName: portfolio.name
       };
@@ -305,7 +305,7 @@ export class PositionsService {
 
     // Calculate total portfolio value as sum of all current position values
     const totalPortfolioValue = filteredPositions.reduce((sum, position) => sum + Math.abs(position.totalCost), 0);
-    
+
     console.log('📊 Portfolio calculation debug:', {
       totalPositions: filteredPositions.length,
       totalPortfolioValue,

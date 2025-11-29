@@ -1,17 +1,6 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, IsOptional } from 'class-validator';
+import { createZodDto } from 'nestjs-zod';
+import { CreatePortfolioSchema, UpdatePortfolioSchema } from '../../common/schemas/portfolio.schema';
 
-export class CreatePortfolioDto {
-  @ApiProperty()
-  @IsString()
-  @IsNotEmpty()
-  name: string;
-
-  @ApiProperty()
-  description: string;
-
-  @ApiProperty({ required: false, default: 'USD' })
-  @IsString()
-  @IsOptional()
-  currencyCode?: string;
-}
+// Create DTO classes from Zod schemas for NestJS compatibility
+export class CreatePortfolioDto extends createZodDto(CreatePortfolioSchema) { }
+export class UpdatePortfolioDto extends createZodDto(UpdatePortfolioSchema) { }

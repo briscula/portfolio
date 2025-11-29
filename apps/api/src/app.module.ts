@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { PrismaModule } from './prisma/prisma.module';
 import { TransactionsModule } from './transactions/transactions.module';
 import { UsersModule } from './users/users.module';
@@ -9,6 +10,9 @@ import { PositionsModule } from './positions/positions.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
     PrismaModule,
     TransactionsModule,
     UsersModule,
@@ -18,4 +22,4 @@ import { PositionsModule } from './positions/positions.module';
     PositionsModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

@@ -3,7 +3,6 @@ import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import {
   ClassSerializerInterceptor,
-  ValidationPipe,
   Logger,
   LogLevel,
 } from '@nestjs/common';
@@ -109,7 +108,9 @@ async function bootstrap() {
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   });
 
-  app.useGlobalPipes(new ValidationPipe());
+  // Use Zod validation pipe for runtime type safety
+  const { ZodValidationPipe } = await import('nestjs-zod');
+  app.useGlobalPipes(new ZodValidationPipe());
   app.useGlobalInterceptors(new ClassSerializerInterceptor(app.get(Reflector)));
 
   const config = new DocumentBuilder()
