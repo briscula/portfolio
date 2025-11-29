@@ -3,5 +3,5 @@
   "buildCommand": "pnpm --filter=web build",
   "installCommand": "pnpm install --filter=web --ignore-scripts && pnpm --filter=@repo/database exec prisma generate",
   "outputDirectory": "apps/web/.next",
-  "framework": "nextjs"
+  "framework": null
 }

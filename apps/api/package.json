@@ -10,7 +10,7 @@
   },
   "scripts": {
     "build": "nest build",
-    "postinstall": "cd ../.. && pnpm --filter @repo/database build && pnpm --filter @repo/shared build && cd apps/api && npx tsc api/index.ts --outDir .vercel_build_output --module commonjs --esModuleInterop",
+    "_postinstall": "cd ../.. && pnpm --filter @repo/database build && pnpm --filter @repo/shared build && cd apps/api && npx tsc api/index.ts --outDir .vercel_build_output --module commonjs --esModuleInterop --experimentalDecorators --emitDecoratorMetadata",
     "dev": "nest start --watch",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",

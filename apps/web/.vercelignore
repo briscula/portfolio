@@ -1,0 +1,6 @@
+# Ignore changes outside of web and packages
+apps/api/**
+docs/**
+*.md
+!apps/web/**
+!packages/**
