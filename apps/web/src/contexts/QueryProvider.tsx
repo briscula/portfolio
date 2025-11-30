@@ -9,8 +9,36 @@ interface QueryProviderProps {
   children: React.ReactNode;
 }
 
+// Circuit breaker to prevent infinite redirect loops
+let isRedirecting = false;
+let redirectTimer: NodeJS.Timeout | null = null;
+
 export function QueryProvider({ children }: QueryProviderProps) {
   const router = useRouter();
+
+  const handleAuthError = React.useCallback(() => {
+    // Prevent multiple simultaneous redirects
+    if (isRedirecting) {
+      console.log('🚫 Redirect already in progress, skipping');
+      return;
+    }
+
+    isRedirecting = true;
+    console.warn('🔒 Session expired - redirecting to login');
+
+    // Clear any existing timer
+    if (redirectTimer) {
+      clearTimeout(redirectTimer);
+    }
+
+    // Reset the flag after 3 seconds to allow future redirects if needed
+    redirectTimer = setTimeout(() => {
+      isRedirecting = false;
+      redirectTimer = null;
+    }, 3000);
+
+    router.push('/api/auth/login');
+  }, [router]);
 
   const [queryClient] = React.useState(
     () =>
@@ -20,12 +48,9 @@ export function QueryProvider({ children }: QueryProviderProps) {
             staleTime: 60 * 1000,
             gcTime: 5 * 60 * 1000,
             refetchOnWindowFocus: false,
-            retry: (failureCount, error: any) => {
-              if (error?.message?.includes('Authentication') || error?.message?.includes('401')) {
-                return false;
-              }
-              return failureCount < 2;
-            },
+            refetchOnMount: false,
+            refetchOnReconnect: false,
+            retry: false, // Completely disable retries
           },
           mutations: {
             retry: false,
@@ -35,9 +60,10 @@ export function QueryProvider({ children }: QueryProviderProps) {
           onError: (error: any) => {
             if (error?.message?.includes('Authentication required') ||
                 error?.message?.includes('401') ||
-                error?.message?.includes('Authentication expired')) {
-              console.warn('🔒 Session expired - redirecting to login');
-              router.push('/api/auth/login');
+                error?.message?.includes('Authentication expired') ||
+                error?.message?.includes('prisma') ||
+                error?.message?.includes('database')) {
+              handleAuthError();
             }
           },
         }),
@@ -45,9 +71,10 @@ export function QueryProvider({ children }: QueryProviderProps) {
           onError: (error: any) => {
             if (error?.message?.includes('Authentication required') ||
                 error?.message?.includes('401') ||
-                error?.message?.includes('Authentication expired')) {
-              console.warn('🔒 Session expired - redirecting to login');
-              router.push('/api/auth/login');
+                error?.message?.includes('Authentication expired') ||
+                error?.message?.includes('prisma') ||
+                error?.message?.includes('database')) {
+              handleAuthError();
             }
           },
         }),
