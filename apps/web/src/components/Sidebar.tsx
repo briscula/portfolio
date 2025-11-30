@@ -80,6 +80,7 @@ export default function Sidebar({ isOpen, onClose }: SidebarProps) {
                   key={item.name}
                   href={item.href}
                   onClick={onClose}
+                  prefetch={false}
                   className={cn(
                     'group flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors duration-150',
                     isActive
