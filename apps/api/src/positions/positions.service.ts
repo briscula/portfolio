@@ -276,7 +276,7 @@ export class PositionsService {
         companyName: stock?.companyName || position.stockSymbol,
         sector: stock?.sector || null,
         currentQuantity: position._sum.quantity || 0,
-        totalCost: position._sum.amount || 0, // Keep original sign for proper calculation
+        totalAmount: position._sum.amount || 0, // Changed from totalCost to match frontend expectations
         lastTransactionDate: position._max.createdAt,
         portfolioName: portfolio.name
       };
@@ -287,7 +287,7 @@ export class PositionsService {
       positions: allPositions.map(p => ({
         stockSymbol: p.stockSymbol,
         currentQuantity: p.currentQuantity,
-        totalCost: p.totalCost
+        totalAmount: p.totalAmount
       }))
     });
 
@@ -299,17 +299,17 @@ export class PositionsService {
       remaining: filteredPositions.map(p => ({
         stockSymbol: p.stockSymbol,
         currentQuantity: p.currentQuantity,
-        totalCost: p.totalCost
+        totalAmount: p.totalAmount
       }))
     });
 
     // Calculate total portfolio value as sum of all current position values
-    const totalPortfolioValue = filteredPositions.reduce((sum, position) => sum + Math.abs(position.totalCost), 0);
+    const totalPortfolioValue = filteredPositions.reduce((sum, position) => sum + Math.abs(position.totalAmount), 0);
 
     console.log('📊 Portfolio calculation debug:', {
       totalPositions: filteredPositions.length,
       totalPortfolioValue,
-      positionCosts: filteredPositions.map(p => ({ symbol: p.stockSymbol, cost: Math.abs(p.totalCost) }))
+      positionCosts: filteredPositions.map(p => ({ symbol: p.stockSymbol, cost: Math.abs(p.totalAmount) }))
     });
 
     // Apply percentage calculations using the total value
