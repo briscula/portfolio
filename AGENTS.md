@@ -25,11 +25,14 @@ portfolio/
 
 ### Essential Documentation
 
-| Document | Purpose |
-|----------|---------|
-| [docs/SETUP.md](./docs/SETUP.md) | Development setup instructions |
-| [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Deployment guide for Vercel |
-| [docs/archive/MONOREPO_MIGRATION_GUIDE.md](./docs/archive/MONOREPO_MIGRATION_GUIDE.md) | Monorepo migration history (Archived) |
+The main entry point for all project documentation is the [**Documentation Index**](./docs/README.md).
+
+From there, you can find detailed information on:
+- **Setup & Deployment**: Get the project running locally or in production.
+- **Architecture**: Understand the structure of the `web` and `api` apps.
+- **Components & Features**: Deep-dive into specific parts of the applications.
+- **Product Requirements**: Read the PRD for the API.
+- **And more...**
 
 ## Development Commands
 
