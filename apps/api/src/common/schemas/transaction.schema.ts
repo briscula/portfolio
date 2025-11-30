@@ -12,7 +12,7 @@ export const TransactionTypeSchema = z.nativeEnum($Enums.TransactionType);
 export const CreateTransactionSchema = z.object({
     portfolioId: z.string().uuid().optional(),
     stockSymbol: z.string().max(10, 'Stock symbol must be 10 characters or less'),
-    quantity: z.number().positive('Quantity must be greater than 0'),
+    quantity: z.number(),
     price: z.number().positive('Price must be greater than 0'),
     commission: z.number().nonnegative('Commission cannot be negative').default(0),
     currencyCode: z.string().length(3).toUpperCase().default('USD'),
