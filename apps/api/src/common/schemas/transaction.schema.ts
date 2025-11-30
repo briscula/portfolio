@@ -13,7 +13,7 @@ export const CreateTransactionSchema = z.object({
     portfolioId: z.string().uuid().optional(),
     stockSymbol: z.string().max(10, 'Stock symbol must be 10 characters or less'),
     quantity: z.number(),
-    price: z.number().positive('Price must be greater than 0'),
+    price: z.number().nonnegative('Price cannot be negative'),
     commission: z.number().nonnegative('Commission cannot be negative').default(0),
     currencyCode: z.string().length(3).toUpperCase().default('USD'),
     reference: z.string().max(255).optional(),
