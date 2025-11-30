@@ -48,16 +48,9 @@ export function QueryProvider({ children }: QueryProviderProps) {
             staleTime: 60 * 1000,
             gcTime: 5 * 60 * 1000,
             refetchOnWindowFocus: false,
-            retry: (failureCount, error: any) => {
-              // Never retry authentication or database errors
-              if (error?.message?.includes('Authentication') ||
-                  error?.message?.includes('401') ||
-                  error?.message?.includes('prisma') ||
-                  error?.message?.includes('database')) {
-                return false;
-              }
-              return failureCount < 2;
-            },
+            refetchOnMount: false,
+            refetchOnReconnect: false,
+            retry: false, // Completely disable retries
           },
           mutations: {
             retry: false,
