@@ -9,7 +9,7 @@ interface QueryProviderProps {
   children: React.ReactNode;
 }
 
-// Circuit breaker to prevent infinite redirect loops and cascading queries
+// Circuit breaker to prevent infinite redirect loops
 let isRedirecting = false;
 let redirectTimer: NodeJS.Timeout | null = null;
 
@@ -24,18 +24,18 @@ export function QueryProvider({ children }: QueryProviderProps) {
     }
 
     isRedirecting = true;
-    console.warn('🔒 Auth/DB error detected - redirecting to login');
+    console.warn('🔒 Session expired - redirecting to login');
 
     // Clear any existing timer
     if (redirectTimer) {
       clearTimeout(redirectTimer);
     }
 
-    // Reset the flag after 5 seconds
+    // Reset the flag after 3 seconds to allow future redirects if needed
     redirectTimer = setTimeout(() => {
       isRedirecting = false;
       redirectTimer = null;
-    }, 5000);
+    }, 3000);
 
     router.push('/api/auth/login');
   }, [router]);
@@ -53,9 +53,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
               if (error?.message?.includes('Authentication') ||
                   error?.message?.includes('401') ||
                   error?.message?.includes('prisma') ||
-                  error?.message?.includes('database') ||
-                  error?.message?.includes('does not exist')) {
-                console.log('🛑 Stopping retries for auth/db error');
+                  error?.message?.includes('database')) {
                 return false;
               }
               return failureCount < 2;
@@ -66,33 +64,23 @@ export function QueryProvider({ children }: QueryProviderProps) {
           },
         },
         queryCache: new QueryCache({
-          onError: (error: any, query) => {
-            console.error('Query error:', error?.message, 'Query:', query.queryKey);
+          onError: (error: any) => {
             if (error?.message?.includes('Authentication required') ||
                 error?.message?.includes('401') ||
                 error?.message?.includes('Authentication expired') ||
                 error?.message?.includes('prisma') ||
-                error?.message?.includes('database') ||
-                error?.message?.includes('does not exist')) {
-
-              // Cancel ALL pending queries immediately
-              queryClient.cancelQueries();
+                error?.message?.includes('database')) {
               handleAuthError();
             }
           },
         }),
         mutationCache: new MutationCache({
           onError: (error: any) => {
-            console.error('Mutation error:', error?.message);
             if (error?.message?.includes('Authentication required') ||
                 error?.message?.includes('401') ||
                 error?.message?.includes('Authentication expired') ||
                 error?.message?.includes('prisma') ||
-                error?.message?.includes('database') ||
-                error?.message?.includes('does not exist')) {
-
-              // Cancel ALL pending queries immediately
-              queryClient.cancelQueries();
+                error?.message?.includes('database')) {
               handleAuthError();
             }
           },
