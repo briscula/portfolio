@@ -5,6 +5,9 @@ import { useUser } from '@auth0/nextjs-auth0/client';
 import { redirect, useParams } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
+
+// Force dynamic rendering - uses localStorage and Auth0
+export const dynamic = 'force-dynamic';
 import { usePortfolioSummary, Portfolio, Position, PaginationInfo } from '@/hooks/usePortfolio';
 import { useApiClient } from '@/lib/apiClient';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard, MetricCardsGrid, DollarSignIcon, TrendingUpIcon, TrendingDownIcon, Button } from '@/components/ui';

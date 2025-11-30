@@ -11,6 +11,9 @@ import { usePortfolios } from '@/hooks/usePortfolio';
 import { useApiClient } from '@/lib/apiClient';
 import { PlusIcon, PencilIcon, EyeIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
+// Force dynamic rendering - uses Auth0 and localStorage
+export const dynamic = 'force-dynamic';
+
 
 
 

@@ -6,6 +6,9 @@ import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { usePortfolios } from '@/hooks/usePortfolio';
 
+// Force dynamic rendering - uses localStorage
+export const dynamic = 'force-dynamic';
+
 export default function PortfolioRedirectPage() {
   const { user, isLoading } = useUser();
   const { portfolios, loading: portfoliosLoading } = usePortfolios();

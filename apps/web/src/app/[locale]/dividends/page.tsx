@@ -6,6 +6,10 @@ import { useEffect, useState } from 'react';
 import AppLayout from '@/components/AppLayout';
 import { usePortfolios } from '@/hooks/usePortfolio';
 
+// Force dynamic rendering to prevent static generation errors
+// This page uses localStorage which is not available during SSR
+export const dynamic = 'force-dynamic';
+
 export default function DividendsRedirectPage() {
   const { user, isLoading } = useUser();
   const { portfolios, loading: portfoliosLoading } = usePortfolios();
