@@ -4,3 +4,6 @@ next-env.d.ts
 
 # All other ignores are handled by root .gitignore
 .vercel
+
+# Temporary files
+tmp/
