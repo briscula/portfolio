@@ -136,6 +136,11 @@ export class ApiClient {
   }
 
   // Dividend methods
+  async getDividendSummary(portfolioId: string, period: 'last12Months' | 'allTime' = 'last12Months') {
+    const params = new URLSearchParams({ period });
+    return this.makeRequest(`/portfolios/${portfolioId}/dividends/summary?${params.toString()}`);
+  }
+
   async getDividendMonthlyOverview(portfolioId: string, startYear: number, endYear: number) {
     const params = new URLSearchParams({
       startYear: startYear.toString(),

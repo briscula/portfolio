@@ -1,5 +1,6 @@
 'use client';
 
+import React, { useEffect } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { redirect, useParams } from 'next/navigation';
 import Link from 'next/link';
@@ -18,6 +19,39 @@ export default function PortfolioDividendsPage() {
     const { portfolios, loading: portfoliosLoading, error: portfoliosError } = usePortfolios();
     const selectedPortfolio = portfolios.find(p => p.id === portfolioId);
     const { positions, loading: positionsLoading, error: positionsError } = usePositions(portfolioId);
+
+    // State for dividend summary
+    const [dividendSummary, setDividendSummary] = React.useState({
+        totalDividends: 0,
+        dividendYield: 0,
+        avgMonthlyDividends: 0,
+        totalCost: 0,
+        dividendCount: 0,
+        period: 'last12Months',
+    });
+    const [summaryLoading, setSummaryLoading] = React.useState(true);
+
+    // Fetch dividend summary
+    useEffect(() => {
+        const fetchDividendSummary = async () => {
+            if (!isAuthenticated || !portfolioId) {
+                setSummaryLoading(false);
+                return;
+            }
+
+            try {
+                setSummaryLoading(true);
+                const summary = await apiClient.getDividendSummary(portfolioId, 'last12Months');
+                setDividendSummary(summary as typeof dividendSummary);
+            } catch (error) {
+                console.error('Failed to fetch dividend summary:', error);
+            } finally {
+                setSummaryLoading(false);
+            }
+        };
+
+        fetchDividendSummary();
+    }, [isAuthenticated, portfolioId, apiClient]);
 
     if (isLoading) {
         return (
@@ -54,12 +88,6 @@ export default function PortfolioDividendsPage() {
             maximumFractionDigits: 2,
         }).format(amount);
     };
-
-    // Calculate dividend metrics from positions
-    const totalDividends = positions.reduce((sum, pos) => sum + pos.totalDividends, 0);
-    const totalCost = positions.reduce((sum, pos) => sum + Math.abs(pos.totalAmount || pos.totalCost || 0), 0);
-    const dividendYield = totalCost > 0 ? (totalDividends / totalCost) * 100 : 0;
-    const monthlyDividends = totalDividends / 12; // Rough estimate
 
     // Mock upcoming dividends for this portfolio
     const mockUpcomingDividends = [
@@ -124,35 +152,38 @@ export default function PortfolioDividendsPage() {
                 )}
 
                 {/* Dividend Metrics */}
-                {portfoliosLoading ? (
+                {summaryLoading ? (
                     <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-                        <p className="text-sm text-gray-600">Loading portfolio...</p>
+                        <p className="text-sm text-gray-600">Loading dividend summary...</p>
                     </div>
-                ) : selectedPortfolio ? (
+                ) : (
                     <MetricCardsGrid>
                         <MetricCard
                             title="Total Dividends Received"
-                            value={formatCurrency(totalDividends)}
+                            value={formatCurrency(dividendSummary.totalDividends)}
                             icon={DollarSignIcon}
                             iconColor="green"
+                            subtitle="Last 12 months"
                         />
 
                         <MetricCard
                             title="Dividend Yield"
-                            value={`${dividendYield.toFixed(2)}%`}
+                            value={`${dividendSummary.dividendYield.toFixed(2)}%`}
                             icon={PercentIcon}
                             iconColor="blue"
+                            subtitle="Yield on cost"
                         />
 
                         <MetricCard
                             title="Est. Monthly Dividends"
-                            value={formatCurrency(monthlyDividends)}
+                            value={formatCurrency(dividendSummary.avgMonthlyDividends)}
                             icon={CalendarIcon}
                             iconColor="purple"
+                            subtitle="Average per month"
                         />
                     </MetricCardsGrid>
-                ) : null}
+                )}
 
                 {/* Dividend Holdings Table */}
                 <Card>

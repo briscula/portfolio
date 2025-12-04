@@ -279,6 +279,34 @@ export class PortfoliosController {
     return this.portfoliosService.remove(id, userId);
   }
 
+  @Get(':id/dividends/summary')
+  @ApiOkResponse({
+    description: 'Dividend summary retrieved successfully',
+  })
+  @ApiOperation({
+    summary: 'Get dividend summary for portfolio',
+    description:
+      'Returns aggregated dividend metrics including total dividends, yield, and average monthly dividends',
+  })
+  @ApiQuery({
+    name: 'period',
+    required: false,
+    type: String,
+    description: 'Period for calculation: last12Months or allTime (default: last12Months)',
+  })
+  async getPortfolioDividendSummary(
+    @Param('id') portfolioId: string,
+    @Query('period') period?: 'last12Months' | 'allTime',
+    @Request() req?: any,
+  ) {
+    const userId = await AuthUtils.getUserIdFromToken(req, this.usersService);
+    return this.dividendAnalyticsService.getDividendSummary(
+      userId,
+      portfolioId,
+      period || 'last12Months',
+    );
+  }
+
   @Get(':id/dividends/monthly')
   @ApiOkResponse({
     description: 'Monthly dividend data retrieved successfully',

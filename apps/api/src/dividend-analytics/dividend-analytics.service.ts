@@ -8,6 +8,7 @@ import {
   DividendMonthlyChartDto,
 } from './dto/dividend-monthly-chart.dto';
 import { DividendAnalyticsQueryDto } from './dto/dividend-analytics-query.dto';
+import { DividendSummaryDto } from './dto/dividend-summary.dto';
 
 @Injectable()
 export class DividendAnalyticsService {
@@ -247,6 +248,103 @@ export class DividendAnalyticsService {
       months: monthNames,
       years,
       data: allMonths,
+    };
+  }
+
+  /**
+   * Get dividend summary for a portfolio
+   * Calculates total dividends, yield, and average monthly dividends for last 12 months
+   */
+  async getDividendSummary(
+    userId: string,
+    portfolioId: string,
+    period: 'last12Months' | 'allTime' = 'last12Months',
+  ): Promise<DividendSummaryDto> {
+    // Verify portfolio belongs to user
+    const portfolio = await this.prisma.portfolio.findFirst({
+      where: {
+        id: portfolioId,
+        userId: userId,
+      },
+    });
+
+    if (!portfolio) {
+      throw new Error('Portfolio not found or access denied.');
+    }
+
+    // Calculate date range for last 12 months
+    const now = new Date();
+    const twelveMonthsAgo = new Date(now);
+    twelveMonthsAgo.setMonth(now.getMonth() - 12);
+
+    // Build WHERE clause based on period
+    const dateFilter = period === 'last12Months'
+      ? { createdAt: { gte: twelveMonthsAgo } }
+      : {};
+
+    // Get total dividends for the period
+    const dividendResult = await this.prisma.transaction.aggregate({
+      where: {
+        portfolioId,
+        type: 'DIVIDEND',
+        ...dateFilter,
+      },
+      _sum: {
+        amount: true,
+      },
+      _count: true,
+    });
+
+    const totalDividends = Math.abs(dividendResult._sum.amount || 0);
+    const dividendCount = dividendResult._count || 0;
+
+    // Get total cost of dividend-paying positions
+    // We need to identify which stocks paid dividends and sum their costs
+    const dividendPayingStocks = await this.prisma.transaction.groupBy({
+      by: ['stockSymbol'],
+      where: {
+        portfolioId,
+        type: 'DIVIDEND',
+        ...dateFilter,
+      },
+    });
+
+    const stockSymbols = dividendPayingStocks.map(d => d.stockSymbol);
+
+    // Calculate total cost for these stocks
+    let totalCost = 0;
+    if (stockSymbols.length > 0) {
+      const positions = await this.prisma.transaction.groupBy({
+        by: ['stockSymbol'],
+        where: {
+          portfolioId,
+          stockSymbol: { in: stockSymbols },
+          type: { in: ['BUY', 'SELL'] },
+        },
+        _sum: {
+          amount: true,
+          quantity: true,
+        },
+      });
+
+      // Sum up costs for positions with current holdings
+      totalCost = positions
+        .filter(p => (p._sum.quantity || 0) > 0)
+        .reduce((sum, p) => sum + Math.abs(p._sum.amount || 0), 0);
+    }
+
+    // Calculate metrics
+    const dividendYield = totalCost > 0 ? (totalDividends / totalCost) * 100 : 0;
+    const monthsInPeriod = period === 'last12Months' ? 12 : (dividendCount > 0 ? 12 : 1);
+    const avgMonthlyDividends = totalDividends / monthsInPeriod;
+
+    return {
+      totalDividends: parseFloat(totalDividends.toFixed(2)),
+      dividendYield: parseFloat(dividendYield.toFixed(2)),
+      avgMonthlyDividends: parseFloat(avgMonthlyDividends.toFixed(2)),
+      totalCost: parseFloat(totalCost.toFixed(2)),
+      dividendCount,
+      period,
     };
   }
 }
