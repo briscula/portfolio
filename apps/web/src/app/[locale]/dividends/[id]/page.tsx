@@ -164,7 +164,6 @@ export default function PortfolioDividendsPage() {
                             value={formatCurrency(dividendSummary.totalDividends)}
                             icon={DollarSignIcon}
                             iconColor="green"
-                            subtitle="Last 12 months"
                         />
 
                         <MetricCard
@@ -172,7 +171,6 @@ export default function PortfolioDividendsPage() {
                             value={`${dividendSummary.dividendYield.toFixed(2)}%`}
                             icon={PercentIcon}
                             iconColor="blue"
-                            subtitle="Yield on cost"
                         />
 
                         <MetricCard
@@ -180,7 +178,6 @@ export default function PortfolioDividendsPage() {
                             value={formatCurrency(dividendSummary.avgMonthlyDividends)}
                             icon={CalendarIcon}
                             iconColor="purple"
-                            subtitle="Average per month"
                         />
                     </MetricCardsGrid>
                 )}
