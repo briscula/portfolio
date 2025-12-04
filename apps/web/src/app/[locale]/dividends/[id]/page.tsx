@@ -167,7 +167,7 @@ export default function PortfolioDividendsPage() {
                         />
 
                         <MetricCard
-                            title="Dividend Yield"
+                            title="Yield on Cost"
                             value={`${dividendSummary.dividendYield.toFixed(2)}%`}
                             icon={PercentIcon}
                             iconColor="blue"
