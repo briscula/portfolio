@@ -1,478 +1,273 @@
-# 🏗️ Portfolio Application - Architecture Guide
+# System Architecture
 
-This document provides a comprehensive architecture overview for engineers joining the dividend portfolio tracking application project.
+## Overview
 
-## 📋 Overview
+This is a **portfolio management application** built as a Turborepo monorepo. Users can authenticate, create multiple investment portfolios, track stock positions, record transactions, and visualize dividend income.
 
-This is a **dividend portfolio tracking application** built with modern web technologies. Users can authenticate via Auth0, create multiple investment portfolios, track stock positions, record transactions, and visualize dividend income over time.
-
----
-
-## 🛠️ Tech Stack
-
-### Core Framework
-- **Next.js 15** with App Router (React 19)
-- **TypeScript** for type safety
-- **Tailwind CSS** for styling
-
-### Authentication & APIs
-- **Auth0** (`@auth0/nextjs-auth0`) for authentication
-- REST API integration with JWT bearer tokens
-- API Base URL: `http://localhost:3000` (configurable via env)
-
-### Data Visualization
-- **@nivo/bar** and **recharts** for dividend charts
-
-### Testing
-- **Jest** with React Testing Library
-- **jest-axe** for accessibility testing
-- Configuration: `jest.config.js`, `jest.setup.js`
-
-### Development Tools
-- ESLint for code quality
-- Next.js Turbopack for faster dev builds (port 3001)
+> **💡 For detailed technical stack and development commands**, see [AGENTS.md](../../AGENTS.md) in the root directory.
 
 ---
 
-## 📁 Project Structure
+## Monorepo Structure
 
 ```
 portfolio/
-├── src/
-│   ├── app/                      # Next.js App Router
-│   │   ├── [locale]/            # Internationalized routes
-│   │   │   ├── dashboard/       # Main dashboard page
-│   │   │   ├── portfolio/       # Portfolio views
-│   │   │   │   └── [portfolioId]/  # Individual portfolio
-│   │   │   ├── dividends/       # Dividend tracking
-│   │   │   ├── login/           # Login page
-│   │   │   └── settings/        # User settings
-│   │   ├── api/                 # API routes
-│   │   │   └── auth/            # Auth0 endpoints
-│   │   ├── components/          # Layout components
-│   │   ├── layout.tsx           # Root layout
-│   │   ├── page.tsx             # Root redirect
-│   │   └── globals.css          # Global styles
-│   │
-│   ├── components/              # Reusable UI components
-│   │   ├── ui/                  # Base UI components
-│   │   ├── AppLayout.tsx        # Main app layout
-│   │   ├── Header.tsx           # Top navigation
-│   │   ├── Sidebar.tsx          # Side navigation
-│   │   ├── PortfolioTable.tsx   # Portfolio display
-│   │   └── __tests__/           # Component tests
-│   │
-│   ├── contexts/                # React Context providers
-│   │   └── AuthContext.tsx      # Auth state management
-│   │
-│   ├── hooks/                   # Custom React hooks
-│   │   ├── usePortfolio.ts      # Portfolio data fetching
-│   │   ├── useTransactions.ts   # Transaction data
-│   │   ├── usePagination.ts     # Pagination logic
-│   │   └── __tests__/           # Hook tests
-│   │
-│   ├── lib/                     # Utilities and helpers
-│   │   ├── api.ts               # Server-side API functions
-│   │   ├── apiClient.ts         # Client-side API class
-│   │   ├── translations/        # i18n JSON files
-│   │   ├── hooks/               # Translation hook
-│   │   └── utils.ts             # Helper functions
-│   │
-│   └── middleware.ts            # Next.js middleware (locale handling)
-│
-├── public/                      # Static assets
-├── scripts/                     # Build/utility scripts
-├── package.json
-├── tsconfig.json
-├── next.config.ts
-└── tailwind.config files
+├── apps/
+│   ├── web/          # Next.js 15 frontend (App Router)
+│   └── api/          # NestJS backend API
+├── packages/
+│   ├── database/     # Prisma schema and client
+│   ├── env/          # Shared environment variables
+│   ├── shared/       # Shared utilities and types
+│   └── typescript-config/
+└── docs/             # All documentation
 ```
 
 ---
 
-## 🔐 Authentication Architecture
+## Frontend (`apps/web`)
 
-### Flow
-1. **User visits the app** → Middleware checks authentication
-2. **Not authenticated** → Redirects to `/api/auth/login` (Auth0 Universal Login)
-3. **Auth0 callback** → Returns user to app with session
-4. **Token management** → AuthContext fetches and manages access tokens
+**Framework**: Next.js 15 with App Router
+**Key Features**:
+- Auth0 authentication
+- Internationalization (en, es)
+- Real-time portfolio tracking
+- Dividend visualization
+- Responsive design with Tailwind CSS v4
 
-### Key Components
+**Tech Stack**:
+- TypeScript, React 19, Tailwind CSS
+- React Query for data fetching
+- Jest + React Testing Library
 
-**AuthContext** (`src/contexts/AuthContext.tsx`):
-- Wraps the entire app (via `RootLayoutClient`)
-- Manages access token state
-- Handles token refresh automatically
-- Shows loading/error states
-- Auto-redirects on authentication failure
-
-**API Routes** (`src/app/api/auth/`):
-- `[...auth0]/route.ts` - Main Auth0 handler (login, logout, callback)
-- `token/route.ts` - Access token endpoint for API calls
-- `direct-token/route.ts` - Alternative token endpoint
-
-**Usage Pattern**:
-```typescript
-// In components
-const { user, isLoading } = useUser();
-const { accessToken, isAuthenticated, refreshToken } = useAuth();
-
-// In API calls
-const { apiClient, isLoading, isAuthenticated } = useApiClient();
-```
+**Key Routes**:
+- `/[locale]/dashboard` - Main dashboard with portfolio overview
+- `/[locale]/portfolio/[id]` - Individual portfolio details
+- `/[locale]/dividends` - Dividend tracking and analytics
+- `/api/auth/*` - Auth0 authentication endpoints
 
 ---
 
-## 🌍 Internationalization (i18n)
+## Backend (`apps/api`)
 
-### Implementation
-- **Supported locales**: English (`en`), Spanish (`es`)
-- **Route structure**: `/[locale]/dashboard`, `/[locale]/portfolio`, etc.
-- **Middleware** (`src/middleware.ts`): Automatically redirects to locale-prefixed URLs
-- **Translations**: JSON files in `src/lib/translations/` (en.json, es.json)
-- **Custom hook**: `useTranslation()` for accessing translations
+**Framework**: NestJS
+**Key Features**:
+- RESTful API with OpenAPI/Swagger docs
+- JWT authentication (Auth0)
+- PostgreSQL database with Prisma ORM
+- Transaction management
+- Portfolio and position calculations
 
-### How It Works
-1. Root page (`src/app/page.tsx`) detects browser language
-2. Redirects to appropriate locale (e.g., `/es/dashboard` or `/en/dashboard`)
-3. Middleware ensures all routes have a locale prefix
-4. Components use `useTranslation()` to get localized strings
+**Tech Stack**:
+- TypeScript, NestJS
+- Prisma ORM
+- Zod validation (via `nestjs-zod`)
+
+**Key Endpoints**:
+- `/api/portfolios` - Portfolio CRUD operations
+- `/api/transactions` - Transaction management
+- `/api/positions` - Portfolio positions and metrics
+- `/api/dividends` - Dividend analytics
 
 ---
 
-## 🔄 Data Flow & State Management
+## Database (`packages/database`)
 
-### Architecture Pattern: **Centralized API Client + Custom Hooks**
+**Database**: PostgreSQL (hosted on Neon)
+**ORM**: Prisma
 
+**Core Models**:
+- `User` - Authenticated users
+- `Portfolio` - Investment portfolios
+- `Transaction` - Financial transactions
+- `Stock` - Stock information
+- `Currency` - Currency types
+- `UserPosition` - Aggregated positions (view)
+
+> **📚 Detailed schema documentation**: See [Database Schema](./database-schema.md)
+
+---
+
+## Authentication Flow
+
+```mermaid
+sequenceDiagram
+    User->>Web App: Visit app
+    Web App->>Auth0: Redirect to login
+    Auth0->>User: Show login page
+    User->>Auth0: Authenticate
+    Auth0->>Web App: Callback with code
+    Web App->>Auth0: Exchange code for token
+    Auth0->>Web App: Return JWT token
+    Web App->>API: Request with JWT
+    API->>Auth0: Validate JWT
+    Auth0->>API: Token valid
+    API->>Web App: Return data
 ```
-User Action
-    ↓
-Component/Hook
-    ↓
-useApiClient() → ApiClient (with auth token)
-    ↓
-Backend API (authenticated with JWT)
-    ↓
-Response processed by hook
-    ↓
-State updated in component
-```
 
-### API Layer Structure
+**Implementation**:
+- **Frontend**: Auth0 SDK (`@auth0/nextjs-auth0`)
+- **Backend**: JWT validation with Auth0 public keys
+- **Token Management**: Automatic refresh and error handling
 
-**1. ApiClient Class** (`src/lib/apiClient.ts`):
-- Singleton instance managing all API calls
-- Automatic token injection
-- Built-in token refresh on 401 errors
-- Methods: `getPortfolios()`, `getPositions()`, `getTransactions()`, etc.
+> **📚 Detailed auth documentation**: See [API Authentication](./API_AUTHENTICATION.md)
 
-**2. useApiClient Hook**:
-- Connects ApiClient to AuthContext
-- Automatically updates token when auth state changes
-- Returns authenticated client instance
+---
 
-**3. Domain-Specific Hooks** (`src/hooks/`):
-- `usePortfolios()` - Fetch all portfolios
-- `usePortfolio(id)` - Fetch single portfolio
-- `usePositions(portfolioId)` - Fetch positions with pagination
-- `useTransactions()` - Fetch recent transactions
-- `useAddTransaction()` - Create new transactions
+## Data Flow
 
-**4. Legacy API Functions** (`src/lib/api.ts`):
-- Server-side functions using `getAccessToken()` from Auth0
-- Contains type definitions (Transaction, TransactionType)
-- All legacy API namespaces have been migrated to ApiClient
+### Frontend → Backend Communication
+
+1. **Component** calls custom hook (e.g., `usePortfolios()`)
+2. **Hook** uses `useApiClient()` to get authenticated client
+3. **ApiClient** sends HTTP request with JWT bearer token
+4. **NestJS API** validates token and processes request
+5. **Prisma** queries PostgreSQL database
+6. **Response** flows back through the stack to component
 
 ### State Management
-- **No Redux/Zustand** - Using React Context + Hooks
-- **AuthContext**: Global authentication state
-- **Component-level state**: Using useState/useEffect
-- **Server state caching**: Hooks handle loading/error/refetch logic
+
+- **Authentication**: React Context (`AuthContext`)
+- **Server State**: React Query (`@tanstack/react-query`)
+- **UI State**: React `useState` / `useReducer`
 
 ---
 
-## 🎨 Component Architecture
+## Key Features
 
-### Layout Hierarchy
-```
-RootLayout (app/layout.tsx)
-  └── RootLayoutClient
-      └── AuthProvider (AuthContext)
-          └── [locale] Layout (app/[locale]/layout.tsx)
-              └── AppLayout
-                  ├── Header (with user menu)
-                  ├── Sidebar (with navigation)
-                  └── Page Content
-```
+### 1. Multi-Portfolio Management
+- Users can create unlimited portfolios
+- Each portfolio tracks multiple stocks
+- Support for multiple currencies
+- Portfolio-level analytics and metrics
 
-### Component Categories
+### 2. Transaction Tracking
+- Buy, sell, dividend transactions
+- Tax tracking
+- Commission and fee tracking
+- Automatic position calculation
 
-**1. Layout Components**:
-- `AppLayout` - Main app shell (header + sidebar + content)
-- `Header` - Top bar with user menu and mobile toggle
-- `Sidebar` - Navigation menu
+### 3. Dividend Analytics
+- Historical dividend tracking
+- Dividend income visualization
+- Dividend yield calculations
+- Projected dividend income
 
-**2. Page Components** (in `app/[locale]/`):
-- `dashboard/page.tsx` - Main dashboard with portfolio list
-- `portfolio/[portfolioId]/page.tsx` - Individual portfolio view
-- `dividends/[id]/page.tsx` - Dividend details
+### 4. Internationalization
+- English and Spanish support
+- Locale-based routing (`/en/*`, `/es/*`)
+- Currency and date formatting
 
-**3. UI Components** (`components/ui/`):
-- `Button`, `Input`, `Card` - Base components
-- `ActivityList` - Recent transactions display
-- `MetricCard` - Summary statistics display
-- `Pagination` - Table pagination controls
-- `DividendCalendar` - Calendar view for dividends
-- `VirtualScrollTable` - Performance-optimized tables
-
-**4. Feature Components** (`components/`):
-- `PortfolioTable` - Main portfolio data table
-- `EnhancedPortfolioTable` - Advanced table with sorting/filtering
-- `AddPositionModal` - Transaction creation modal
-- `DividendProgressView` - Dividend visualization
-
-### Component Patterns
-
-**Client vs Server Components**:
-- All components with hooks/state use `'use client'` directive
-- API routes are server-side by default
-- Layout components are mostly client-side for interactivity
-
-**Error Handling**:
-- `ErrorBoundary` component wraps pages
-- `ErrorHandlerProvider` for global error context
-- `ErrorNotifications` for user-facing error messages
-
-**Responsive Design**:
-- Mobile-first Tailwind classes
-- `useResponsive()` hook for JS-based responsive logic
-- Sidebar collapses on mobile with overlay
+### 5. Accessibility
+- WCAG 2.1 AA compliance
+- Screen reader support
+- Keyboard navigation
+- High contrast mode support
 
 ---
 
-## 🧪 Testing Strategy
+## Development Workflow
 
-### Test Files Location
-- Component tests: `src/components/__tests__/`
-- Hook tests: `src/hooks/__tests__/`
-- Utility tests: `src/lib/__tests__/`
+### Local Development
 
-### Testing Libraries
-- **Jest** - Test runner
-- **React Testing Library** - Component testing
-- **jest-axe** - Accessibility testing
-- **@testing-library/user-event** - User interaction simulation
-
-### Test Commands
 ```bash
-npm test              # Run all tests
-npm run test:watch    # Watch mode
-npm run test:coverage # Coverage report
+# Install dependencies
+pnpm install
+
+# Start all apps (web + api)
+pnpm dev
+
+# Start specific app
+pnpm --filter @repo/web dev
+pnpm --filter @repo/api dev
 ```
 
-### Example Tests
-- `AccessibilityFeatures.test.tsx` - WCAG compliance
-- `EnhancedPortfolioTable.test.tsx` - Table functionality
-- `usePagination.test.ts` - Hook logic
-- `portfolio-metrics.test.ts` - Calculation accuracy
+### Database Migrations
 
----
-
-## 🚀 Development Setup
-
-### Environment Variables (`.env.local`)
-```env
-AUTH0_SECRET='your-secret-key'
-AUTH0_BASE_URL='http://localhost:3001'
-AUTH0_ISSUER_BASE_URL='https://YOUR_DOMAIN.auth0.com'
-AUTH0_CLIENT_ID='your-client-id'
-AUTH0_CLIENT_SECRET='your-client-secret'
-AUTH0_AUDIENCE='your-api-audience'
-NEXT_PUBLIC_API_BASE_URL='http://localhost:3000'
-```
-
-### Commands
 ```bash
-npm install           # Install dependencies
-npm run dev           # Start dev server (port 3001)
-npm run build         # Build for production
-npm start             # Start production server
-npm run lint          # Run ESLint
+# Create and apply migration
+pnpm --filter @repo/database db:migrate
+
+# Open Prisma Studio
+pnpm --filter @repo/database db:studio
 ```
 
-### Key Configuration Files
-- `next.config.ts` - Next.js configuration
-- `tsconfig.json` - TypeScript settings (ES2017 target)
-- `eslint.config.mjs` - Linting rules
-- `postcss.config.mjs` - PostCSS/Tailwind config
-- `jest.config.js` - Test configuration
+### Testing
 
----
+```bash
+# Run all tests
+pnpm test
 
-## 🎯 Key Patterns & Conventions
+# Type checking
+pnpm typecheck
 
-### 1. **No Code Comments Policy**
-- Code should be self-documenting
-- Only copy existing comments when modifying code
-- Use meaningful variable/function names instead
-
-### 2. **Pagination Pattern**
-```typescript
-interface PaginationInfo {
-  page: number;
-  limit: number;
-  total: number;
-  totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
-}
-```
-- Used consistently across all list endpoints
-- Hooks return `pagination` object and `fetchPage()` function
-
-### 3. **Loading States**
-- Always show loading skeletons during data fetch
-- Consistent loading UI across components
-- Example: Pulse animation on gray rectangles
-
-### 4. **Error Handling**
-- Try-catch in all async functions
-- User-friendly error messages
-- Automatic Auth0 redirect on 401 errors
-
-### 5. **Type Safety**
-- Strict TypeScript mode enabled
-- Interfaces defined for all API responses
-- No `any` types (use `unknown` if needed)
-
----
-
-## 📊 Data Models
-
-### Portfolio
-```typescript
-{
-  id: string;
-  userId: string;
-  name: string;
-  description: string | null;
-  currencyCode: string;
-  createdAt: string;
-  updatedAt: string;
-  currency: {
-    code: string;
-    name: string;
-    symbol: string;
-  };
-}
-```
-
-### Position
-```typescript
-{
-  portfolioId: string;
-  stockSymbol: string;
-  companyName: string;
-  currentQuantity: number;
-  totalCost: number;
-  totalDividends: number;
-  portfolioPercentage: number;
-  // ... calculated fields
-}
-```
-
-### Transaction
-```typescript
-{
-  id: number;
-  portfolioId: string;
-  stockSymbol: string;
-  type: 'DIVIDEND' | 'BUY' | 'SELL' | 'TAX' | 'SPLIT';
-  quantity: number;
-  cost: number;
-  createdAt: string;
-}
+# Linting
+pnpm lint
 ```
 
 ---
 
-## 🔍 Notable Implementation Details
+## Deployment
 
-### 1. **Auth Token Flow**
-- Tokens fetched client-side via `/api/auth/token`
-- Stored in AuthContext state (not localStorage)
-- Automatically refresh on 401 responses
-- Session expiry shows modal overlay before redirect
+**Frontend**: Vercel
+**Backend**: Vercel Serverless Functions
+**Database**: Neon (PostgreSQL)
 
-### 2. **Locale Detection**
-- Server-side: Uses `Accept-Language` header
-- Default: English (`en`)
-- Consistent across SSR/CSR to avoid hydration mismatches
-
-### 3. **API Client Retry Logic**
-- Single automatic retry on 401 error
-- Attempts token refresh before retry
-- Falls back to login redirect if refresh fails
-
-### 4. **Virtual Scrolling**
-- `VirtualScrollTable` component for large datasets
-- Improves performance with 1000+ rows
-- Only renders visible rows in viewport
-
-### 5. **Accessibility**
-- ARIA labels on interactive elements
-- Keyboard navigation support
-- Screen reader optimizations
-- Tested with jest-axe
+> **📚 Detailed deployment guide**: See [DEPLOYMENT.md](../DEPLOYMENT.md)
 
 ---
 
-## 🎓 Getting Started as a New Engineer
+## Performance Optimizations
 
-1. **Clone and setup**:
-   ```bash
-   git clone https://github.com/your-org/your-repo.git   # TODO: Update with actual repository URL
-   cd your-repo
-   npm install
-   ```
+### Frontend
+- Code splitting with Next.js dynamic imports
+- Image optimization with `next/image`
+- Font optimization with `next/font`
+- Bundle size optimization (Tailwind purging)
 
-2. **Configure Auth0** (see README.md for detailed steps)
+### Backend
+- Database query optimization
+- Connection pooling
+- Pagination for large datasets
+- Caching strategies
 
-3. **Start exploring**:
-   - Dashboard page: `src/app/[locale]/dashboard/page.tsx`
-   - Auth flow: `src/contexts/AuthContext.tsx`
-   - API calls: `src/lib/apiClient.ts`
-   - Main layout: `src/components/AppLayout.tsx`
-
-4. **Common tasks**:
-   - Adding a new page → Create in `src/app/[locale]/your-page/page.tsx`
-   - New API endpoint → Add method to `ApiClient` class
-   - New component → Create in `src/components/` with tests
-   - Translations → Update `en.json` and `es.json`
-
-5. **Testing your changes**:
-   ```bash
-   npm run lint      # Check code quality
-   npm test          # Run test suite
-   npm run dev       # Test in browser
-   ```
+### Database
+- Indexed foreign keys
+- Unique constraints for data integrity
+- Materialized views for complex queries
 
 ---
 
-## 📚 Additional Resources
+## Security
 
-- **Implementation Docs** in repo:
-  - `ACCESSIBILITY_IMPLEMENTATION.md` - A11y features
-  - `ACCESSIBILITY_TASK_SUMMARY.md` - A11y tasks completed
-  - `PAGINATION_IMPLEMENTATION_SUMMARY.md` - Pagination details
+### Authentication
+- Auth0 for identity management
+- JWT bearer tokens
+- Token rotation and refresh
+- Secure session handling
 
-- **External Docs**:
-  - [Next.js 15 Documentation](https://nextjs.org/docs)
-  - [Auth0 Next.js SDK](https://github.com/auth0/nextjs-auth0)
-  - [Tailwind CSS](https://tailwindcss.com/docs)
+### API Security
+- Input validation with Zod schemas
+- SQL injection prevention (Prisma ORM)
+- CORS configuration
+- Rate limiting (planned)
+
+### Data Protection
+- Password hashing (bcrypt)
+- Environment variable protection
+- HTTPS enforcement
 
 ---
 
-**Document maintained by**: Engineering Team  
-**Last updated**: October 2025
+## Related Documentation
+
+- **[Database Schema](./database-schema.md)** - Detailed database model documentation
+- **[API Authentication](./API_AUTHENTICATION.md)** - Authentication implementation details
+- **[AGENTS.md](../../AGENTS.md)** - Quick reference for AI agents
+- **[API Product Requirements](../product/API_PRD.md)** - API feature roadmap
+- **[Setup Guide](../SETUP.md)** - Development environment setup
+- **[Deployment Guide](../DEPLOYMENT.md)** - Production deployment instructions
+
+---
+
+**Last Updated**: 2024-12-04

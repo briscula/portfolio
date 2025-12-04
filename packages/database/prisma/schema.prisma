@@ -158,7 +158,7 @@ model Transaction {
   updatedAt     DateTime        @updatedAt
 
 
-  @@unique([portfolioId, stockSymbol, createdAt, quantity, reference])
+  @@unique([portfolioId, stockSymbol, reference])
   @@map("transaction")
 }
 
