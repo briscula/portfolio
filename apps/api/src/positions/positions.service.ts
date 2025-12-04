@@ -333,4 +333,74 @@ export class PositionsService {
     return transformedPositions.slice(skip, skip + limit);
   }
 
+  /**
+   * Get portfolio summary with aggregated metrics
+   * Calculates total value, cost, gain, and dividend information for all positions
+   */
+  async getPortfolioSummary(userId: string, portfolioId: string) {
+    console.log('Getting portfolio summary for:', portfolioId, 'User:', userId);
+
+    // Verify portfolio belongs to user
+    const portfolio = await this.prisma.portfolio.findFirst({
+      where: {
+        id: portfolioId,
+        userId: userId
+      }
+    });
+
+    if (!portfolio) {
+      throw new NotFoundException('Portfolio not found or access denied.');
+    }
+
+    // Calculate positions by aggregating all transactions (no pagination)
+    const positions = await this.prisma.transaction.groupBy({
+      by: ['stockSymbol'],
+      where: {
+        portfolioId,
+        type: { in: ['BUY', 'SELL'] }
+      },
+      _sum: {
+        quantity: true,
+        amount: true
+      }
+    });
+
+    // Filter to only positions with current holdings
+    const activePositions = positions.filter(p => (p._sum.quantity || 0) > 0);
+
+    // Calculate total cost (sum of all position costs)
+    const totalCost = activePositions.reduce(
+      (sum, position) => sum + Math.abs(position._sum.amount || 0),
+      0
+    );
+
+    // Get total dividends
+    const dividendResult = await this.prisma.transaction.aggregate({
+      where: {
+        portfolioId,
+        type: 'DIVIDEND'
+      },
+      _sum: {
+        amount: true
+      }
+    });
+
+    const totalDividends = Math.abs(dividendResult._sum.amount || 0);
+
+    // For now, totalValue = totalCost (no current prices yet)
+    // When you add current prices, this will be: sum(currentPrice * quantity)
+    const totalValue = totalCost;
+    const totalGain = totalValue - totalCost;
+    const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
+
+    return {
+      totalValue,
+      totalCost,
+      totalGain,
+      totalGainPercent: parseFloat(totalGainPercent.toFixed(2)),
+      positionCount: activePositions.length,
+      totalDividends,
+    };
+  }
+
 }

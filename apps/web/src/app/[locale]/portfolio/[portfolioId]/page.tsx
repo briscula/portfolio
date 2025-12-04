@@ -8,7 +8,7 @@ import AppLayout from '@/components/AppLayout';
 
 // Force dynamic rendering - uses localStorage and Auth0
 export const dynamic = 'force-dynamic';
-import { usePortfolioSummary, Portfolio, Position, PaginationInfo } from '@/hooks/usePortfolio';
+import { Portfolio, Position, PaginationInfo } from '@/hooks/usePortfolio';
 import { useApiClient } from '@/lib/apiClient';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard, MetricCardsGrid, DollarSignIcon, TrendingUpIcon, TrendingDownIcon, Button } from '@/components/ui';
 import DividendChart from '@/components/DividendChart';
@@ -72,7 +72,16 @@ export default function PortfolioDetailPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [pageSize, setPageSize] = useState(25);
 
-  const portfolioSummary = usePortfolioSummary(positions);
+  // Portfolio summary state (fetched from backend)
+  const [portfolioSummary, setPortfolioSummary] = useState({
+    totalValue: 0,
+    totalCost: 0,
+    totalGain: 0,
+    totalGainPercent: 0,
+    positionCount: 0,
+    totalDividends: 0,
+  });
+  const [summaryLoading, setSummaryLoading] = useState(true);
 
   // Fetch portfolio data
   const fetchPortfolio = useCallback(async () => {
@@ -89,13 +98,31 @@ export default function PortfolioDetailPage() {
       setPortfolioError(null);
       const response = await apiClient.getPortfolio(portfolioId);
       setSelectedPortfolio(response as Portfolio);
-      
+
       // Store the last viewed portfolio in localStorage
       localStorage.setItem('lastViewedPortfolioId', portfolioId);
     } catch (err) {
       setPortfolioError(err instanceof Error ? err.message : 'Failed to fetch portfolio');
     } finally {
       setPortfolioLoading(false);
+    }
+  }, [isAuthenticated, authError, apiClient, portfolioId]);
+
+  // Fetch portfolio summary
+  const fetchSummary = useCallback(async () => {
+    if (!isAuthenticated || authError) {
+      setSummaryLoading(false);
+      return;
+    }
+
+    try {
+      setSummaryLoading(true);
+      const summary = await apiClient.getPortfolioSummary(portfolioId);
+      setPortfolioSummary(summary as typeof portfolioSummary);
+    } catch (err) {
+      console.error('Failed to fetch portfolio summary:', err);
+    } finally {
+      setSummaryLoading(false);
     }
   }, [isAuthenticated, authError, apiClient, portfolioId]);
 
@@ -133,9 +160,10 @@ export default function PortfolioDetailPage() {
   useEffect(() => {
     if (!authLoading && isAuthenticated) {
       fetchPortfolio();
+      fetchSummary();
       fetchPositions(1, sortBy, sortOrder, pageSize);
     }
-  }, [portfolioId, isAuthenticated, authLoading, fetchPortfolio, fetchPositions, sortBy, sortOrder, pageSize]);
+  }, [portfolioId, isAuthenticated, authLoading, fetchPortfolio, fetchSummary, fetchPositions, sortBy, sortOrder, pageSize]);
 
   // Handler for pagination
   const fetchPage = (page: number) => {
@@ -190,8 +218,9 @@ export default function PortfolioDetailPage() {
 
       await apiClient.createTransaction(portfolioId, payload);
 
-      // Refresh the positions list
+      // Refresh the positions list and summary
       await fetchPositions(1, sortBy, sortOrder, pageSize);
+      await fetchSummary();
       setIsAddPositionModalOpen(false);
     } catch (error) {
       // You might want to show a toast notification here
@@ -282,12 +311,12 @@ export default function PortfolioDetailPage() {
         )}
 
         {/* Portfolio Summary Cards */}
-        {portfolioLoading ? (
+        {summaryLoading ? (
           <div className="text-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p className="text-sm text-gray-600">Loading portfolio...</p>
+            <p className="text-sm text-gray-600">Loading summary...</p>
           </div>
-        ) : selectedPortfolio ? (
+        ) : (
           <MetricCardsGrid>
             <MetricCard
               title="Total Value"
@@ -320,7 +349,7 @@ export default function PortfolioDetailPage() {
               iconColor={portfolioSummary.totalGain >= 0 ? 'green' : 'red'}
             />
           </MetricCardsGrid>
-        ) : null}
+        )}
 
         {/* Dividend Evolution */}
         <Card>

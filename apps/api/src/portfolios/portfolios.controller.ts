@@ -82,6 +82,21 @@ export class PortfoliosController {
     return this.portfoliosService.findOne(id, userId);
   }
 
+  @Get(':id/summary')
+  @ApiOkResponse({ description: 'Returns portfolio summary with aggregated metrics' })
+  @ApiOperation({
+    summary: 'Get portfolio summary',
+    description:
+      'Returns aggregated portfolio metrics including total value, cost, gain, and position count',
+  })
+  async getPortfolioSummary(
+    @Request() req: any,
+    @Param('id') portfolioId: string,
+  ) {
+    const userId = await AuthUtils.getUserIdFromToken(req, this.usersService);
+    return this.positionsService.getPortfolioSummary(userId, portfolioId);
+  }
+
   @Get(':id/positions')
   @ApiOkResponse({ description: 'Returns positions for a specific portfolio' })
   @ApiOperation({
