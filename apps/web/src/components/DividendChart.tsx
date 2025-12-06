@@ -1,29 +1,33 @@
 'use client';
 
-import { ResponsiveBar } from '@nivo/bar';
+import dynamic from 'next/dynamic';
 import { useState, useEffect, useMemo } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { useTranslation } from '../lib/hooks/useTranslation';
 import { DividendService, ChartDataPoint } from '@/services/dividendService';
+import type { ApexOptions } from 'apexcharts';
+
+// Dynamic import to avoid SSR issues with ApexCharts
+const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 interface DividendChartProps {
   portfolioId?: string;
   startYear?: number;
   endYear?: number;
-  apiClient?: any; // Pass the authenticated API client
-  isAuthenticated?: boolean; // Pass authentication state
+  apiClient?: any;
+  isAuthenticated?: boolean;
 }
 
-const colorMap = {
-  '2020': '#3b82f6', // Blue-500 - Professional blue
-  '2021': '#10b981', // Emerald-500 - Fresh green
-  '2022': '#f59e0b', // Amber-500 - Warm orange
-  '2023': '#ef4444', // Red-500 - Bold red
-  '2024': '#8b5cf6', // Violet-500 - Rich purple
-  '2025': '#06b6d4', // Cyan-500 - Bright cyan
-  '2026': '#84cc16', // Lime-500 - Vibrant lime
-  '2027': '#f97316', // Orange-500 - Bright orange
-  '2028': '#ec4899', // Pink-500 - Energetic pink
+const colorMap: { [key: string]: string } = {
+  '2020': '#3b82f6',
+  '2021': '#10b981',
+  '2022': '#f59e0b',
+  '2023': '#ef4444',
+  '2024': '#8b5cf6',
+  '2025': '#06b6d4',
+  '2026': '#84cc16',
+  '2027': '#f97316',
+  '2028': '#ec4899',
 };
 
 export default function DividendChart({
@@ -53,20 +57,16 @@ export default function DividendChart({
         setLoading(true);
         setError(null);
 
-        // Calculate year range using service
         const { startYear: defaultStart, endYear: defaultEnd } = dividendService.getDefaultYearRange();
         const finalStartYear = startYear || defaultStart;
         const finalEndYear = endYear || defaultEnd;
 
-
-        // Fetch data via service
         const apiResponse = await dividendService.getDividendMonthlyOverview(
           portfolioId,
           finalStartYear,
           finalEndYear
         );
 
-        // Transform for chart using service
         if (apiResponse.data && apiResponse.data.length > 0) {
           const transformedData = dividendService.transformToChartFormat(apiResponse, locale);
           setChartData(transformedData);
@@ -79,7 +79,6 @@ export default function DividendChart({
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch dividend data');
 
-        // Fallback to sample data on error
         const fallbackData = [
           { month: 'jan', '2020': 20, '2021': 55, '2022': 85, '2023': 75 },
           { month: 'feb', '2020': 40, '2021': 80, '2022': 140, '2023': 110 },
@@ -95,12 +94,116 @@ export default function DividendChart({
     fetchDividendData();
   }, [dividendService, user, portfolioId, startYear, endYear, isAuthenticated, locale]);
 
+  // Transform data for ApexCharts
+  const chartOptions = useMemo<ApexOptions>(() => {
+    const categories = chartData.map(d => d.month);
+
+    return {
+      chart: {
+        type: 'bar',
+        height: 384,
+        toolbar: {
+          show: true,
+          tools: {
+            download: true,
+            selection: false,
+            zoom: false,
+            zoomin: false,
+            zoomout: false,
+            pan: false,
+            reset: false,
+          },
+        },
+        animations: {
+          enabled: true,
+          easing: 'easeinout',
+          speed: 800,
+        },
+      },
+      plotOptions: {
+        bar: {
+          horizontal: false,
+          columnWidth: '70%',
+          borderRadius: 2,
+        },
+      },
+      dataLabels: {
+        enabled: false,
+      },
+      stroke: {
+        show: true,
+        width: 2,
+        colors: ['transparent'],
+      },
+      xaxis: {
+        categories,
+        title: {
+          text: t('dividends.month'),
+          style: {
+            fontSize: '12px',
+            fontWeight: 500,
+          },
+        },
+        labels: {
+          style: {
+            fontSize: '12px',
+          },
+        },
+      },
+      yaxis: {
+        title: {
+          text: `${t('dividends.dividends')} (${t('dividends.currency')})`,
+          style: {
+            fontSize: '12px',
+            fontWeight: 500,
+          },
+        },
+        labels: {
+          formatter: (value) => formatCurrency(value),
+          style: {
+            fontSize: '12px',
+          },
+        },
+      },
+      tooltip: {
+        shared: true,
+        intersect: false,
+        y: {
+          formatter: (value) => formatCurrency(value),
+        },
+      },
+      legend: {
+        position: 'right',
+        offsetY: 0,
+        height: 230,
+        markers: {
+          size: 6,
+          shape: 'square',
+        },
+        itemMargin: {
+          vertical: 4,
+        },
+      },
+      colors: keys.map(key => colorMap[key] || '#6b7280'),
+      grid: {
+        borderColor: '#e5e7eb',
+        strokeDashArray: 4,
+      },
+    };
+  }, [chartData, keys, t, formatCurrency]);
+
+  // Transform data into series format for ApexCharts
+  const series = useMemo(() => {
+    return keys.map(year => ({
+      name: year,
+      data: chartData.map(d => (d[year] as number) || 0),
+    }));
+  }, [chartData, keys]);
+
   if (isLoading || loading) {
     return (
       <div className="w-full h-96 p-4">
-        {/* Chart skeleton */}
         <div className="animate-pulse">
-          {/* Chart title area */}
           <div className="flex justify-between items-center mb-6">
             <div className="h-4 bg-gray-200 rounded w-32"></div>
             <div className="flex space-x-4">
@@ -113,16 +216,13 @@ export default function DividendChart({
             </div>
           </div>
 
-          {/* Chart area */}
           <div className="relative h-80">
-            {/* Y-axis */}
             <div className="absolute left-0 top-0 h-full w-12 flex flex-col justify-between py-4">
               {[...Array(6)].map((_, i) => (
                 <div key={i} className="h-3 bg-gray-200 rounded w-8"></div>
               ))}
             </div>
 
-            {/* Chart bars */}
             <div className="ml-16 mr-32 h-full flex items-end justify-between px-4">
               {[...Array(12)].map((_, monthIndex) => (
                 <div key={monthIndex} className="flex items-end space-x-1 flex-1 max-w-16">
@@ -139,7 +239,6 @@ export default function DividendChart({
               ))}
             </div>
 
-            {/* X-axis labels */}
             <div className="absolute bottom-0 left-16 right-32 flex justify-between">
               {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map((month) => (
                 <div key={month} className="h-3 bg-gray-200 rounded w-6"></div>
@@ -181,102 +280,12 @@ export default function DividendChart({
 
   return (
     <div className="w-full h-96">
-      <ResponsiveBar
-        data={chartData}
-        keys={keys}
-        indexBy="month"
-        margin={{ top: 50, right: 130, bottom: 50, left: 60 }}
-        padding={0.3}
-        groupMode="grouped"
-        valueScale={{ type: 'linear' }}
-        indexScale={{ type: 'band', round: true }}
-        colors={({ id }) => colorMap[id as keyof typeof colorMap] || '#6b7280'}
-        borderColor={{
-          from: 'color',
-          modifiers: [['darker', 1.6]],
-        }}
-        axisTop={null}
-        axisRight={null}
-        axisBottom={{
-          tickSize: 5,
-          tickPadding: 5,
-          tickRotation: 0,
-          legend: t('dividends.month'),
-          legendPosition: 'middle',
-          legendOffset: 32,
-        }}
-        axisLeft={{
-          tickSize: 5,
-          tickPadding: 5,
-          tickRotation: 0,
-          legend: `${t('dividends.dividends')} (${t('dividends.currency')})`,
-          legendPosition: 'middle',
-          legendOffset: -40,
-        }}
-        enableLabel={false}
-        labelSkipWidth={1000}
-        labelSkipHeight={1000}
-        legends={[
-          {
-            dataFrom: 'keys',
-            anchor: 'bottom-right',
-            direction: 'column',
-            justify: false,
-            translateX: 120,
-            translateY: 0,
-            itemsSpacing: 2,
-            itemWidth: 100,
-            itemHeight: 20,
-            itemDirection: 'left-to-right',
-            itemOpacity: 0.85,
-            symbolSize: 20,
-            effects: [
-              {
-                on: 'hover',
-                style: {
-                  itemOpacity: 1,
-                },
-              },
-            ],
-          },
-        ]}
-        role="application"
-        ariaLabel={t('dividends.monthlyOverview')}
-        barAriaLabel={function (e) {
-          const value = typeof e.value === 'number' ? formatCurrency(e.value) : e.value;
-          return `${e.id}: ${value} ${t('dividends.month').toLowerCase()} ${e.indexValue}`;
-        }}
-        tooltip={({ id, value, indexValue, color }) => (
-          <div
-            style={{
-              background: 'white',
-              padding: '12px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: '4px' }}>
-              <div
-                style={{
-                  width: '12px',
-                  height: '12px',
-                  backgroundColor: color,
-                  marginRight: '8px',
-                  borderRadius: '2px',
-                }}
-              />
-              <strong>{id}</strong>
-            </div>
-            <div style={{ fontSize: '14px', color: '#666' }}>
-              <strong>{typeof value === 'number' ? formatCurrency(value) : value}</strong>
-            </div>
-            <div style={{ fontSize: '12px', color: '#999' }}>
-              {indexValue}
-            </div>
-          </div>
-        )}
+      <Chart
+        options={chartOptions}
+        series={series}
+        type="bar"
+        height={384}
       />
     </div>
   );
-} 
+}

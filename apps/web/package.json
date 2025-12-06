@@ -16,17 +16,16 @@
   "dependencies": {
     "@auth0/nextjs-auth0": "^3.5.0",
     "@heroicons/react": "^2.1.1",
-    "@nivo/bar": "^0.99.0",
-    "@nivo/core": "^0.99.0",
     "@repo/database": "workspace:*",
     "@repo/env": "workspace:*",
     "@repo/shared": "workspace:*",
     "@tanstack/react-query": "^5.90.7",
     "@tanstack/react-query-devtools": "^5.90.2",
+    "apexcharts": "^4.3.0",
     "next": "15.4.8",
     "react": "19.1.2",
-    "react-dom": "19.1.2",
-    "recharts": "^3.1.2"
+    "react-apexcharts": "^1.6.0",
+    "react-dom": "19.1.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
