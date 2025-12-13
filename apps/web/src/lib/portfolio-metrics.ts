@@ -43,13 +43,10 @@ export function calculatePortfolioMetrics(positions: Position[]): PortfolioMetri
   }
 
   // Calculate totals
-  const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalAmount || pos.totalCost || 0), 0));
-  const totalDividends = positions.reduce((sum, pos) => sum + pos.totalDividends, 0);
-  
-  // For now, we'll estimate current value as cost + unrealized gain
-  // In a real app, this would use current stock prices
-  const totalValue = totalCost * 1.1; // Mock 10% gain for demo
-  
+  const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalCost || 0), 0));
+  const totalDividends = positions.reduce((sum, pos) => sum + (pos.totalDividends || 0), 0);
+  const totalValue = positions.reduce((sum, pos) => sum + (pos.marketValue || pos.totalCost || 0), 0);
+
   const unrealizedGain = totalValue - totalCost;
   const unrealizedGainPercent = totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
   

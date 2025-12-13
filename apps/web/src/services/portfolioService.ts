@@ -137,9 +137,9 @@ export class PortfolioService {
 
   // Metrics Calculation
   calculatePortfolioMetrics(positions: Position[]): PortfolioMetrics {
-    const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalAmount || pos.totalCost || 0), 0));
+    const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalCost || 0), 0));
     const totalValue = positions.reduce((sum, pos) => sum + (pos.marketValue || pos.totalCost || 0), 0);
-    const totalDividends = positions.reduce((sum, pos) => sum + pos.totalDividends, 0);
+    const totalDividends = positions.reduce((sum, pos) => sum + (pos.totalDividends || 0), 0);
     const unrealizedGain = totalValue - totalCost;
     const unrealizedGainPercent = totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
     const dividendYield = totalValue > 0 ? (totalDividends / totalValue) * 100 : 0;

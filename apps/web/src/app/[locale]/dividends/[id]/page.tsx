@@ -231,7 +231,7 @@ export default function PortfolioDividendsPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {positions.filter(pos => pos.totalDividends > 0).map((position) => (
+                                        {positions.filter(pos => pos.totalDividends && pos.totalDividends > 0).map((position) => (
                                             <tr key={position.stockSymbol} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-medium text-gray-900">
@@ -247,20 +247,16 @@ export default function PortfolioDividendsPage() {
                                                     {position.currentQuantity?.toLocaleString() || 'N/A'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600">
-                                                    {formatCurrency(position.totalDividends)}
+                                                    {formatCurrency(position.totalDividends || 0)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
                                                     {position.dividendCount}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
                                                     {(
-                                                        Number.isFinite(position.totalAmount) && position.totalAmount !== 0
-                                                        ? `${((position.totalDividends / Math.abs(position.totalAmount!)) * 100).toFixed(2)}%`
-                                                        : (
-                                                            Number.isFinite(position.totalCost) && position.totalCost !== 0
-                                                            ? `${((position.totalDividends / Math.abs(position.totalCost!)) * 100).toFixed(2)}%`
-                                                            : 'N/A'
-                                                        )
+                                                        position.totalDividends && position.totalCost && position.totalCost !== 0
+                                                        ? `${((position.totalDividends / Math.abs(position.totalCost)) * 100).toFixed(2)}%`
+                                                        : 'N/A'
                                                     )}
                                                 </td>
                                             </tr>

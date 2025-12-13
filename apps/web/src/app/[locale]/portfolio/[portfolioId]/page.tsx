@@ -12,7 +12,7 @@ import { Portfolio, Position, PaginationInfo } from '@/hooks/usePortfolio';
 import { useApiClient } from '@/lib/apiClient';
 import { Card, CardHeader, CardTitle, CardContent, MetricCard, MetricCardsGrid, DollarSignIcon, TrendingUpIcon, TrendingDownIcon, Button } from '@/components/ui';
 import DividendChart from '@/components/DividendChart';
-import { ChevronUpIcon, ChevronDownIcon } from '@/components/ui/icons';
+import { ChevronUpIcon, ChevronDownIcon, RefreshIcon } from '@/components/ui/icons';
 
 // Sortable table header component
 const SortableHeader = ({ 
@@ -45,6 +45,22 @@ const SortableHeader = ({
   </th>
 );
 
+// Gain/Loss component for styling
+const GainLossDisplay = ({ value, percent }: { value: number; percent: number }) => {
+  const isPositive = value >= 0;
+  const textColor = isPositive ? 'text-green-600' : 'text-red-600';
+  const bgColor = isPositive ? 'bg-green-50' : 'bg-red-50';
+  const sign = isPositive ? '+' : '';
+
+  return (
+    <div className={`flex flex-col items-end ${textColor}`}>
+      <span className="font-medium">{sign}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}</span>
+      <span className={`text-xs font-mono px-1 py-0.5 rounded ${bgColor}`}>{sign}{percent.toFixed(2)}%</span>
+    </div>
+  );
+};
+
+
 import AddPositionModal from '@/components/AddPositionModal';
 
 
@@ -68,9 +84,12 @@ export default function PortfolioDetailPage() {
   const [positionsError, setPositionsError] = useState<string | null>(null);
 
   // Sorting and pagination state
-  const [sortBy, setSortBy] = useState('portfolioPercentage');
+  const [sortBy, setSortBy] = useState('marketValue');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [pageSize, setPageSize] = useState(25);
+
+  // Syncing state
+  const [isSyncing, setIsSyncing] = useState(false);
 
   // Portfolio summary state (fetched from backend)
   const [portfolioSummary, setPortfolioSummary] = useState({
@@ -127,7 +146,7 @@ export default function PortfolioDetailPage() {
   }, [isAuthenticated, authError, apiClient, portfolioId]);
 
   // Fetch positions data
-  const fetchPositions = useCallback(async (page: number = 1, sortBy: string = 'portfolioPercentage', sortOrder: string = 'desc', limit: number = pageSize) => {
+  const fetchPositions = useCallback(async (page: number = 1, currentSortBy: string = sortBy, currentSortOrder: string = sortOrder, limit: number = pageSize) => {
     if (!isAuthenticated || authError) {
       setPositionsLoading(false);
       if (authError) {
@@ -139,8 +158,7 @@ export default function PortfolioDetailPage() {
     try {
       setPositionsLoading(true);
       setPositionsError(null);
-      const response = await apiClient.getPositions(portfolioId, page, limit, sortBy, sortOrder) as { data: Position[]; meta: PaginationInfo };
-
+      const response = await apiClient.getPositions(portfolioId, page, limit, currentSortBy, currentSortOrder) as { data: Position[]; meta: PaginationInfo };
       
       if (response && response.data && Array.isArray(response.data)) {
         setPositions(response.data);
@@ -154,7 +172,29 @@ export default function PortfolioDetailPage() {
     } finally {
       setPositionsLoading(false);
     }
-  }, [isAuthenticated, authError, apiClient, portfolioId, pageSize]);
+  }, [isAuthenticated, authError, apiClient, portfolioId, pageSize, sortBy, sortOrder]);
+
+
+  // Handler for price synchronization
+  const handleSyncPrices = async () => {
+    if (isSyncing) return;
+
+    setIsSyncing(true);
+    try {
+      await apiClient.syncPrices();
+      // Wait a moment for the backend to process before refetching
+      await new Promise(resolve => setTimeout(resolve, 2000)); 
+      await Promise.all([
+        fetchSummary(),
+        fetchPositions(pagination?.page || 1, sortBy, sortOrder, pageSize),
+      ]);
+    } catch (error) {
+      console.error("Failed to sync prices:", error);
+      // Optionally set an error state to show in the UI
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   // Fetch data when authenticated
   useEffect(() => {
@@ -243,6 +283,7 @@ export default function PortfolioDetailPage() {
   };
 
   const formatPercent = (percent: number) => {
+    if (percent == null || isNaN(percent)) return '0.00%';
     return `${percent >= 0 ? '+' : ''}${Number(percent).toFixed(2)}%`;
   };
 
@@ -319,7 +360,7 @@ export default function PortfolioDetailPage() {
         ) : (
           <MetricCardsGrid>
             <MetricCard
-              title="Total Value"
+              title="Market Value"
               value={formatCurrency(portfolioSummary.totalValue)}
               change={{
                 value: Math.abs(portfolioSummary.totalGainPercent),
@@ -398,6 +439,15 @@ export default function PortfolioDetailPage() {
                     <span>Page {pagination.page} of {pagination.totalPages}</span>
                   </div>
                 )}
+                 <Button
+                  onClick={handleSyncPrices}
+                  size="sm"
+                  variant="secondary"
+                  disabled={isSyncing}
+                >
+                  <RefreshIcon className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
+                  {isSyncing ? 'Syncing...' : 'Refresh Prices'}
+                </Button>
                 <Button
                   onClick={() => setIsAddPositionModalOpen(true)}
                   size="sm"
@@ -414,56 +464,29 @@ export default function PortfolioDetailPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Symbol
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Company
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Shares
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Avg Price
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Current Price
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total Cost
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Portfolio %
-                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Shares</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Price</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Current Price</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cost</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Market Value</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unrealized P&L</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Portfolio %</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {[...Array(5)].map((_, i) => (
+                    {[...Array(pageSize)].map((_, i) => (
                       <tr key={i} className="animate-pulse">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="h-4 bg-gray-200 rounded w-16"></div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="h-4 bg-gray-200 rounded w-32"></div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="h-4 bg-gray-200 rounded w-12 ml-auto"></div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="flex items-center justify-end">
-                            <div className="h-4 bg-gray-200 rounded w-12 mr-2"></div>
-                            <div className="w-16 bg-gray-200 rounded-full h-2"></div>
-                          </div>
-                        </td>
+                        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
+                        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
+                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-12 ml-auto"></div></td>
+                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
+                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
+                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div></td>
+                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div></td>
+                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-24 ml-auto"></div></td>
+                        <td className="px-6 py-4 text-right"><div className="flex items-center justify-end"><div className="h-4 bg-gray-200 rounded w-12 mr-2"></div><div className="w-16 bg-gray-200 rounded-full h-2"></div></div></td>
                       </tr>
                     ))}
                   </tbody>
@@ -486,60 +509,36 @@ export default function PortfolioDetailPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <SortableHeader field="stockSymbol" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort}>
-                        Symbol
-                      </SortableHeader>
-                      <SortableHeader field="companyName" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort}>
-                        Company
-                      </SortableHeader>
-                      <SortableHeader field="currentQuantity" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Shares
-                      </SortableHeader>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Avg Price
-                      </th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Current Price
-                      </th>
-                      <SortableHeader field="totalCost" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Total Cost
-                      </SortableHeader>
-                      <SortableHeader field="portfolioPercentage" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Portfolio %
-                      </SortableHeader>
+                      <SortableHeader field="stockSymbol" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort}>Symbol</SortableHeader>
+                      <SortableHeader field="companyName" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort}>Company</SortableHeader>
+                      <SortableHeader field="currentQuantity" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Shares</SortableHeader>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Price</th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Current Price</th>
+                      <SortableHeader field="totalCost" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cost</SortableHeader>
+                      <SortableHeader field="marketValue" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Market Value</SortableHeader>
+                      <SortableHeader field="unrealizedGain" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unrealized P&L</SortableHeader>
+                      <SortableHeader field="portfolioPercentage" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Portfolio %</SortableHeader>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {positions.map((position) => (
                       <tr key={position.stockSymbol} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">
-                            {position.stockSymbol}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900 max-w-xs truncate">
-                            {position.companyName}
-                          </div>
-                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{position.stockSymbol}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900 max-w-xs truncate">{position.companyName}</div></td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">{position.currentQuantity ? position.currentQuantity.toLocaleString() : 'N/A'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                          {position.currentQuantity ? position.currentQuantity.toLocaleString() : 'N/A'}
+                          {position.currentQuantity > 0 ? formatCurrency(position.totalCost / position.currentQuantity) : 'N/A'}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                          {position.currentQuantity && position.currentQuantity > 0 && position.totalAmount
-                            ? formatCurrency(Math.abs(position.totalAmount) / position.currentQuantity)
-                            : 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                          N/A
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                          {formatCurrency(position.totalAmount)}
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900 font-medium">{formatCurrency(position.currentPrice)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">{formatCurrency(position.totalCost)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">{formatCurrency(position.marketValue)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                          <GainLossDisplay value={position.unrealizedGain} percent={position.unrealizedGainPercent} />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
                           <div className="flex items-center justify-end">
                             <span className="mr-2">
-                              {position.portfolioPercentage ? formatPercent(position.portfolioPercentage) : '0.00%'}
+                              {position.portfolioPercentage != null ? `${position.portfolioPercentage.toFixed(2)}%` : '0.00%'}
                             </span>
                             <div className="w-16 bg-gray-200 rounded-full h-2">
                               <div
@@ -557,16 +556,12 @@ export default function PortfolioDetailPage() {
             )}
 
             {/* Pagination Controls */}
-            {!positionsLoading && pagination && (
+            {!positionsLoading && pagination && pagination.total > 0 && (
               <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                 <div className="text-sm text-gray-600">
                   Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
                   {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
                   {pagination.total} positions
-                  {/* Debug info - remove after testing */}
-                  <span className="ml-2 text-xs text-gray-400">
-                    (Page {pagination.page}, Total Pages: {pagination.totalPages})
-                  </span>
                 </div>
                 {pagination.totalPages > 1 && (
                   <div className="flex items-center space-x-2">
