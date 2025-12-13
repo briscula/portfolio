@@ -19,7 +19,7 @@ export class YahooFinanceProvider implements PriceProvider {
       const quotes: Quote[] = results.map(result => ({
         symbol: result.symbol,
         price: result.regularMarketPrice,
-        currency: result.currency,
+        currency: result.currency || 'USD',
       }));
       return quotes.filter(q => q.price != null); // Filter out any quotes that failed to fetch a price
     } catch (error) {
