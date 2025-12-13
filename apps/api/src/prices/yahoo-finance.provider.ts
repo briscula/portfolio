@@ -1,10 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import yahooFinance from 'yahoo-finance2';
+import YahooFinance from 'yahoo-finance2';
 import { PriceProvider, Quote, FxRate } from './price-provider.interface';
 
 @Injectable()
 export class YahooFinanceProvider implements PriceProvider {
   private readonly logger = new Logger(YahooFinanceProvider.name);
+  private readonly yahoo = new YahooFinance();
 
   async getQuotes(symbols: string[]): Promise<Quote[]> {
     if (symbols.length === 0) {
@@ -14,7 +15,7 @@ export class YahooFinanceProvider implements PriceProvider {
 
     try {
       // TODO: Improve typing when library's types are better understood
-      const results = await yahooFinance.quote(symbols) as any[];
+      const results = await this.yahoo.quote(symbols) as any[];
       const quotes: Quote[] = results.map(result => ({
         symbol: result.symbol,
         price: result.regularMarketPrice,
@@ -33,7 +34,7 @@ export class YahooFinanceProvider implements PriceProvider {
 
     try {
       // TODO: Improve typing when library's types are better understood
-      const result = await yahooFinance.quote(symbol) as any;
+      const result = await this.yahoo.quote(symbol) as any;
       if (result && result.regularMarketPrice) {
         return {
           from,
