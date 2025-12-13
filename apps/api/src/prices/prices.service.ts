@@ -63,9 +63,9 @@ export class PricesService {
     const failedSymbols: string[] = [];
 
     for (const [index, symbol] of uniqueSymbols.entries()) {
-      // Break the loop if we hit the daily limit to avoid unnecessary waiting
-      if (failureCount > 0 && uniqueSymbols.length > 25) {
-        const message = `Stopping sync early due to API errors, likely rate limiting. ${
+      // Break the loop if we hit an API error to avoid unnecessary waiting
+      if (failureCount > 0) {
+        const message = `Stopping sync due to API error. ${
           uniqueSymbols.length - index
         } symbols were skipped.`;
         this.logger.warn(message);
