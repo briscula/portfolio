@@ -4,10 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
+import { PricesService } from '../prices/prices.service';
 
 @Injectable()
 export class PositionsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(
+    private prisma: PrismaService,
+    private pricesService: PricesService,
+  ) {}
 
   /**
    * Validate UUID format (supports both v4 and v7)
@@ -122,14 +126,11 @@ export class PositionsService {
    * Apply percentage calculations to positions
    */
   private applyPercentages(positions: any[], totalValue: number) {
-    return positions.map((position) => ({
+    return positions.map(position => ({
       ...position,
-      totalAmount: Math.abs(position.totalAmount), // Ensure totalCost is positive for display
       portfolioPercentage:
         totalValue > 0
-          ? parseFloat(
-            ((Math.abs(position.totalAmount) / totalValue) * 100).toFixed(2),
-          )
+          ? parseFloat(((position.marketValue / totalValue) * 100).toFixed(2))
           : 0,
     }));
   }
@@ -152,8 +153,12 @@ export class PositionsService {
           bValue = b.portfolioPercentage;
           break;
         case 'totalCost':
-          aValue = Math.abs(a.totalAmount);
-          bValue = Math.abs(b.totalAmount);
+          aValue = a.totalCost;
+          bValue = b.totalCost;
+          break;
+        case 'marketValue':
+          aValue = a.marketValue;
+          bValue = b.marketValue;
           break;
         case 'totalDividends':
           aValue = a.totalDividends;
@@ -202,135 +207,102 @@ export class PositionsService {
     portfolioId: string,
     page: number = 1,
     limit: number = 50,
-    sortBy: string = 'portfolioPercentage',
+    sortBy: string = 'marketValue',
     sortOrder: 'asc' | 'desc' = 'desc',
   ) {
     console.log('Getting positions for portfolio:', portfolioId, 'User:', userId);
 
-    // Verify portfolio belongs to user
-    const portfolio = await this.prisma.portfolio.findFirst({
-      where: {
-        id: portfolioId,
-        userId: userId
-      }
+    // 1. Verify portfolio belongs to user and get its currency
+    await this.validatePortfolio(userId, portfolioId);
+    const portfolio = await this.prisma.portfolio.findUnique({ where: { id: portfolioId } });
+
+    // 2. Get the exchange rate if the portfolio is not in USD
+    const fxRate = portfolio.currencyCode === 'USD' 
+      ? 1 
+      : await this.pricesService.getExchangeRate('USD', portfolio.currencyCode);
+
+    // 3. Calculate aggregated transaction data for positions
+    const aggregatedTransactions = await this.prisma.transaction.groupBy({
+      by: ['stockSymbol'],
+      where: { portfolioId, type: { in: ['BUY', 'SELL'] } },
+      _sum: { quantity: true, amount: true },
+      _max: { createdAt: true },
     });
 
-    if (!portfolio) {
-      throw new NotFoundException('Portfolio not found or access denied.');
+    const activePositions = aggregatedTransactions.filter(
+      p => (p._sum.quantity || 0) > 0.000001,
+    );
+
+    if (activePositions.length === 0) {
+      return { data: [], meta: { total: 0, page, limit, totalPages: 0, hasNextPage: false, hasPrevPage: false }};
     }
 
-    // Debug: Check what transactions exist for this portfolio
-    const allTransactions = await this.prisma.transaction.findMany({
-      where: { portfolioId },
-      select: { type: true, stockSymbol: true, amount: true, createdAt: true }
-    });
+    // 4. Get supplemental data (stock info and latest prices in USD)
+    const stockSymbols = activePositions.map(p => p.stockSymbol);
+    const [stocks, prices] = await Promise.all([
+      this.prisma.stock.findMany({ where: { symbol: { in: stockSymbols } } }),
+      this.prisma.stockPrice.findMany({ where: { stockSymbol: { in: stockSymbols }, currencyCode: 'USD' } }),
+    ]);
 
-    const skip = (page - 1) * limit;
+    const stockMap = stocks.reduce((acc, stock) => ({ ...acc, [stock.symbol]: stock }), {});
+    const priceMap = prices.reduce((acc, p) => ({ ...acc, [p.stockSymbol]: p.price }), {});
 
-    // Calculate positions by aggregating transactions grouped by stock
-    const positions = await this.prisma.transaction.groupBy({
-      by: ['stockSymbol'],
-      where: {
-        portfolioId,
-        type: { in: ['BUY', 'SELL'] }
-      },
-      _sum: {
-        quantity: true,
-        amount: true
-      },
-      _max: {
-        createdAt: true
-      }
-    });
-
-    console.log('🔍 Raw positions from database:', {
-      portfolioId,
-      totalRawPositions: positions.length,
-      positions: positions.map(p => ({
-        stockSymbol: p.stockSymbol,
-        quantity: p._sum.quantity,
-        cost: p._sum.amount
-      }))
-    });
-
-    // Get stock information for each position
-    const stockSymbols = positions.map(p => p.stockSymbol);
-    const stocks = await this.prisma.stock.findMany({
-      where: {
-        symbol: { in: stockSymbols }
-      }
-    });
-
-    const stockMap = stocks.reduce((acc, stock) => {
-      acc[stock.symbol] = stock;
-      return acc;
-    }, {} as Record<string, any>);
-
-
-    // Transform aggregated data into position objects
-    const allPositions = positions.map(position => {
-      const stock = stockMap[position.stockSymbol];
+    // 5. Combine all data and convert to portfolio currency
+    const positionsWithValues = activePositions.map(agg => {
+      const stockInfo = stockMap[agg.stockSymbol];
+      const currentQuantity = agg._sum.quantity || 0;
+      const totalCostUSD = Math.abs(agg._sum.amount || 0);
+      const currentPriceUSD = priceMap[agg.stockSymbol];
+      
+      const marketValueUSD = currentPriceUSD !== undefined ? currentQuantity * currentPriceUSD : totalCostUSD;
+      const unrealizedGainUSD = marketValueUSD - totalCostUSD;
+      
+      // Convert all monetary values to the portfolio's currency
+      const totalCost = totalCostUSD * fxRate;
+      const marketValue = marketValueUSD * fxRate;
+      const currentPrice = currentPriceUSD !== undefined ? currentPriceUSD * fxRate : null;
+      const unrealizedGain = unrealizedGainUSD * fxRate;
+      const unrealizedGainPercent = totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
 
       return {
-        stockSymbol: position.stockSymbol,
-        companyName: stock?.companyName || position.stockSymbol,
-        sector: stock?.sector || null,
-        currentQuantity: position._sum.quantity || 0,
-        totalAmount: position._sum.amount || 0, // Changed from totalCost to match frontend expectations
-        lastTransactionDate: position._max.createdAt,
-        portfolioName: portfolio.name
+        stockSymbol: agg.stockSymbol,
+        companyName: stockInfo?.companyName || agg.stockSymbol,
+        sector: stockInfo?.sector || null,
+        currentQuantity,
+        totalCost,
+        marketValue,
+        currentPrice,
+        unrealizedGain,
+        unrealizedGainPercent: parseFloat(unrealizedGainPercent.toFixed(2)),
+        lastTransactionDate: agg._max.createdAt,
+        portfolioName: portfolio.name,
       };
     });
+    
+    // 6. Calculate total portfolio value (now in portfolio's currency)
+    const totalPortfolioValue = positionsWithValues.reduce((sum, p) => sum + p.marketValue, 0);
 
-    console.log('🔍 Positions before filtering:', {
-      totalBeforeFilter: allPositions.length,
-      positions: allPositions.map(p => ({
-        stockSymbol: p.stockSymbol,
-        currentQuantity: p.currentQuantity,
-        totalAmount: p.totalAmount
-      }))
-    });
+    const positionsWithPercentages = this.applyPercentages(positionsWithValues, totalPortfolioValue);
+    
+    // 7. Sort and paginate
+    const sortedPositions = this.sortPositions(positionsWithPercentages, sortBy, sortOrder);
+    
+    const totalPositions = sortedPositions.length;
+    const totalPages = Math.ceil(totalPositions / limit);
+    const skip = (page - 1) * limit;
+    const paginatedData = sortedPositions.slice(skip, skip + limit);
 
-    const filteredPositions = allPositions.filter(position => position.currentQuantity > 0); // Only include positions with remaining shares
-
-    console.log('🔍 Positions after filtering:', {
-      totalAfterFilter: filteredPositions.length,
-      filteredOut: allPositions.length - filteredPositions.length,
-      remaining: filteredPositions.map(p => ({
-        stockSymbol: p.stockSymbol,
-        currentQuantity: p.currentQuantity,
-        totalAmount: p.totalAmount
-      }))
-    });
-
-    // Calculate total portfolio value as sum of all current position values
-    const totalPortfolioValue = filteredPositions.reduce((sum, position) => sum + Math.abs(position.totalAmount), 0);
-
-    console.log('📊 Portfolio calculation debug:', {
-      totalPositions: filteredPositions.length,
-      totalPortfolioValue,
-      positionCosts: filteredPositions.map(p => ({ symbol: p.stockSymbol, cost: Math.abs(p.totalAmount) }))
-    });
-
-    // Apply percentage calculations using the total value
-    const positionsWithPercentages = this.applyPercentages(
-      filteredPositions,
-      totalPortfolioValue,
-    );
-
-    // Sort by the specified field
-    const sortedPositions = this.sortPositions(
-      positionsWithPercentages,
-      sortBy,
-      sortOrder,
-    );
-
-    // Transform positions to ensure totalCost is positive for API response
-    const transformedPositions =
-      this.transformPositionsForResponse(sortedPositions);
-
-    // Apply pagination
-    return transformedPositions.slice(skip, skip + limit);
+    return {
+      data: paginatedData,
+      meta: {
+        total: totalPositions,
+        page,
+        limit,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    };
   }
 
   /**
@@ -340,56 +312,60 @@ export class PositionsService {
   async getPortfolioSummary(userId: string, portfolioId: string) {
     console.log('Getting portfolio summary for:', portfolioId, 'User:', userId);
 
-    // Verify portfolio belongs to user
-    const portfolio = await this.prisma.portfolio.findFirst({
-      where: {
-        id: portfolioId,
-        userId: userId
-      }
-    });
+    // 1. Verify portfolio belongs to user and get its currency
+    await this.validatePortfolio(userId, portfolioId);
+    const portfolio = await this.prisma.portfolio.findUnique({ where: { id: portfolioId } });
 
     if (!portfolio) {
       throw new NotFoundException('Portfolio not found or access denied.');
     }
 
-    // Calculate positions by aggregating all transactions (no pagination)
+    // 2. Get the exchange rate if the portfolio is not in USD
+    const fxRate = portfolio.currencyCode === 'USD'
+      ? 1
+      : await this.pricesService.getExchangeRate('USD', portfolio.currencyCode);
+
+    // 3. Aggregate transactions to get position data in USD
     const positions = await this.prisma.transaction.groupBy({
       by: ['stockSymbol'],
-      where: {
-        portfolioId,
-        type: { in: ['BUY', 'SELL'] }
-      },
-      _sum: {
-        quantity: true,
-        amount: true
-      }
+      where: { portfolioId, type: { in: ['BUY', 'SELL'] } },
+      _sum: { quantity: true, amount: true },
     });
-
-    // Filter to only positions with current holdings
     const activePositions = positions.filter(p => (p._sum.quantity || 0) > 0);
 
-    // Calculate total cost (sum of all position costs)
-    const totalCost = activePositions.reduce(
+    // 4. Calculate total cost in USD
+    const totalCostUSD = activePositions.reduce(
       (sum, position) => sum + Math.abs(position._sum.amount || 0),
-      0
+      0,
     );
 
-    // Get total dividends
-    const dividendResult = await this.prisma.transaction.aggregate({
-      where: {
-        portfolioId,
-        type: 'DIVIDEND'
-      },
-      _sum: {
-        amount: true
-      }
+    // 5. Get latest prices in USD
+    const stockSymbols = activePositions.map(p => p.stockSymbol);
+    const prices = await this.prisma.stockPrice.findMany({
+      where: { stockSymbol: { in: stockSymbols }, currencyCode: 'USD' },
     });
+    const priceMap = prices.reduce((acc, p) => ({ ...acc, [p.stockSymbol]: p.price }), {});
 
-    const totalDividends = Math.abs(dividendResult._sum.amount || 0);
+    // 6. Calculate total value in USD
+    const totalValueUSD = activePositions.reduce((sum, position) => {
+      const currentPrice = priceMap[position.stockSymbol];
+      const quantity = position._sum.quantity || 0;
+      const historicalCost = Math.abs(position._sum.amount || 0);
+      const marketValue = currentPrice !== undefined ? quantity * currentPrice : historicalCost;
+      return sum + marketValue;
+    }, 0);
 
-    // For now, totalValue = totalCost (no current prices yet)
-    // When you add current prices, this will be: sum(currentPrice * quantity)
-    const totalValue = totalCost;
+    // 7. Get total dividends in USD
+    const dividendResult = await this.prisma.transaction.aggregate({
+      where: { portfolioId, type: 'DIVIDEND' },
+      _sum: { amount: true },
+    });
+    const totalDividendsUSD = Math.abs(dividendResult._sum.amount || 0);
+
+    // 8. Convert all monetary values to the portfolio's currency
+    const totalValue = totalValueUSD * fxRate;
+    const totalCost = totalCostUSD * fxRate;
+    const totalDividends = totalDividendsUSD * fxRate;
     const totalGain = totalValue - totalCost;
     const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
 
