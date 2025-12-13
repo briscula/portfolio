@@ -138,7 +138,7 @@ export class PortfolioService {
   // Metrics Calculation
   calculatePortfolioMetrics(positions: Position[]): PortfolioMetrics {
     const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalAmount || pos.totalCost || 0), 0));
-    const totalValue = positions.reduce((sum, pos) => sum + (pos.totalValue || pos.totalAmount || pos.totalCost || 0), 0);
+    const totalValue = positions.reduce((sum, pos) => sum + (pos.marketValue || pos.totalCost || 0), 0);
     const totalDividends = positions.reduce((sum, pos) => sum + pos.totalDividends, 0);
     const unrealizedGain = totalValue - totalCost;
     const unrealizedGainPercent = totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
@@ -156,15 +156,19 @@ export class PortfolioService {
   }
 
   calculatePortfolioSummary(positions: Position[]): PortfolioSummary {
-    const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalAmount || pos.totalCost || 0), 0));
-    const totalDividends = positions.reduce((sum, pos) => sum + pos.totalDividends, 0);
+    const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalCost || 0), 0));
+    const totalValue = positions.reduce((sum, pos) => sum + (pos.marketValue || pos.totalCost || 0), 0);
+    const totalDividends = positions.reduce((sum, pos) => sum + (pos.totalDividends || 0), 0);
+    const totalGain = totalValue - totalCost;
+    const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
+    const dividendYield = totalValue > 0 ? (totalDividends / totalValue) * 100 : 0;
 
     return {
-      totalValue: totalCost, // We don't have current market value yet, so use cost
-      totalCost: totalCost,
-      totalGain: totalDividends, // Use dividends received as gain for now
-      totalGainPercent: totalCost > 0 ? (totalDividends / totalCost) * 100 : 0,
-      dividendYield: 0, // Would need current prices to calculate
+      totalValue,
+      totalCost,
+      totalGain,
+      totalGainPercent,
+      dividendYield,
       monthlyDividends: totalDividends / 12, // Rough estimate
     };
   }
