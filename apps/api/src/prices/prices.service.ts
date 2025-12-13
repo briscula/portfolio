@@ -18,12 +18,39 @@ export class PricesService {
   async syncAllStockPrices(): Promise<void> {
     this.logger.log('Starting full stock price synchronization job.');
 
+    // 1. Get all unique stock symbols from user portfolios
     const allStocks = await this.prisma.stock.findMany({
       select: { symbol: true },
+      distinct: ['symbol'],
+    });
+    const uniqueSymbols = allStocks.map(s => s.symbol);
+
+    // 2. Get the last update time for each symbol
+    const lastUpdates = await this.prisma.stockPrice.findMany({
+      where: {
+        stockSymbol: { in: uniqueSymbols },
+      },
+      select: {
+        stockSymbol: true,
+        lastUpdated: true,
+      },
     });
 
-    const uniqueSymbols = [...new Set(allStocks.map(s => s.symbol))];
-    this.logger.log(`Found ${uniqueSymbols.length} unique symbols in the database to update.`);
+    const lastUpdateMap = new Map<string, Date>();
+    for (const update of lastUpdates) {
+      lastUpdateMap.set(update.stockSymbol, update.lastUpdated);
+    }
+
+    // 3. Sort symbols by last update time (oldest first, never updated top priority)
+    uniqueSymbols.sort((a, b) => {
+      const aTime = lastUpdateMap.get(a)?.getTime() || 0;
+      const bTime = lastUpdateMap.get(b)?.getTime() || 0;
+      return aTime - bTime;
+    });
+
+    this.logger.log(
+      `Found ${uniqueSymbols.length} unique symbols to update. Prioritizing oldest updates first.`,
+    );
 
     const apiKey = this.configService.get<string>('ALPHA_VANTAGE_API_KEY');
     if (!apiKey) {
@@ -36,6 +63,15 @@ export class PricesService {
     const failedSymbols: string[] = [];
 
     for (const [index, symbol] of uniqueSymbols.entries()) {
+      // Break the loop if we hit the daily limit to avoid unnecessary waiting
+      if (failureCount > 0 && uniqueSymbols.length > 25) {
+        const message = `Stopping sync early due to API errors, likely rate limiting. ${
+          uniqueSymbols.length - index
+        } symbols were skipped.`;
+        this.logger.warn(message);
+        break;
+      }
+
       try {
         const url = `${this.apiUrl}?function=GLOBAL_QUOTE&symbol=${symbol}&apikey=${apiKey}`;
         const response = await firstValueFrom(this.httpService.get(url));
@@ -63,14 +99,14 @@ export class PricesService {
           successCount++;
         } else if (response.data.Information || response.data.Note) {
           const message = response.data.Information || response.data.Note;
-          this.logger.warn(
-            `Could not fetch price for ${symbol}. API response: ${message}`,
-          );
+          this.logger.warn(`Could not fetch price for ${symbol}. API response: ${message}`);
           failureCount++;
           failedSymbols.push(symbol);
         } else {
           this.logger.warn(
-            `Could not fetch price for ${symbol}. Invalid response structure: ${JSON.stringify(response.data)}`,
+            `Could not fetch price for ${symbol}. Invalid response structure: ${JSON.stringify(
+              response.data,
+            )}`,
           );
           failureCount++;
           failedSymbols.push(symbol);
@@ -81,8 +117,7 @@ export class PricesService {
         failedSymbols.push(symbol);
       }
 
-      // Add a delay between API calls to respect free tier rate limits (e.g., 5 calls per minute)
-      // A 2-second delay is a bit aggressive, a 12-second delay would be safer. Let's start with 2 and see.
+      // Add a delay between API calls to respect free tier rate limits
       if (index < uniqueSymbols.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 2000)); // 2-second delay
       }
@@ -93,7 +128,9 @@ export class PricesService {
 
     if (failureCount > 0) {
       this.logger.warn(
-        `Failed to update prices for the following symbols: ${failedSymbols.join(', ')}. This may be due to reaching the Alpha Vantage API rate limit (25 requests per day for the free tier).`,
+        `Failed to update prices for the following symbols: ${failedSymbols.join(
+          ', ',
+        )}. This may be due to reaching the Alpha Vantage API rate limit (25 requests per day for the free tier).`,
       );
     }
   }
