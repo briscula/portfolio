@@ -58,6 +58,9 @@ export default function SettingsPage() {
               Update the latest market prices for all your stock positions. This will ensure your portfolio's market value is accurate.
               This process may take a few moments to complete in the background.
             </p>
+            <p className="mt-2 text-sm text-yellow-700">
+              Note: Price data is provided by Alpha Vantage. The free tier is limited to 25 API requests per day. If you have more than 25 unique stocks, or if the sync fails, you may need to wait until the next day to sync all prices.
+            </p>
           </div>
           <div className="bg-gray-50 px-6 py-4 rounded-b-lg">
             <div className="flex items-center space-x-4">
