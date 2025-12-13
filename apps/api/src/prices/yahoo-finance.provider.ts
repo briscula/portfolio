@@ -13,26 +13,27 @@ export class YahooFinanceProvider implements PriceProvider {
     this.logger.log(`Fetching quotes for symbols: ${symbols.join(', ')}`);
 
     try {
-      const results = await yahooFinance.quote(symbols);
+      // TODO: Improve typing when library's types are better understood
+      const results = await yahooFinance.quote(symbols) as any[];
       const quotes: Quote[] = results.map(result => ({
         symbol: result.symbol,
         price: result.regularMarketPrice,
         currency: result.currency,
       }));
-      return quotes;
+      return quotes.filter(q => q.price != null); // Filter out any quotes that failed to fetch a price
     } catch (error) {
       this.logger.error('Failed to fetch quotes from Yahoo Finance', error);
-      // Return empty array or throw a custom error
       return [];
     }
   }
 
   async getFxRate(from: string, to: string): Promise<FxRate> {
     this.logger.log(`Fetching FX rate from ${from} to ${to}`);
-    const symbol = `${from}${to}=X`; // e.g., 'EURUSD=X'
+    const symbol = `${from}${to}=X`;
 
     try {
-      const result = await yahooFinance.quote(symbol);
+      // TODO: Improve typing when library's types are better understood
+      const result = await yahooFinance.quote(symbol) as any;
       if (result && result.regularMarketPrice) {
         return {
           from,
@@ -44,7 +45,7 @@ export class YahooFinanceProvider implements PriceProvider {
       }
     } catch (error) {
       this.logger.error(`Failed to fetch FX rate for ${symbol}`, error);
-      throw error; // Re-throw the error to be handled by the caller
+      throw error;
     }
   }
 }
