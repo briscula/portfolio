@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { PortfoliosModule } from './portfolios/portfolios.module';
 import { DividendAnalyticsModule } from './dividend-analytics/dividend-analytics.module';
 import { PositionsModule } from './positions/positions.module';
+import { PricesModule } from './prices/prices.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { PositionsModule } from './positions/positions.module';
     PortfoliosModule,
     DividendAnalyticsModule,
     PositionsModule,
+    PricesModule,
   ],
 })
-export class AppModule { }
+export class AppModule {}

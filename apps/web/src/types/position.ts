@@ -6,26 +6,24 @@
  * Position entity representing a stock holding in a portfolio
  */
 export interface Position {
-  userId: number;
-  portfolioId: number;
+  userId?: number; // Optional as not always returned from API
+  portfolioId?: number; // Optional as not always returned from API
   portfolioName: string;
   stockSymbol: string;
   companyName: string;
   sector: string | null;
   currentQuantity: number;
-  totalAmount: number; // Total cost of the position
-  totalCost?: number; // Legacy field for backward compatibility
-  totalDividends: number;
-  dividendCount: number;
+  totalCost: number; // Total cost of the position, calculated by backend
+  marketValue: number; // Current market value of the position
+  currentPrice: number | null; // Latest price, can be null
+  unrealizedGain: number;
+  unrealizedGainPercent: number;
   lastTransactionDate: string;
   portfolioPercentage: number;
-  // Calculated fields (computed on frontend)
+  // Fields to be calculated on the frontend if needed
   averagePrice?: number;
-  currentPrice?: number;
-  totalValue?: number;
-  unrealizedGain?: number;
-  unrealizedGainPercent?: number;
-  dividendYield?: number;
+  totalDividends?: number; // This might come from another service
+  dividendCount?: number;
 }
 
 /**
@@ -38,10 +36,6 @@ export interface PaginationInfo {
   totalPages: number;
   hasNextPage: boolean;
   hasPrevPage: boolean;
-  // Legacy fields for backward compatibility
-  currentPage?: number;
-  totalItems?: number;
-  itemsPerPage?: number;
 }
 
 /**
@@ -49,5 +43,5 @@ export interface PaginationInfo {
  */
 export interface PositionsResponse {
   data: Position[];
-  pagination: PaginationInfo;
+  meta: PaginationInfo;
 }

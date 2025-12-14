@@ -57,11 +57,48 @@ model Currency {
   portfolios Portfolio[]
   stockPrices StockPrice[]
   transactions Transaction[]
+  listings     Listing[]
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 
 
   @@map("currency")
+}
+
+model Exchange {
+  /// The exchange code (e.g., "NAS", "NYSE").
+  code         String      @id @db.VarChar(10)
+  /// The name of the exchange (e.g., "NASDAQ", "New York Stock Exchange").
+  name         String      @db.VarChar(255)
+  /// The country where the exchange is located.
+  country      String      @db.VarChar(50)
+  listings     Listing[]
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@map("exchange")
+}
+
+model Listing {
+  /// The International Securities Identification Number (ISIN).
+  isin         String      @db.VarChar(12)
+  /// The code of the exchange where the stock is listed.
+  exchangeCode String      @db.VarChar(10)
+  /// The ticker symbol of the stock on this exchange.
+  tickerSymbol String      @db.VarChar(10)
+  /// The name of the company.
+  companyName  String?     @db.VarChar(255)
+  /// The currency of the listing.
+  currencyCode String      @db.VarChar(10)
+
+  exchange     Exchange    @relation(fields: [exchangeCode], references: [code])
+  currency     Currency    @relation(fields: [currencyCode], references: [code])
+
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  @@id([isin, exchangeCode])
+  @@map("listing")
 }
 
 model Stock {

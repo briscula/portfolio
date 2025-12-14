@@ -9,6 +9,7 @@ import {
   UseGuards,
   Request,
   Query,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiCreatedResponse,
@@ -137,20 +138,13 @@ export class PortfoliosController {
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: 'asc' | 'desc',
   ) {
-    console.log(
-      'Controller received portfolio ID:',
-      portfolioId,
-      'Type:',
-      typeof portfolioId,
-    );
     const userId = await AuthUtils.getUserIdFromToken(req, this.usersService);
     const pageNum = page ? parseInt(page, 10) : 1;
     const limitNum = limit ? parseInt(limit, 10) : 50;
-    const sortField = sortBy || 'portfolioPercentage';
+    const sortField = sortBy || 'marketValue'; // Default sort to marketValue
     const order = sortOrder || 'desc';
 
-    // Get positions for the specific portfolio
-    const positions = await this.positionsService.getPortfolioPositions(
+    return this.positionsService.getPortfolioPositions(
       userId,
       portfolioId,
       pageNum,
@@ -158,15 +152,6 @@ export class PortfoliosController {
       sortField,
       order,
     );
-
-    return {
-      data: positions,
-      portfolioId: portfolioId,
-      sort: {
-        sortBy: sortField,
-        sortOrder: order,
-      },
-    };
   }
 
   @Get(':id/transactions')

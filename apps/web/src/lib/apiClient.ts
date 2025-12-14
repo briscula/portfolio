@@ -49,6 +49,10 @@ export class ApiClient {
       throw new Error(`API request failed: ${response.status} ${response.statusText}`);
     }
 
+    if (response.status === 204) {
+      return null; // Successfully handled No Content
+    }
+
     return response.json();
   }
 
@@ -93,6 +97,13 @@ export class ApiClient {
 
   async getPortfolioSummary(portfolioId: string) {
     return this.makeRequest(`/portfolios/${portfolioId}/summary`);
+  }
+
+  // Price Sync
+  async syncPrices() {
+    return this.makeRequest(`/prices/sync`, {
+      method: 'POST',
+    });
   }
 
   // Transaction methods (WRITE operations)
