@@ -10,12 +10,16 @@ export const TransactionTypeSchema = z.nativeEnum($Enums.TransactionType);
  * Schema for creating a new transaction
  */
 export const CreateTransactionSchema = z.object({
-    portfolioId: z.string().uuid().optional(),
-    stockSymbol: z.string().max(10, 'Stock symbol must be 10 characters or less'),
+    portfolioId: z.string().uuid(),
+    isin: z.string().max(12, 'ISIN must be 12 characters or less'),
+    exchangeCode: z.string().max(10, 'Exchange code must be 10 characters or less'),
+    exchangeCountry: z.string().max(50).optional(),
+    tickerSymbol: z.string().max(10, 'Ticker symbol must be 10 characters or less'),
+    companyName: z.string().max(255, 'Company name too long'),
+    currencyCode: z.string().length(3).toUpperCase(),
     quantity: z.number(),
     price: z.number().nonnegative('Price cannot be negative'),
     commission: z.number().nonnegative('Commission cannot be negative').default(0),
-    currencyCode: z.string().length(3).toUpperCase().default('USD'),
     reference: z.string().max(255).optional(),
     amount: z.number(),
     totalAmount: z.number(),
@@ -50,7 +54,8 @@ export type QueryTransactionsDto = z.infer<typeof QueryTransactionsSchema>;
 export const TransactionSchema = z.object({
     id: z.number().int(),
     portfolioId: z.string(),
-    stockSymbol: z.string(),
+    listingIsin: z.string().max(12),
+    listingExchangeCode: z.string().max(10),
     type: TransactionTypeSchema,
     quantity: z.number(),
     price: z.number(),

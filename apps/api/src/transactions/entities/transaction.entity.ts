@@ -8,8 +8,11 @@ export class TransactionEntity implements Transaction {
   @ApiProperty()
   portfolioId: string;
 
+  @ApiProperty({ maxLength: 12 })
+  listingIsin: string;
+
   @ApiProperty({ maxLength: 10 })
-  stockSymbol: string;
+  listingExchangeCode: string;
 
   @ApiProperty()
   type: $Enums.TransactionType;

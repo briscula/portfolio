@@ -1,6 +1,7 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { PriceProvider } from './price-provider.interface';
+import { PriceProvider, Quote, FxRate } from './price-provider.interface';
+import { Listing } from '@repo/database'; // Import Listing model
 
 interface CachedFxRate {
   rate: number;
@@ -41,39 +42,81 @@ export class PricesService {
   async syncAllStockPrices(): Promise<void> {
     this.logger.log('Starting full stock price synchronization job.');
 
-    // 1. Get all unique stock symbols from user portfolios
-    const allStocks = await this.prisma.stock.findMany({
-      select: { symbol: true },
-      distinct: ['symbol'],
+    // 1. Get all unique listings that transactions are linked to
+    // We need to fetch listings that exist in transactions to update their prices
+    const uniqueListings = await this.prisma.listing.findMany({
+      distinct: ['isin', 'exchangeCode'], // Ensure unique listings
+      where: {
+        transactions: {
+          some: {
+            // Only consider listings that have at least one transaction
+            portfolio: {
+              NOT: { userId: null }, // Ensure it's linked to a user's portfolio
+            },
+          },
+        },
+      },
+      select: {
+        isin: true,
+        exchangeCode: true,
+        tickerSymbol: true,
+        currencyCode: true,
+        companyName: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
-    const uniqueSymbols = allStocks.map(s => s.symbol);
 
-    // 2. Get the last update time for each symbol
+    // Create a map from tickerSymbol to the full listing object
+    // Note: This assumes tickerSymbols are unique across exchanges which might not always be true.
+    // A more robust solution would be to create a map of cleanedSymbol -> originalListing[]
+    // For now, let's use isin_exchangeCode as a unique identifier for mapping.
+    const listingMap = new Map<string, Listing>(); // Key: tickerSymbol, Value: Listing
+    const listingsToFetch: string[] = []; // tickerSymbols for priceProvider
+
+    uniqueListings.forEach(listing => {
+        // Here we can clean the tickerSymbol if necessary, but the cleaning logic should be in PriceProvider now.
+        // Or, we expect tickerSymbol to be clean from the database.
+        // Let's assume tickerSymbol is already clean from DB or will be cleaned by priceProvider.
+        if (listing.tickerSymbol) {
+            listingMap.set(`${listing.isin}_${listing.exchangeCode}`, listing); // Map by unique composite key
+            listingsToFetch.push(listing.tickerSymbol);
+        }
+    });
+
+    // 2. Get the last update time for each listing
     const lastUpdates = await this.prisma.stockPrice.findMany({
-      where: { stockSymbol: { in: uniqueSymbols } },
-      select: { stockSymbol: true, lastUpdated: true },
+      where: {
+        OR: uniqueListings.map(l => ({
+          listingIsin: l.isin,
+          listingExchangeCode: l.exchangeCode,
+        })),
+      },
+      select: { listingIsin: true, listingExchangeCode: true, lastUpdated: true },
     });
-    const lastUpdateMap = new Map<string, Date>();
-    lastUpdates.forEach(u => lastUpdateMap.set(u.stockSymbol, u.lastUpdated));
+    const lastUpdateMap = new Map<string, Date>(); // Key: isin_exchangeCode, Value: lastUpdated
+    lastUpdates.forEach(u => lastUpdateMap.set(`${u.listingIsin}_${u.listingExchangeCode}`, u.lastUpdated));
 
-    // 3. Sort symbols by last update time (oldest first)
-    uniqueSymbols.sort((a, b) => {
-      const aTime = lastUpdateMap.get(a)?.getTime() || 0;
-      const bTime = lastUpdateMap.get(b)?.getTime() || 0;
-      return aTime - bTime;
+
+    // 3. Sort listings by last update time (oldest first)
+    uniqueListings.sort((a, b) => {
+        const aTime = lastUpdateMap.get(`${a.isin}_${a.exchangeCode}`)?.getTime() || 0;
+        const bTime = lastUpdateMap.get(`${b.isin}_${b.exchangeCode}`)?.getTime() || 0;
+        return aTime - bTime;
     });
 
     this.logger.log(
-      `Found ${uniqueSymbols.length} unique symbols to update. Prioritizing oldest updates first.`,
+      `Found ${uniqueListings.length} unique listings to update. Prioritizing oldest updates first.`,
     );
 
-    if (uniqueSymbols.length === 0) {
-      this.logger.log('No symbols to update. Exiting job.');
+    if (uniqueListings.length === 0) {
+      this.logger.log('No listings to update. Exiting job.');
       return;
     }
 
     try {
-      const quotes = await this.priceProvider.getQuotes(uniqueSymbols);
+      // The price provider expects symbols, so we pass the tickerSymbols
+      const quotes = await this.priceProvider.getQuotes(listingsToFetch);
 
       if (quotes.length === 0) {
         this.logger.warn('Price provider returned no quotes. Ending sync job.');
@@ -81,25 +124,70 @@ export class PricesService {
       }
 
       for (const quote of quotes) {
-        await this.prisma.stockPrice.upsert({
-          where: {
-            stockSymbol_currencyCode: {
-              stockSymbol: quote.symbol,
-              currencyCode: quote.currency,
+        // Find the original listing object that corresponds to the returned quote symbol
+        // This requires finding the listing from `uniqueListings` that matches `quote.symbol`.
+        // This is a weak point if tickerSymbols are not unique across exchanges or if PriceProvider cleans symbols.
+        // For robustness, we need a way to map the quote.symbol back to its original (isin, exchangeCode)
+        // For now, we assume quote.symbol is the clean tickerSymbol and find a matching listing.
+
+        const matchedListing = uniqueListings.find(l => l.tickerSymbol === quote.symbol);
+
+        if (!matchedListing) {
+            this.logger.warn(`Could not find a matching listing for quote symbol: ${quote.symbol}. Skipping update.`);
+            continue;
+        }
+
+        // Skip currencies that are not supported in our system (e.g., not USD or EUR)
+        const SUPPORTED_CURRENCIES = ['USD', 'EUR'];
+        if (!SUPPORTED_CURRENCIES.includes(quote.currency)) {
+          this.logger.warn(
+            `Skipping price update for ${matchedListing.tickerSymbol} (${matchedListing.isin}_${matchedListing.exchangeCode}) because currency '${quote.currency}' is not supported.`,
+          );
+          continue;
+        }
+
+        let existingStockPrice = await this.prisma.stockPrice.findFirst({
+            where: {
+                listingIsin: matchedListing.isin,
+                listingExchangeCode: matchedListing.exchangeCode,
+                currencyCode: quote.currency,
             },
-          },
-          update: { price: quote.price, source: 'yahoo_finance', lastUpdated: new Date() },
-          create: {
-            stockSymbol: quote.symbol,
-            price: quote.price,
-            currencyCode: quote.currency,
-            source: 'yahoo_finance',
-          },
         });
-        this.logger.log(`Successfully updated price for ${quote.symbol}: ${quote.price} ${quote.currency}`);
+
+        if (existingStockPrice) {
+            await this.prisma.stockPrice.update({
+                where: { id: existingStockPrice.id },
+                data: {
+                    price: quote.price,
+                    source: 'yahoo_finance',
+                    lastUpdated: new Date(),
+                },
+            });
+        } else {
+            await this.prisma.stockPrice.create({
+                data: {
+                    price: quote.price,
+                    source: 'yahoo_finance',
+                    currency: {
+                        connect: {
+                            code: quote.currency,
+                        },
+                    },
+                    listing: {
+                      connect: {
+                        isin_exchangeCode: {
+                          isin: matchedListing.isin,
+                          exchangeCode: matchedListing.exchangeCode,
+                        },
+                      },
+                    },
+                },
+            });
+        }
+        this.logger.log(`Successfully updated price for ${matchedListing.tickerSymbol} (${matchedListing.isin}_${matchedListing.exchangeCode}): ${quote.price} ${quote.currency}`);
       }
 
-      this.logger.log(`Finished stock price synchronization job. Updated ${quotes.length} symbols.`);
+      this.logger.log(`Finished stock price synchronization job. Updated ${quotes.length} listings.`);
     } catch (error) {
       this.logger.error('An error occurred during the price synchronization job', error);
     }

@@ -94,6 +94,10 @@ model Listing {
   exchange     Exchange    @relation(fields: [exchangeCode], references: [code])
   currency     Currency    @relation(fields: [currencyCode], references: [code])
 
+  transactions Transaction[]
+  stockPrices  StockPrice[]
+  corporateActions CorporateAction[]
+
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 
@@ -101,28 +105,13 @@ model Listing {
   @@map("listing")
 }
 
-model Stock {
-  /// The ticker symbol of the stock.
-  symbol       String        @id @unique @db.VarChar(10)
-  /// The name of the company.
-  companyName  String?       @db.VarChar(255)
-  /// The sector the company belongs to.
-  sector       String?       @db.VarChar(50)
-  transactions Transaction[]
-  prices       StockPrice[]
-  corporateActions CorporateAction[]
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-
-  @@map("stock")
-}
-
 model CorporateAction {
   /// The unique identifier for the corporate action.
   id            Int                 @id @default(autoincrement())
-  /// The ticker symbol of the stock affected by the corporate action.
-  stockSymbol   String              @db.VarChar(10)
+  /// The ISIN of the listed stock affected by the corporate action.
+  listingIsin   String?              @db.VarChar(12)
+  /// The exchange code of the listed stock affected by the corporate action.
+  listingExchangeCode String?          @db.VarChar(10)
   /// The type of corporate action.
   type          CorporateActionType
   /// The date the corporate action was executed.
@@ -131,7 +120,7 @@ model CorporateAction {
   factor        Float?
   /// Additional notes about the corporate action.
   notes         String?
-  stock         Stock               @relation(fields: [stockSymbol], references: [symbol])
+  listing       Listing?             @relation(fields: [listingIsin, listingExchangeCode], references: [isin, exchangeCode])
   createdAt     DateTime            @default(now())
   updatedAt     DateTime            @updatedAt
 
@@ -142,8 +131,10 @@ model CorporateAction {
 model StockPrice {
   /// The unique identifier for the stock price.
   id          Int      @id @default(autoincrement())
-  /// The ticker symbol of the stock.
-  stockSymbol String   @db.VarChar(10)
+  /// The ISIN of the listed stock.
+  listingIsin String?   @db.VarChar(12)
+  /// The exchange code of the listed stock.
+  listingExchangeCode String?   @db.VarChar(10)
   /// The price of the stock.
   price       Float
   /// The currency of the price.
@@ -152,10 +143,9 @@ model StockPrice {
   lastUpdated DateTime @default(now())
   /// The source of the price data.
   source      String?  @db.VarChar(50) // e.g., "alpha_vantage", "yahoo", "manual"
-  stock       Stock    @relation(fields: [stockSymbol], references: [symbol], onDelete: Cascade)
+  listing     Listing?  @relation(fields: [listingIsin, listingExchangeCode], references: [isin, exchangeCode], onDelete: Cascade)
   currency    Currency @relation(fields: [currencyCode], references: [code])
 
-  @@unique([stockSymbol, currencyCode])
   @@map("stock_price")
 }
 
@@ -164,8 +154,10 @@ model Transaction {
   id            Int             @id @default(autoincrement())
   /// The ID of the portfolio the transaction belongs to.
   portfolioId   String          @db.Uuid
-  /// The ticker symbol of the stock.
-  stockSymbol   String          @db.VarChar(10)
+  /// The ISIN of the listed stock.
+  listingIsin   String?          @db.VarChar(12)
+  /// The exchange code of the listed stock.
+  listingExchangeCode String?      @db.VarChar(10)
   /// The type of transaction.
   type          TransactionType @default(BUY)
   /// The number of shares in the transaction.
@@ -189,13 +181,12 @@ model Transaction {
   /// A reference for the transaction.
   reference     String?         @db.VarChar(255)
   portfolio     Portfolio       @relation(fields: [portfolioId], references: [id])
-  stock         Stock           @relation(fields: [stockSymbol], references: [symbol])
+  listing       Listing?         @relation(fields: [listingIsin, listingExchangeCode], references: [isin, exchangeCode])
   currency      Currency        @relation(fields: [currencyCode], references: [code])
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt
 
 
-  @@unique([portfolioId, stockSymbol, reference])
   @@map("transaction")
 }
 

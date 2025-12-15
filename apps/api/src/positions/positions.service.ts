@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PricesService } from '../prices/prices.service';
+import { Listing } from '@repo/database'; // Import Listing model
 
 @Injectable()
 export class PositionsService {
@@ -78,42 +79,7 @@ export class PositionsService {
   }
 
   /**
-   * Get total portfolio value for a specific portfolio by aggregating transactions
-   */
-  async getPortfolioTotalValue(userId: string, portfolioId: string): Promise<number> {
-    console.log('Getting portfolio total value for:', portfolioId);
-
-    // Verify portfolio belongs to user
-    const portfolio = await this.prisma.portfolio.findFirst({
-      where: {
-        id: portfolioId,
-        userId: userId
-      }
-    });
-
-    if (!portfolio) {
-      throw new NotFoundException('Portfolio not found or access denied.');
-    }
-
-    // Calculate net portfolio value by summing all transaction amounts (BUY = positive, SELL = negative)
-    const result = await this.prisma.transaction.aggregate({
-      where: {
-        portfolioId,
-        type: { in: ['BUY', 'SELL'] }
-      },
-      _sum: {
-        amount: true
-      }
-    });
-
-    // Return the net amount (positive means net investment, negative means net proceeds)
-    // For percentage calculations, we want the absolute value of current holdings
-    const netAmount = result._sum.amount || 0;
-    return Math.abs(netAmount);
-  }
-
-  /**
-   * Transform positions to ensure totalCost is positive for API responses
+   * Transform positions to ensure totalAmount is positive for API responses
    */
   private transformPositionsForResponse(positions: any[]) {
     return positions.map((position) => ({
@@ -152,9 +118,9 @@ export class PositionsService {
           aValue = a.portfolioPercentage;
           bValue = b.portfolioPercentage;
           break;
-        case 'totalCost':
-          aValue = a.totalCost;
-          bValue = b.totalCost;
+        case 'totalAmount': // Now using totalAmount
+          aValue = a.totalAmount;
+          bValue = b.totalAmount;
           break;
         case 'marketValue':
           aValue = a.marketValue;
@@ -168,17 +134,17 @@ export class PositionsService {
           aValue = a.currentQuantity;
           bValue = b.currentQuantity;
           break;
-        case 'stockSymbol':
-          aValue = a.stockSymbol;
-          bValue = b.stockSymbol;
+        case 'tickerSymbol': // Updated from stockSymbol
+          aValue = a.tickerSymbol;
+          bValue = b.tickerSymbol;
           break;
         case 'companyName':
           aValue = a.companyName || '';
           bValue = b.companyName || '';
           break;
-        case 'sector':
-          aValue = a.sector || '';
-          bValue = b.sector || '';
+        case 'sector': // Removed sector, as it's not directly in Listing
+          aValue = a.companyName || ''; // Fallback to companyName for sorting if sector is removed
+          bValue = b.companyName || '';
           break;
         case 'lastTransactionDate':
           aValue = new Date(a.lastTransactionDate);
@@ -200,7 +166,7 @@ export class PositionsService {
 
   /**
    * Get positions for a specific portfolio with percentage calculations
-   * Calculates positions by aggregating transactions grouped by stock
+   * Calculates positions by aggregating transactions grouped by listing
    */
   async getPortfolioPositions(
     userId: string,
@@ -223,7 +189,7 @@ export class PositionsService {
 
     // 3. Calculate aggregated transaction data for positions
     const aggregatedTransactions = await this.prisma.transaction.groupBy({
-      by: ['stockSymbol'],
+      by: ['listingIsin', 'listingExchangeCode'], // Group by listing composite key
       where: { portfolioId, type: { in: ['BUY', 'SELL'] } },
       _sum: { quantity: true, amount: true },
       _max: { createdAt: true },
@@ -237,45 +203,78 @@ export class PositionsService {
       return { data: [], meta: { total: 0, page, limit, totalPages: 0, hasNextPage: false, hasPrevPage: false }};
     }
 
-    // 4. Get supplemental data (stock info and latest prices in USD)
-    const stockSymbols = activePositions.map(p => p.stockSymbol);
-    const [stocks, prices] = await Promise.all([
-      this.prisma.stock.findMany({ where: { symbol: { in: stockSymbols } } }),
-      this.prisma.stockPrice.findMany({ where: { stockSymbol: { in: stockSymbols }, currencyCode: 'USD' } }),
-    ]);
+    // 4. Get supplemental data (listing info and latest prices in USD)
+    const listingIdentifiers = activePositions.map(p => ({
+      isin: p.listingIsin,
+      exchangeCode: p.listingExchangeCode,
+    }));
 
-    const stockMap = stocks.reduce((acc, stock) => ({ ...acc, [stock.symbol]: stock }), {});
-    const priceMap = prices.reduce((acc, p) => ({ ...acc, [p.stockSymbol]: p.price }), {});
+    const listings = await this.prisma.listing.findMany({
+      where: {
+        OR: listingIdentifiers, // Query by composite key
+      },
+      select: {
+        isin: true,
+        exchangeCode: true,
+        tickerSymbol: true,
+        companyName: true,
+        // sector: true, // Sector is not directly on Listing, might need to derive or remove
+      },
+    });
+
+    const prices = await this.prisma.stockPrice.findMany({
+      where: {
+        OR: listingIdentifiers.map(id => ({
+          listingIsin: id.isin,
+          listingExchangeCode: id.exchangeCode,
+        })),
+        currencyCode: 'USD',
+      },
+    });
+
+    const listingMap = listings.reduce((acc, listing) => ({
+      ...acc,
+      [`${listing.isin}_${listing.exchangeCode}`]: listing,
+    }), {});
+
+    const priceMap = prices.reduce((acc, p) => ({
+      ...acc,
+      [`${p.listingIsin}_${p.listingExchangeCode}`]: p.price,
+    }), {});
+
 
     // 5. Combine all data and convert to portfolio currency
     const positionsWithValues = activePositions.map(agg => {
-      const stockInfo = stockMap[agg.stockSymbol];
+      const listingInfo = listingMap[`${agg.listingIsin}_${agg.listingExchangeCode}`];
       const currentQuantity = agg._sum.quantity || 0;
-      const totalCostUSD = Math.abs(agg._sum.amount || 0);
-      const currentPriceUSD = priceMap[agg.stockSymbol];
+      const totalAmountUSD = Math.abs(agg._sum.amount || 0); // Changed from totalCostUSD to totalAmountUSD
+      const currentPriceUSD = priceMap[`${agg.listingIsin}_${agg.listingExchangeCode}`];
       
-      const marketValueUSD = currentPriceUSD !== undefined ? currentQuantity * currentPriceUSD : totalCostUSD;
-      const unrealizedGainUSD = marketValueUSD - totalCostUSD;
+      const marketValueUSD = currentPriceUSD !== undefined ? currentQuantity * currentPriceUSD : totalAmountUSD;
+      const unrealizedGainUSD = marketValueUSD - totalAmountUSD;
       
       // Convert all monetary values to the portfolio's currency
-      const totalCost = totalCostUSD * fxRate;
+      const totalAmount = totalAmountUSD * fxRate; // Changed from totalCost to totalAmount
       const marketValue = marketValueUSD * fxRate;
       const currentPrice = currentPriceUSD !== undefined ? currentPriceUSD * fxRate : null;
       const unrealizedGain = unrealizedGainUSD * fxRate;
-      const unrealizedGainPercent = totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
+      const unrealizedGainPercent = totalAmount > 0 ? (unrealizedGain / totalAmount) * 100 : 0; // Changed from totalCost to totalAmount
 
       return {
-        stockSymbol: agg.stockSymbol,
-        companyName: stockInfo?.companyName || agg.stockSymbol,
-        sector: stockInfo?.sector || null,
+        tickerSymbol: listingInfo?.tickerSymbol, // Use tickerSymbol from listingInfo
+        companyName: listingInfo?.companyName || listingInfo?.tickerSymbol,
+        sector: null, // Sector is removed, set to null
         currentQuantity,
-        totalCost,
+        totalAmount, // Use totalAmount
         marketValue,
         currentPrice,
         unrealizedGain,
         unrealizedGainPercent: parseFloat(unrealizedGainPercent.toFixed(2)),
         lastTransactionDate: agg._max.createdAt,
         portfolioName: portfolio.name,
+        // Add listing details for future use if needed
+        listingIsin: listingInfo?.isin,
+        listingExchangeCode: listingInfo?.exchangeCode,
       };
     });
     
@@ -327,31 +326,45 @@ export class PositionsService {
 
     // 3. Aggregate transactions to get position data in USD
     const positions = await this.prisma.transaction.groupBy({
-      by: ['stockSymbol'],
+      by: ['listingIsin', 'listingExchangeCode'], // Group by listing composite key
       where: { portfolioId, type: { in: ['BUY', 'SELL'] } },
       _sum: { quantity: true, amount: true },
     });
     const activePositions = positions.filter(p => (p._sum.quantity || 0) > 0);
 
-    // 4. Calculate total cost in USD
-    const totalCostUSD = activePositions.reduce(
+    // 4. Calculate total amount in USD
+    const totalAmountUSD = activePositions.reduce(
       (sum, position) => sum + Math.abs(position._sum.amount || 0),
       0,
     );
 
     // 5. Get latest prices in USD
-    const stockSymbols = activePositions.map(p => p.stockSymbol);
+    const listingIdentifiers = activePositions.map(p => ({
+      isin: p.listingIsin,
+      exchangeCode: p.listingExchangeCode,
+    }));
+
     const prices = await this.prisma.stockPrice.findMany({
-      where: { stockSymbol: { in: stockSymbols }, currencyCode: 'USD' },
+      where: {
+        OR: listingIdentifiers.map(id => ({
+          listingIsin: id.isin,
+          listingExchangeCode: id.exchangeCode,
+        })),
+        currencyCode: 'USD',
+      },
     });
-    const priceMap = prices.reduce((acc, p) => ({ ...acc, [p.stockSymbol]: p.price }), {});
+
+    const priceMap = prices.reduce((acc, p) => ({
+      ...acc,
+      [`${p.listingIsin}_${p.listingExchangeCode}`]: p.price,
+    }), {});
 
     // 6. Calculate total value in USD
     const totalValueUSD = activePositions.reduce((sum, position) => {
-      const currentPrice = priceMap[position.stockSymbol];
+      const currentPrice = priceMap[`${position.listingIsin}_${position.listingExchangeCode}`];
       const quantity = position._sum.quantity || 0;
-      const historicalCost = Math.abs(position._sum.amount || 0);
-      const marketValue = currentPrice !== undefined ? quantity * currentPrice : historicalCost;
+      const historicalAmount = Math.abs(position._sum.amount || 0); // Changed from historicalCost to historicalAmount
+      const marketValue = currentPrice !== undefined ? quantity * currentPrice : historicalAmount;
       return sum + marketValue;
     }, 0);
 
@@ -364,14 +377,14 @@ export class PositionsService {
 
     // 8. Convert all monetary values to the portfolio's currency
     const totalValue = totalValueUSD * fxRate;
-    const totalCost = totalCostUSD * fxRate;
+    const totalAmount = totalAmountUSD * fxRate; // Changed from totalCost to totalAmount
     const totalDividends = totalDividendsUSD * fxRate;
-    const totalGain = totalValue - totalCost;
-    const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
+    const totalGain = totalValue - totalAmount; // Changed from totalCost to totalAmount
+    const totalGainPercent = totalAmount > 0 ? (totalGain / totalAmount) * 100 : 0; // Changed from totalCost to totalAmount
 
     return {
       totalValue,
-      totalCost,
+      totalAmount, // Changed from totalCost to totalAmount
       totalGain,
       totalGainPercent: parseFloat(totalGainPercent.toFixed(2)),
       positionCount: activePositions.length,

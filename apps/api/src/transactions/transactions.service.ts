@@ -16,11 +16,6 @@ export class TransactionsService {
   constructor(private prisma: PrismaService) { }
 
   async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<Transaction> {
-    // Ensure portfolioId is provided
-    if (!createTransactionDto.portfolioId) {
-      throw new BadRequestException('Portfolio ID is required');
-    }
-
     // Verify that the portfolio belongs to the user
     const portfolio = await this.prisma.portfolio.findUnique({
       where: {
@@ -33,6 +28,43 @@ export class TransactionsService {
       throw new BadRequestException('Invalid Portfolio ID or access denied');
     }
 
+    // 1. Find or create the Exchange
+    const exchange = await this.prisma.exchange.upsert({
+      where: { code: createTransactionDto.exchangeCode },
+      update: {
+        name: createTransactionDto.exchangeCode, // Assuming name is same as code if not provided
+        country: createTransactionDto.exchangeCountry ?? 'Unknown', // Use provided country or 'Unknown'
+      },
+      create: {
+        code: createTransactionDto.exchangeCode,
+        name: createTransactionDto.exchangeCode,
+        country: createTransactionDto.exchangeCountry ?? 'Unknown', // Use provided country or 'Unknown'
+      },
+    });
+
+    // 2. Find or create the Listing
+    const listing = await this.prisma.listing.upsert({
+      where: {
+        isin_exchangeCode: {
+          isin: createTransactionDto.isin,
+          exchangeCode: createTransactionDto.exchangeCode,
+        },
+      },
+      update: {
+        tickerSymbol: createTransactionDto.tickerSymbol,
+        companyName: createTransactionDto.companyName,
+        currencyCode: createTransactionDto.currencyCode,
+      },
+      create: {
+        isin: createTransactionDto.isin,
+        exchangeCode: createTransactionDto.exchangeCode,
+        tickerSymbol: createTransactionDto.tickerSymbol,
+        companyName: createTransactionDto.companyName,
+        currencyCode: createTransactionDto.currencyCode,
+      },
+    });
+
+
     return this.prisma.transaction.create({
       data: {
         portfolio: {
@@ -40,18 +72,17 @@ export class TransactionsService {
             id: createTransactionDto.portfolioId,
           },
         },
-        stock: {
-          connectOrCreate: {
-            where: { symbol: createTransactionDto.stockSymbol },
-            create: {
-              symbol: createTransactionDto.stockSymbol,
-              companyName: createTransactionDto.stockSymbol,
+        listing: { // Connect to Listing instead of Stock
+          connect: {
+            isin_exchangeCode: {
+              isin: listing.isin,
+              exchangeCode: listing.exchangeCode,
             },
           },
         },
         currency: {
           connect: {
-            code: createTransactionDto.currencyCode || 'USD',
+            code: createTransactionDto.currencyCode, // Use currencyCode from DTO, which is now from Listing
           },
         },
         quantity: createTransactionDto.quantity,
@@ -61,7 +92,7 @@ export class TransactionsService {
           createTransactionDto.reference ||
           createTransactionDto.date +
           ' ' +
-          createTransactionDto.stockSymbol +
+          createTransactionDto.tickerSymbol + // Use tickerSymbol from DTO/Listing
           ' ' +
           createTransactionDto.quantity,
         amount: createTransactionDto.amount,
@@ -75,12 +106,12 @@ export class TransactionsService {
     });
   }
 
-  findByPortfolio(
+  async findByPortfolio(
     userId: string,
     portfolioId: string,
     page: number = 1,
     limit: number = 50,
-  ) {
+  ): Promise<Transaction[]> { // Specify return type for better type safety
     const skip = (page - 1) * limit;
 
     return this.prisma.transaction.findMany({
@@ -95,6 +126,16 @@ export class TransactionsService {
       },
       skip,
       take: limit,
+      include: { // Add include for listing
+        listing: {
+          select: {
+            tickerSymbol: true,
+            companyName: true,
+            isin: true,
+            exchangeCode: true,
+          },
+        },
+      },
     });
   }
 
@@ -177,11 +218,13 @@ export class TransactionsService {
       where.type = type;
     }
 
-    // Filter by stock symbol
+    // Filter by listing tickerSymbol
     if (symbol) {
-      where.stockSymbol = {
-        contains: symbol,
-        mode: 'insensitive',
+      where.listing = {
+        tickerSymbol: {
+          contains: symbol,
+          mode: 'insensitive',
+        },
       };
     }
 
@@ -217,9 +260,9 @@ export class TransactionsService {
             name: true,
           },
         },
-        stock: {
+        listing: { // Include listing details
           select: {
-            symbol: true,
+            tickerSymbol: true,
             companyName: true,
           },
         },

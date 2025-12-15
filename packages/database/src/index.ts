@@ -15,7 +15,6 @@ export type {
   User,
   Portfolio,
   Currency,
-  Stock,
   CorporateAction,
   StockPrice,
   Transaction,
