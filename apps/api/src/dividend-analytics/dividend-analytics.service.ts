@@ -42,9 +42,9 @@ export class DividendAnalyticsService {
       paramIndex += 2;
     }
 
-    // Add stock symbol filter if specified
+    // Add stock symbol filter if specified (now listing tickerSymbol)
     if (query.stockSymbol) {
-      conditions.push(`t."stockSymbol" = $${paramIndex}`);
+      conditions.push(`l."tickerSymbol" = $${paramIndex}`);
       params.push(query.stockSymbol);
       paramIndex++;
     }
@@ -68,16 +68,16 @@ export class DividendAnalyticsService {
     const companySummaries = await this.prisma.$queryRawUnsafe<any[]>(
       `WITH dividend_data AS (
         SELECT 
-          t."stockSymbol",
-          s."companyName",
+          l."tickerSymbol" as stockSymbol,
+          l."companyName",
           EXTRACT(YEAR FROM t."createdAt") as year,
           SUM(CASE WHEN t."type" = 'DIVIDEND' THEN t."amount" ELSE 0 END) as total_dividends,
           COUNT(CASE WHEN t."type" = 'DIVIDEND' THEN 1 END) as dividend_count,
           SUM(CASE WHEN t."type" = 'BUY' THEN t."amount" ELSE 0 END) as total_cost
         FROM "transaction" t
-        LEFT JOIN "stock" s ON t."stockSymbol" = s."symbol"
+        LEFT JOIN "listing" l ON t."listingIsin" = l."isin" AND t."listingExchangeCode" = l."exchangeCode"
         WHERE ${whereClause}
-        GROUP BY t."stockSymbol", s."companyName", EXTRACT(YEAR FROM t."createdAt")
+        GROUP BY l."tickerSymbol", l."companyName", EXTRACT(YEAR FROM t."createdAt")
         HAVING COUNT(CASE WHEN t."type" = 'DIVIDEND' THEN 1 END) > 0
       )
       SELECT 
@@ -101,7 +101,7 @@ export class DividendAnalyticsService {
     );
 
     return companySummaries.map((row: any) => ({
-      stockSymbol: row.stockSymbol,
+      stockSymbol: row.stockSymbol, // Now tickerSymbol
       companyName: row.companyName || row.stockSymbol,
       year: parseInt(row.year),
       totalDividends: parseFloat(row.total_dividends),
@@ -140,9 +140,9 @@ export class DividendAnalyticsService {
       paramIndex += 2;
     }
 
-    // Add stock symbol filter if specified
+    // Add stock symbol filter if specified (now listing tickerSymbol)
     if (query.stockSymbol) {
-      conditions.push(`"stockSymbol" = $${paramIndex}`);
+      conditions.push(`l."tickerSymbol" = $${paramIndex}`);
       params.push(query.stockSymbol);
       paramIndex++;
     }
@@ -160,19 +160,22 @@ export class DividendAnalyticsService {
       paramIndex++;
     }
 
+    const joinClause = 'LEFT JOIN "listing" l ON t."listingIsin" = l."isin" AND t."listingExchangeCode" = l."exchangeCode"';
     const whereClause = conditions.join(' AND ');
+
 
     const monthlyAggregates = await this.prisma.$queryRawUnsafe<any[]>(
       `SELECT 
-        EXTRACT(YEAR FROM "createdAt") as year,
-        EXTRACT(MONTH FROM "createdAt") as month,
-        TO_CHAR("createdAt", 'Month') as month_name,
-        SUM("amount") as total_dividends,
-        COUNT(*) as dividend_count,
-        ARRAY_AGG(DISTINCT "stockSymbol") as companies
-      FROM "transaction"
+        EXTRACT(YEAR FROM t."createdAt") as year,
+        EXTRACT(MONTH FROM t."createdAt") as month,
+        TO_CHAR(t."createdAt", 'Month') as month_name,
+        SUM(t."amount") as total_dividends,
+        COUNT(l."tickerSymbol") as dividend_count,
+        ARRAY_AGG(DISTINCT l."tickerSymbol") as companies
+      FROM "transaction" t
+      ${joinClause}
       WHERE ${whereClause}
-      GROUP BY EXTRACT(YEAR FROM "createdAt"), EXTRACT(MONTH FROM "createdAt"), TO_CHAR("createdAt", 'Month')
+      GROUP BY EXTRACT(YEAR FROM t."createdAt"), EXTRACT(MONTH FROM t."createdAt"), TO_CHAR(t."createdAt", 'Month')
       ORDER BY year DESC, month DESC`,
       ...params,
     );
@@ -189,7 +192,7 @@ export class DividendAnalyticsService {
         year: row.year.toString(),
         totalDividends: parseFloat(row.total_dividends),
         dividendCount: parseInt(row.dividend_count),
-        companies: row.companies,
+        companies: row.companies, // companies now contains tickerSymbols
       });
     });
 
@@ -300,8 +303,8 @@ export class DividendAnalyticsService {
 
     // Get total cost of dividend-paying positions
     // We need to identify which stocks paid dividends and sum their costs
-    const dividendPayingStocks = await this.prisma.transaction.groupBy({
-      by: ['stockSymbol'],
+    const dividendPayingListings = await this.prisma.transaction.groupBy({
+      by: ['listingIsin', 'listingExchangeCode'],
       where: {
         portfolioId,
         type: 'DIVIDEND',
@@ -309,16 +312,22 @@ export class DividendAnalyticsService {
       },
     });
 
-    const stockSymbols = dividendPayingStocks.map(d => d.stockSymbol);
+    const listingIdentifiers = dividendPayingListings.map(d => ({
+        isin: d.listingIsin,
+        exchangeCode: d.listingExchangeCode,
+    }));
 
     // Calculate total cost for these stocks
     let totalCost = 0;
-    if (stockSymbols.length > 0) {
+    if (listingIdentifiers.length > 0) {
       const positions = await this.prisma.transaction.groupBy({
-        by: ['stockSymbol'],
+        by: ['listingIsin', 'listingExchangeCode'],
         where: {
           portfolioId,
-          stockSymbol: { in: stockSymbols },
+          OR: listingIdentifiers.map(id => ({
+              listingIsin: id.isin,
+              listingExchangeCode: id.exchangeCode,
+          })),
           type: { in: ['BUY', 'SELL'] },
         },
         _sum: {
