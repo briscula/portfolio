@@ -15,11 +15,11 @@ import { Transaction } from '@repo/database';
 export class TransactionsService {
   constructor(private prisma: PrismaService) { }
 
-  async create(createTransactionDto: CreateTransactionDto, userId: string): Promise<Transaction> {
+  async create(createTransactionDto: CreateTransactionDto, userId: string, portfolioId: string): Promise<Transaction> {
     // Verify that the portfolio belongs to the user
     const portfolio = await this.prisma.portfolio.findUnique({
       where: {
-        id: createTransactionDto.portfolioId,
+        id: portfolioId, // Use portfolioId from argument
         userId: userId,
       },
     });
@@ -69,7 +69,7 @@ export class TransactionsService {
       data: {
         portfolio: {
           connect: {
-            id: createTransactionDto.portfolioId,
+            id: portfolioId, // Use portfolioId from argument
           },
         },
         listing: { // Connect to Listing instead of Stock
@@ -171,9 +171,9 @@ export class TransactionsService {
   async findAll(
     queryDto: QueryTransactionsDto,
     userId: string,
+    portfolioId: string, // Added
   ): Promise<PaginatedTransactionsDto> {
     const {
-      portfolioId,
       type,
       symbol,
       dateFrom,
@@ -189,6 +189,7 @@ export class TransactionsService {
 
     // Build where clause
     const where: any = {
+      portfolioId: portfolioId, // Use the portfolioId from the argument
       portfolio: {
         userId: userId,
       },

@@ -10,7 +10,6 @@ export const TransactionTypeSchema = z.nativeEnum($Enums.TransactionType);
  * Schema for creating a new transaction
  */
 export const CreateTransactionSchema = z.object({
-    portfolioId: z.string().uuid(),
     isin: z.string().max(12, 'ISIN must be 12 characters or less'),
     exchangeCode: z.string().max(10, 'Exchange code must be 10 characters or less'),
     exchangeCountry: z.string().max(50).optional(),
@@ -36,7 +35,6 @@ export type CreateTransactionDto = z.infer<typeof CreateTransactionSchema>;
  * Schema for querying transactions
  */
 export const QueryTransactionsSchema = z.object({
-    portfolioId: z.array(z.string().uuid()).optional(),
     type: TransactionTypeSchema.optional(),
     symbol: z.string().optional(),
     dateFrom: z.coerce.date().optional(),

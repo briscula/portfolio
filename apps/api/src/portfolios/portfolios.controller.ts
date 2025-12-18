@@ -221,15 +221,10 @@ export class PortfoliosController {
   ) {
     const userId = await AuthUtils.getUserIdFromToken(req, this.usersService);
 
-    // Override the portfolioId in the DTO to match the URL parameter
-    const transactionData = {
-      ...createTransactionDto,
-      portfolioId: portfolioId,
-    };
-
     const transaction = await this.transactionsService.create(
-      transactionData,
+      createTransactionDto,
       userId,
+      portfolioId,
     );
 
     return {
