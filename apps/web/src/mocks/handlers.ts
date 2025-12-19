@@ -195,11 +195,11 @@ export const handlers = [
     await simulateDelay(150);
     
     const portfolioPositions = positions.filter(p => p.portfolioId.toString() === params.id);
-    const totalValue = portfolioPositions.reduce((sum, pos) => sum + (pos.totalValue || 0), 0);
+    const totalValue = portfolioPositions.reduce((sum, pos) => sum + (pos.marketValue || 0), 0);
     const totalCost = portfolioPositions.reduce((sum, pos) => sum + pos.totalCost, 0);
     const totalGain = totalValue - totalCost;
     const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
-    const totalDividends = portfolioPositions.reduce((sum, pos) => sum + pos.totalDividends, 0);
+    const totalDividends = portfolioPositions.reduce((sum, pos) => sum + (pos.totalDividends || 0), 0);
     const dividendYield = totalValue > 0 ? (totalDividends / totalValue) * 100 : 0;
     
     const summary = {

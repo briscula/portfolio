@@ -57,6 +57,16 @@ export interface PortfolioSummary {
   monthlyDividends: number;
 }
 
+
+/**
+ * Shape of the summary data returned from the API's /portfolios/:id/summary endpoint
+ */
+export interface ApiPortfolioSummary {
+  totalValueUSD: number;
+  totalAmountUSD: number;
+  positionCount: number;
+}
+
 /**
  * Dashboard summary aggregated across all portfolios
  */

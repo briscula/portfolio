@@ -35,12 +35,6 @@ export class PortfoliosService {
     portfolioId: string,
   ): Promise<void> {
     // Temporarily disable UUID validation to test endpoint
-    console.log(
-      'Portfolio ID in portfolios service:',
-      portfolioId,
-      'Type:',
-      typeof portfolioId,
-    );
     // if (!this.isValidUUID(portfolioId)) {
     //   throw new BadRequestException('Invalid portfolio ID format. Expected UUID format.');
     // }

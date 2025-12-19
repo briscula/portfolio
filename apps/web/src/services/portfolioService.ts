@@ -1,5 +1,5 @@
 import { ApiClient } from '@/lib/apiClient';
-import type { Portfolio, Position, PaginationInfo, PortfolioSummary } from '@/types';
+import type { Portfolio, Position, PaginationInfo, PortfolioSummary, TransactionPayload } from '@/types';
 
 export interface PortfolioMetrics {
   totalValue: number;
@@ -22,28 +22,6 @@ export interface DashboardSummary {
   totalGainPercent: number;
   overallDividendYield: number;
   portfolioCount: number;
-}
-
-export interface TransactionPayload {
-  // Listing information (required)
-  isin: string;
-  exchangeCode: string;
-  tickerSymbol: string;
-  companyName: string;
-  currencyCode: string;
-  exchangeCountry?: string;
-
-  // Transaction details
-  quantity: number;
-  price: number;
-  commission?: number;
-  amount: number;
-  totalAmount: number;
-  tax?: number;
-  taxPercentage?: number;
-  date?: string;
-  notes?: string;
-  type: 'BUY' | 'SELL' | 'DIVIDEND' | 'TAX' | 'SPLIT';
 }
 
 export class PortfolioService {

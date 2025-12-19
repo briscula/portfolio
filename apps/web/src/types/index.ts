@@ -11,6 +11,7 @@ export type {
   PortfolioMetrics,
   PortfolioWithMetrics,
   PortfolioSummary,
+  ApiPortfolioSummary,
   DashboardSummary,
 } from './portfolio';
 
@@ -25,6 +26,7 @@ export type {
 export type {
   Transaction,
   TransactionType,
+  TransactionPayload,
 } from './transaction';
 
 // Dividend types

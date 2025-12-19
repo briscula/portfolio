@@ -20,9 +20,6 @@ export class PositionsService {
   private isValidUUID(uuid: string): boolean {
     // Basic UUID format check - 8-4-4-4-12 pattern
     if (!uuid || typeof uuid !== 'string') {
-        uuid,
-        type: typeof uuid,
-      });
       return false;
     }
     const trimmed = uuid.trim();
@@ -35,14 +32,6 @@ export class PositionsService {
       parts[3].length === 4 &&
       parts[4].length === 12;
 
-    if (!isValid) {
-        uuid,
-        trimmed,
-        parts,
-        lengths: parts.map((p) => p.length),
-      });
-    }
-
     return isValid;
   }
 
@@ -54,11 +43,6 @@ export class PositionsService {
     portfolioId: string,
   ): Promise<void> {
     // Temporarily disable UUID validation to test endpoint
-      'Portfolio ID received:',
-      portfolioId,
-      'Type:',
-      typeof portfolioId,
-    );
     // if (!this.isValidUUID(portfolioId)) {
     //   throw new BadRequestException('Invalid portfolio ID format. Expected UUID format.');
     // }

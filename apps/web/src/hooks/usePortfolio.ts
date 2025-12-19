@@ -8,6 +8,7 @@ import type {
   PaginationInfo,
   PositionsResponse,
   PortfolioSummary,
+  TransactionPayload,
 } from '@/types';
 
 // Re-export types for backward compatibility
@@ -121,13 +122,7 @@ export function useAddTransaction() {
 
   const portfolioService = useMemo(() => new PortfolioService(apiClient), [apiClient]);
 
-  const addTransaction = useCallback(async (portfolioId: string, transactionData: {
-    stockSymbol: string;
-    quantity: number;
-    amount: number;
-    date?: string;
-    notes?: string;
-  }) => {
+  const addTransaction = useCallback(async (portfolioId: string, transactionData: TransactionPayload) => {
     if (!isAuthenticated) {
       throw new Error('Authentication required');
     }

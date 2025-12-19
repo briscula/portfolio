@@ -3,6 +3,7 @@ import { usePortfolios } from './usePortfolio';
 import { apiClient } from '../lib/apiClient';
 import { PortfolioService } from '@/services/portfolioService';
 import type { PortfolioWithMetrics, DashboardSummary } from '@/services/portfolioService';
+import type { ApiPortfolioSummary } from '@/types';
 import { useOfflineAwareApi } from './useOfflineState';
 import { getUserFriendlyErrorMessage } from '../lib/error-messages';
 import { useApiDeduplication } from './useApiThrottle';
@@ -74,11 +75,11 @@ export function usePortfoliosWithMetrics() {
       const portfolioPromises = portfolios.map(async (portfolio) => {
         try {
           // Call the existing summary endpoint which already calculates metrics efficiently
-          const summary = await executeWithOfflineSupport(
-            () => apiClient.get(`/portfolios/${portfolio.id}/summary`),
+          const summary = (await executeWithOfflineSupport(
+            () => apiClient.getPortfolioSummary(portfolio.id),
             `Fetch metrics for portfolio ${portfolio.name}`,
             { queueWhenOffline: false }
-          );
+          )) as ApiPortfolioSummary;
 
           // Transform summary response to metrics format
           const metrics = {
@@ -94,13 +95,9 @@ export function usePortfoliosWithMetrics() {
           };
 
           return {
-            id: portfolio.id,
-            name: portfolio.name,
-            description: portfolio.description || '',
-            currencyCode: portfolio.currencyCode,
-            createdAt: portfolio.createdAt,
+            ...portfolio,
             metrics,
-          } as PortfolioWithMetrics;
+          };
         } catch (err) {
           // Check if request was aborted
           if (err instanceof Error && err.name === 'AbortError') {
@@ -109,11 +106,7 @@ export function usePortfoliosWithMetrics() {
 
           // Return portfolio with empty metrics if fetch fails
           return {
-            id: portfolio.id,
-            name: portfolio.name,
-            description: portfolio.description || '',
-            currencyCode: portfolio.currencyCode,
-            createdAt: portfolio.createdAt,
+            ...portfolio,
             metrics: {
               totalValue: 0,
               totalCost: 0,
@@ -123,7 +116,7 @@ export function usePortfoliosWithMetrics() {
               positionCount: 0,
               lastUpdated: new Date(),
             },
-          } as PortfolioWithMetrics;
+          };
         }
       });
 

@@ -1,4 +1,5 @@
 import { useAuth } from '../contexts/AuthContext';
+import type { TransactionPayload } from '@/types';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
 
@@ -107,18 +108,7 @@ export class ApiClient {
   }
 
   // Transaction methods (WRITE operations)
-  async createTransaction(portfolioId: string, transactionData: {
-    stockSymbol: string;
-    quantity: number;
-    reference: string;
-    amount: number;
-    totalAmount: number;
-    tax: number;
-    taxPercentage: number;
-    date: string;
-    notes: string;
-    type: 'BUY' | 'SELL';
-  }) {
+  async createTransaction(portfolioId: string, transactionData: TransactionPayload) {
     return this.makeRequest(`/portfolios/${portfolioId}/transactions`, {
       method: 'POST',
       body: JSON.stringify(transactionData),

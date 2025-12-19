@@ -25,10 +25,9 @@ export const mockPositions: Position[] = [
     portfolioPercentage: 30.6,
     averagePrice: 150.00,
     currentPrice: 185.25,
-    totalValue: 9262.50,
+    marketValue: 9262.50,
     unrealizedGain: 1762.50,
-    unrealizedGainPercent: 23.5,
-    dividendYield: 1.4
+    unrealizedGainPercent: 23.5
   },
   {
     userId: 123,
@@ -45,10 +44,9 @@ export const mockPositions: Position[] = [
     portfolioPercentage: 36.7,
     averagePrice: 300.00,
     currentPrice: 385.50,
-    totalValue: 11565.00,
+    marketValue: 11565.00,
     unrealizedGain: 2565.00,
-    unrealizedGainPercent: 28.5,
-    dividendYield: 0.8
+    unrealizedGainPercent: 28.5
   },
   {
     userId: 123,
@@ -65,10 +63,9 @@ export const mockPositions: Position[] = [
     portfolioPercentage: 11.4,
     averagePrice: 140.00,
     currentPrice: 142.75,
-    totalValue: 2855.00,
+    marketValue: 2855.00,
     unrealizedGain: 55.00,
-    unrealizedGainPercent: 2.0,
-    dividendYield: 0.0
+    unrealizedGainPercent: 2.0
   },
   {
     userId: 123,
@@ -85,10 +82,9 @@ export const mockPositions: Position[] = [
     portfolioPercentage: 45.2,
     averagePrice: 150.00,
     currentPrice: 158.75,
-    totalValue: 15875.00,
+    marketValue: 15875.00,
     unrealizedGain: 875.00,
-    unrealizedGainPercent: 5.8,
-    dividendYield: 2.5
+    unrealizedGainPercent: 5.8
   },
   {
     userId: 123,
@@ -105,10 +101,9 @@ export const mockPositions: Position[] = [
     portfolioPercentage: 36.1,
     averagePrice: 160.00,
     currentPrice: 165.50,
-    totalValue: 12412.50,
+    marketValue: 12412.50,
     unrealizedGain: 412.50,
-    unrealizedGainPercent: 3.4,
-    dividendYield: 2.4
+    unrealizedGainPercent: 3.4
   },
   {
     userId: 123,
@@ -125,9 +120,8 @@ export const mockPositions: Position[] = [
     portfolioPercentage: 18.7,
     averagePrice: 50.00,
     currentPrice: 52.25,
-    totalValue: 10450.00,
+    marketValue: 10450.00,
     unrealizedGain: 450.00,
-    unrealizedGainPercent: 4.5,
-    dividendYield: 2.7
+    unrealizedGainPercent: 4.5
   }
 ];

@@ -7,6 +7,29 @@
  */
 export type TransactionType = 'DIVIDEND' | 'BUY' | 'SELL' | 'TAX' | 'SPLIT';
 
+
+export interface TransactionPayload {
+  // Listing information (required)
+  isin: string;
+  exchangeCode: string;
+  tickerSymbol: string;
+  companyName: string;
+  currencyCode: string;
+  exchangeCountry?: string;
+
+  // Transaction details
+  quantity: number;
+  price: number;
+  commission?: number;
+  amount: number;
+  totalAmount: number;
+  tax?: number;
+  taxPercentage?: number;
+  date?: string;
+  notes?: string;
+  type: 'BUY' | 'SELL' | 'DIVIDEND' | 'TAX' | 'SPLIT';
+}
+
 /**
  * Transaction entity from the API
  */
