@@ -20,7 +20,6 @@ export class PositionsService {
   private isValidUUID(uuid: string): boolean {
     // Basic UUID format check - 8-4-4-4-12 pattern
     if (!uuid || typeof uuid !== 'string') {
-      console.log('UUID validation failed: not a string or empty', {
         uuid,
         type: typeof uuid,
       });
@@ -37,7 +36,6 @@ export class PositionsService {
       parts[4].length === 12;
 
     if (!isValid) {
-      console.log('UUID validation failed:', {
         uuid,
         trimmed,
         parts,
@@ -56,7 +54,6 @@ export class PositionsService {
     portfolioId: string,
   ): Promise<void> {
     // Temporarily disable UUID validation to test endpoint
-    console.log(
       'Portfolio ID received:',
       portfolioId,
       'Type:',
@@ -176,7 +173,6 @@ export class PositionsService {
     sortBy: string = 'marketValue',
     sortOrder: 'asc' | 'desc' = 'desc',
   ) {
-    console.log('Getting positions for portfolio:', portfolioId, 'User:', userId);
 
     // 1. Verify portfolio belongs to user and get its currency
     await this.validatePortfolio(userId, portfolioId);
@@ -309,7 +305,6 @@ export class PositionsService {
    * Calculates total value, cost, gain, and dividend information for all positions
    */
   async getPortfolioSummary(userId: string, portfolioId: string) {
-    console.log('Getting portfolio summary for:', portfolioId, 'User:', userId);
 
     // 1. Verify portfolio belongs to user and get its currency
     await this.validatePortfolio(userId, portfolioId);

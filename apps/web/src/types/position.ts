@@ -9,8 +9,16 @@ export interface Position {
   userId?: number; // Optional as not always returned from API
   portfolioId?: number; // Optional as not always returned from API
   portfolioName: string;
-  stockSymbol: string;
+
+  // Listing information (new structure)
+  tickerSymbol: string; // Replaces stockSymbol
   companyName: string;
+  isin?: string; // International Securities Identification Number
+  exchangeCode?: string; // Exchange where the security is listed
+
+  // Legacy field for backwards compatibility (deprecated)
+  stockSymbol?: string; // @deprecated Use tickerSymbol instead
+
   sector: string | null;
   currentQuantity: number;
   totalCost: number; // Total cost of the position, calculated by backend

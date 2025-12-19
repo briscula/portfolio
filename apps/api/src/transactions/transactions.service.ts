@@ -288,4 +288,129 @@ export class TransactionsService {
       meta,
     };
   }
+
+  /**
+   * Find all transactions across all portfolios for a user
+   * Similar to findAll but doesn't require a specific portfolioId
+   */
+  async findAllAcrossPortfolios(
+    queryDto: QueryTransactionsDto,
+    userId: string,
+  ): Promise<PaginatedTransactionsDto> {
+    const {
+      type,
+      symbol,
+      dateFrom,
+      dateTo,
+      limit = 20,
+      offset = 0,
+      sort = 'createdAt:desc',
+      portfolioId, // Optional filter by portfolio(s)
+    } = queryDto;
+
+    // Ensure limit and offset are numbers
+    const numericLimit = Number(limit);
+    const numericOffset = Number(offset);
+
+    // Build where clause - only filter by user's portfolios
+    const where: any = {
+      portfolio: {
+        userId: userId,
+      },
+    };
+
+    // Optional: Filter by specific portfolio IDs if provided in query
+    if (portfolioId) {
+      let portfolioIds: string[] = [];
+
+      if (Array.isArray(portfolioId)) {
+        portfolioIds = portfolioId;
+      } else {
+        // Handle comma-separated portfolio IDs
+        const portfolioIdStr = portfolioId as unknown as string;
+        portfolioIds = portfolioIdStr.split(',').map((id) => id.trim());
+      }
+
+      if (portfolioIds.length > 0) {
+        where.portfolioId = {
+          in: portfolioIds.filter((id) => id && id.trim().length > 0),
+        };
+      }
+    }
+
+    // Filter by transaction type
+    if (type) {
+      where.type = type;
+    }
+
+    // Filter by listing tickerSymbol
+    if (symbol) {
+      where.listing = {
+        tickerSymbol: {
+          contains: symbol,
+          mode: 'insensitive',
+        },
+      };
+    }
+
+    // Filter by date range
+    if (dateFrom || dateTo) {
+      where.createdAt = {};
+      if (dateFrom) {
+        where.createdAt.gte = new Date(dateFrom);
+      }
+      if (dateTo) {
+        where.createdAt.lte = new Date(dateTo);
+      }
+    }
+
+    // Parse sort parameter
+    const [sortField, sortOrder] = sort.split(':');
+    const orderBy: any = {};
+    orderBy[sortField] = sortOrder || 'desc';
+
+    // Get total count
+    const total = await this.prisma.transaction.count({ where });
+
+    // Get transactions with pagination
+    const transactions = await this.prisma.transaction.findMany({
+      where,
+      orderBy,
+      skip: numericOffset,
+      take: numericLimit,
+      include: {
+        portfolio: {
+          select: {
+            id: true,
+            name: true,
+            currencyCode: true,
+          },
+        },
+        listing: {
+          select: {
+            tickerSymbol: true,
+            companyName: true,
+          },
+        },
+      },
+    });
+
+    // Calculate pagination metadata
+    const totalPages = Math.ceil(total / numericLimit);
+    const currentPage = Math.floor(numericOffset / numericLimit);
+
+    const meta: PaginationMetaDto = {
+      page: currentPage,
+      limit: numericLimit,
+      total,
+      totalPages,
+      hasNextPage: currentPage < totalPages - 1,
+      hasPrevPage: currentPage > 0,
+    };
+
+    return {
+      data: transactions,
+      meta,
+    };
+  }
 }

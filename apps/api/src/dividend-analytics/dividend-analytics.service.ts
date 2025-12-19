@@ -122,7 +122,7 @@ export class DividendAnalyticsService {
     let paramIndex = 1;
 
     // Add portfolio filter
-    conditions.push(`"portfolioId" IN (
+    conditions.push(`t."portfolioId" IN (
       SELECT "id" FROM "portfolio" WHERE "userId" = $${paramIndex}::uuid
     )`);
     params.push(userId);
@@ -131,7 +131,7 @@ export class DividendAnalyticsService {
     // Add portfolio ID filter if specified
     if (query.portfolioId) {
       conditions.push(
-        `"portfolioId" = $${paramIndex}::uuid AND "portfolioId" IN (
+        `t."portfolioId" = $${paramIndex}::uuid AND t."portfolioId" IN (
           SELECT "id" FROM "portfolio" WHERE "userId" = $${paramIndex + 1}::uuid
         )`,
       );
@@ -149,13 +149,13 @@ export class DividendAnalyticsService {
 
     // Add date range filters if specified
     if (query.startYear) {
-      conditions.push(`"createdAt" >= $${paramIndex}`);
+      conditions.push(`t."createdAt" >= $${paramIndex}`);
       params.push(new Date(query.startYear, 0, 1));
       paramIndex++;
     }
 
     if (query.endYear) {
-      conditions.push(`"createdAt" <= $${paramIndex}`);
+      conditions.push(`t."createdAt" <= $${paramIndex}`);
       params.push(new Date(query.endYear, 11, 31));
       paramIndex++;
     }

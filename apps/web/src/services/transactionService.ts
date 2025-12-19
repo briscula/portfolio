@@ -6,7 +6,7 @@ import { formatCurrency } from '@/lib/utils';
 export interface TransactionFilters {
   portfolioId?: string;
   type?: TransactionType;
-  stockSymbol?: string;
+  tickerSymbol?: string; // Updated from stockSymbol
   startDate?: Date;
   endDate?: Date;
 }
@@ -65,21 +65,22 @@ export class TransactionService {
 
   // Business Logic - Display Formatting
   getTitle(transaction: Transaction): string {
-    const { type, stockSymbol } = transaction;
+    const { type } = transaction;
+    const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol || 'Unknown';
 
     switch (type) {
       case 'DIVIDEND':
-        return `${stockSymbol} Dividend Received`;
+        return `${symbol} Dividend Received`;
       case 'BUY':
-        return `Bought ${stockSymbol}`;
+        return `Bought ${symbol}`;
       case 'SELL':
-        return `Sold ${stockSymbol}`;
+        return `Sold ${symbol}`;
       case 'TAX':
-        return `Tax on ${stockSymbol}`;
+        return `Tax on ${symbol}`;
       case 'SPLIT':
-        return `${stockSymbol} Stock Split`;
+        return `${symbol} Stock Split`;
       default:
-        return `${stockSymbol} Transaction`;
+        return `${symbol} Transaction`;
     }
   }
 
@@ -112,7 +113,8 @@ export class TransactionService {
   }
 
   getDescription(transaction: Transaction): string {
-    const { notes, stockSymbol } = transaction;
+    const { notes } = transaction;
+    const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol || 'Unknown';
 
     // Use notes if available and not empty
     if (notes && notes.trim() !== '') {
@@ -120,7 +122,7 @@ export class TransactionService {
     }
 
     // Fallback to stock symbol
-    return stockSymbol;
+    return symbol;
   }
 
   // Transformation Operations
@@ -198,13 +200,13 @@ export class TransactionService {
     const grouped = new Map<string, Transaction[]>();
 
     transactions.forEach(transaction => {
-      const { stockSymbol } = transaction;
+      const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol || 'Unknown';
 
-      if (!grouped.has(stockSymbol)) {
-        grouped.set(stockSymbol, []);
+      if (!grouped.has(symbol)) {
+        grouped.set(symbol, []);
       }
 
-      grouped.get(stockSymbol)!.push(transaction);
+      grouped.get(symbol)!.push(transaction);
     });
 
     return grouped;
@@ -226,9 +228,12 @@ export class TransactionService {
         return false;
       }
 
-      // Filter by stock symbol
-      if (filters.stockSymbol && transaction.stockSymbol !== filters.stockSymbol) {
-        return false;
+      // Filter by ticker symbol
+      if (filters.tickerSymbol) {
+        const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol;
+        if (symbol !== filters.tickerSymbol) {
+          return false;
+        }
       }
 
       // Filter by date range

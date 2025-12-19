@@ -232,10 +232,10 @@ export default function PortfolioDividendsPage() {
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
                                         {positions.filter(pos => pos.totalDividends && pos.totalDividends > 0).map((position) => (
-                                            <tr key={position.stockSymbol} className="hover:bg-gray-50">
+                                            <tr key={position.tickerSymbol} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {position.stockSymbol}
+                                                        {position.tickerSymbol}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">

@@ -1,22 +1,12 @@
-export interface Position {
+// Import the centralized Position type
+import type { Position as CentralPosition } from '@/types';
+
+// Extend with mock-specific fields if needed
+export interface Position extends CentralPosition {
   userId: number;
   portfolioId: number;
-  portfolioName: string;
-  stockSymbol: string;
-  companyName: string;
-  sector: string | null;
-  currentQuantity: number;
-  totalCost: number;
-  totalDividends: number;
-  dividendCount: number;
-  lastTransactionDate: string;
-  portfolioPercentage: number;
-  averagePrice?: number;
-  currentPrice?: number;
-  totalValue?: number;
-  unrealizedGain?: number;
-  unrealizedGainPercent?: number;
-  dividendYield?: number;
+  // Removed stockSymbol - using tickerSymbol from CentralPosition
+  // Removed companyName - already in CentralPosition
 }
 
 export const mockPositions: Position[] = [
@@ -24,7 +14,7 @@ export const mockPositions: Position[] = [
     userId: 123,
     portfolioId: 1,
     portfolioName: "Growth Portfolio",
-    stockSymbol: "AAPL",
+    tickerSymbol: "AAPL",
     companyName: "Apple Inc.",
     sector: "Technology",
     currentQuantity: 50,
@@ -44,7 +34,7 @@ export const mockPositions: Position[] = [
     userId: 123,
     portfolioId: 1,
     portfolioName: "Growth Portfolio",
-    stockSymbol: "MSFT",
+    tickerSymbol: "MSFT",
     companyName: "Microsoft Corporation",
     sector: "Technology",
     currentQuantity: 30,
@@ -64,7 +54,7 @@ export const mockPositions: Position[] = [
     userId: 123,
     portfolioId: 1,
     portfolioName: "Growth Portfolio",
-    stockSymbol: "GOOGL",
+    tickerSymbol: "GOOGL",
     companyName: "Alphabet Inc.",
     sector: "Technology",
     currentQuantity: 20,
@@ -84,7 +74,7 @@ export const mockPositions: Position[] = [
     userId: 123,
     portfolioId: 2,
     portfolioName: "Dividend Portfolio",
-    stockSymbol: "JNJ",
+    tickerSymbol: "JNJ",
     companyName: "Johnson & Johnson",
     sector: "Healthcare",
     currentQuantity: 100,
@@ -104,7 +94,7 @@ export const mockPositions: Position[] = [
     userId: 123,
     portfolioId: 2,
     portfolioName: "Dividend Portfolio",
-    stockSymbol: "PG",
+    tickerSymbol: "PG",
     companyName: "Procter & Gamble Co.",
     sector: "Consumer Staples",
     currentQuantity: 75,
@@ -124,7 +114,7 @@ export const mockPositions: Position[] = [
     userId: 123,
     portfolioId: 2,
     portfolioName: "Dividend Portfolio",
-    stockSymbol: "KO",
+    tickerSymbol: "KO",
     companyName: "The Coca-Cola Company",
     sector: "Consumer Staples",
     currentQuantity: 200,

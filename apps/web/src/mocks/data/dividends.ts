@@ -15,7 +15,7 @@ export interface DividendData {
 
 export interface UpcomingDividend {
   id: string;
-  stockSymbol: string;
+  tickerSymbol: string;
   companyName: string;
   amount: number;
   exDate: string;
@@ -190,7 +190,7 @@ export const mockDividendMonthlyOverview: DividendData = {
 export const mockUpcomingDividends: UpcomingDividend[] = [
   {
     id: "1",
-    stockSymbol: "JNJ",
+    tickerSymbol: "JNJ",
     companyName: "Johnson & Johnson",
     amount: 1.13,
     exDate: "2024-03-15",
@@ -199,7 +199,7 @@ export const mockUpcomingDividends: UpcomingDividend[] = [
   },
   {
     id: "2",
-    stockSymbol: "PG",
+    tickerSymbol: "PG",
     companyName: "Procter & Gamble Co.",
     amount: 0.94,
     exDate: "2024-03-20",
@@ -208,7 +208,7 @@ export const mockUpcomingDividends: UpcomingDividend[] = [
   },
   {
     id: "3",
-    stockSymbol: "KO",
+    tickerSymbol: "KO",
     companyName: "The Coca-Cola Company",
     amount: 0.46,
     exDate: "2024-03-25",
@@ -217,7 +217,7 @@ export const mockUpcomingDividends: UpcomingDividend[] = [
   },
   {
     id: "4",
-    stockSymbol: "AAPL",
+    tickerSymbol: "AAPL",
     companyName: "Apple Inc.",
     amount: 0.25,
     exDate: "2024-05-10",
@@ -226,7 +226,7 @@ export const mockUpcomingDividends: UpcomingDividend[] = [
   },
   {
     id: "5",
-    stockSymbol: "MSFT",
+    tickerSymbol: "MSFT",
     companyName: "Microsoft Corporation",
     amount: 0.75,
     exDate: "2024-05-15",

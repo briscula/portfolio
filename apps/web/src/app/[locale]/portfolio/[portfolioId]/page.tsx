@@ -225,6 +225,9 @@ export default function PortfolioDetailPage() {
   };
 
   // Handler for adding positions
+  // TODO: This function needs to be updated for the new Listing model API
+  // The new API requires: isin, exchangeCode, tickerSymbol, companyName, currencyCode, price, etc.
+  // This would require integrating with a stock lookup API to get ISIN and other details
   const handleAddPosition = async (positionData: {
     stockSymbol: string;
     companyName: string;
@@ -235,8 +238,13 @@ export default function PortfolioDetailPage() {
       return;
     }
 
-    try {
+    // Temporarily disabled - see TODO in button above
+    console.warn('AddPosition feature is temporarily disabled pending API migration');
+    setIsAddPositionModalOpen(false);
+    return;
 
+    /* COMMENTED OUT - Needs update for new API
+    try {
       // Calculate total amount from shares and average price
       const totalCost = positionData.shares * positionData.averagePrice;
 
@@ -265,6 +273,7 @@ export default function PortfolioDetailPage() {
     } catch (error) {
       // You might want to show a toast notification here
     }
+    */
   };
 
   const formatCurrency = (amount: number | null | undefined) => {
@@ -448,10 +457,20 @@ export default function PortfolioDetailPage() {
                   <RefreshIcon className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
                   {isSyncing ? 'Syncing...' : 'Refresh Prices'}
                 </Button>
+                {/* TODO: AddPositionModal is temporarily disabled
+                    The modal needs to be updated to work with the new Listing model API.
+                    Required changes:
+                    1. Integrate stock lookup API to get ISIN, exchange code, currency
+                    2. Update form to collect all required listing fields
+                    3. Update handleAddPosition to use new TransactionPayload interface
+                    See: apps/web/src/services/portfolioService.ts TransactionPayload
+                */}
                 <Button
                   onClick={() => setIsAddPositionModalOpen(true)}
                   size="sm"
                   className="bg-blue-600 hover:bg-blue-700"
+                  disabled={true}
+                  title="Position creation temporarily disabled - under maintenance"
                 >
                   + Add Position
                 </Button>
@@ -522,8 +541,8 @@ export default function PortfolioDetailPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {positions.map((position) => (
-                      <tr key={position.stockSymbol} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{position.stockSymbol}</div></td>
+                      <tr key={position.tickerSymbol} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{position.tickerSymbol}</div></td>
                         <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900 max-w-xs truncate">{position.companyName}</div></td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">{position.currentQuantity ? position.currentQuantity.toLocaleString() : 'N/A'}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">

@@ -13,7 +13,7 @@ export type TransactionType = 'DIVIDEND' | 'BUY' | 'SELL' | 'TAX' | 'SPLIT';
 export interface Transaction {
   id: number;
   portfolioId: string;
-  stockSymbol: string;
+  stockSymbol: string; // Deprecated - use listing.tickerSymbol instead
   type: TransactionType;
   quantity: number;
   reference: string;
@@ -25,11 +25,19 @@ export interface Transaction {
   createdAt: string;
   updatedAt: string;
   portfolio?: {
+    id: string;
+    name: string;
     currencyCode: string;
     currency?: {
       code: string;
       name: string;
       symbol: string;
     };
+  };
+  listing?: {
+    tickerSymbol: string;
+    companyName: string;
+    isin?: string;
+    exchangeCode?: string;
   };
 }

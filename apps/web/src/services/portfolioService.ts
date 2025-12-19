@@ -25,11 +25,25 @@ export interface DashboardSummary {
 }
 
 export interface TransactionPayload {
-  stockSymbol: string;
+  // Listing information (required)
+  isin: string;
+  exchangeCode: string;
+  tickerSymbol: string;
+  companyName: string;
+  currencyCode: string;
+  exchangeCountry?: string;
+
+  // Transaction details
   quantity: number;
+  price: number;
+  commission?: number;
   amount: number;
+  totalAmount: number;
+  tax?: number;
+  taxPercentage?: number;
   date?: string;
   notes?: string;
+  type: 'BUY' | 'SELL' | 'DIVIDEND' | 'TAX' | 'SPLIT';
 }
 
 export class PortfolioService {
@@ -248,20 +262,30 @@ export class PortfolioService {
     portfolioId: string,
     transaction: TransactionPayload
   ): Promise<unknown> {
-    // Generate UUID v7 for reference
-    const reference = crypto.randomUUID();
+    // Generate UUID v7 for reference if not provided
+    const reference = transaction.notes || crypto.randomUUID();
 
     const payload = {
-      stockSymbol: transaction.stockSymbol,
+      // Listing information
+      isin: transaction.isin,
+      exchangeCode: transaction.exchangeCode,
+      tickerSymbol: transaction.tickerSymbol,
+      companyName: transaction.companyName,
+      currencyCode: transaction.currencyCode,
+      exchangeCountry: transaction.exchangeCountry,
+
+      // Transaction details
       quantity: transaction.quantity,
+      price: transaction.price,
+      commission: transaction.commission || 0,
       reference: reference,
       amount: parseFloat(transaction.amount.toFixed(2)),
-      totalAmount: 0,
-      tax: 0,
-      taxPercentage: 0,
+      totalAmount: parseFloat(transaction.totalAmount.toFixed(2)),
+      tax: transaction.tax || 0,
+      taxPercentage: transaction.taxPercentage || 0,
       date: transaction.date || new Date().toISOString(),
       notes: transaction.notes || '',
-      type: 'BUY' as const,
+      type: transaction.type,
     };
 
     return await this.apiClient.createTransaction(portfolioId, payload);

@@ -68,23 +68,30 @@ export function usePortfoliosWithMetrics() {
       }
       setError(null);
 
-      // TODO: CRITICAL PERFORMANCE ISSUE
-      // This is a temporary implementation that fetches all positions for each portfolio to calculate metrics.
-      // This is not scalable and will cause performance issues with multiple portfolios.
-      // A better approach is to create a dedicated API endpoint to calculate and return the metrics.
-      // See docs/refactoring/portfolio-service-spec.md for more details.
-
-      // Fetch positions for each portfolio and calculate metrics with offline support
+      // PERFORMANCE FIX: Use existing /portfolios/:id/summary endpoint
+      // This endpoint calculates metrics server-side using efficient SQL aggregation
+      // Much better than fetching all positions and calculating client-side
       const portfolioPromises = portfolios.map(async (portfolio) => {
         try {
-          const positions = await executeWithOfflineSupport(
-            () => fetchPositionsThrottled(portfolio.id),
-            `Fetch positions for portfolio ${portfolio.name}`,
-            { queueWhenOffline: false } // Don't queue individual portfolio fetches
+          // Call the existing summary endpoint which already calculates metrics efficiently
+          const summary = await executeWithOfflineSupport(
+            () => apiClient.get(`/portfolios/${portfolio.id}/summary`),
+            `Fetch metrics for portfolio ${portfolio.name}`,
+            { queueWhenOffline: false }
           );
 
-          const positionsData = Array.isArray(positions) ? positions : (positions as any)?.data || [];
-          const metrics = portfolioService.calculatePortfolioMetrics(positionsData);
+          // Transform summary response to metrics format
+          const metrics = {
+            totalValue: summary.totalValueUSD || 0,
+            totalCost: summary.totalAmountUSD || 0,
+            unrealizedGain: (summary.totalValueUSD || 0) - (summary.totalAmountUSD || 0),
+            unrealizedGainPercent: summary.totalAmountUSD > 0
+              ? (((summary.totalValueUSD || 0) - (summary.totalAmountUSD || 0)) / (summary.totalAmountUSD || 0)) * 100
+              : 0,
+            dividendYield: 0, // TODO: Add dividend yield to summary endpoint
+            positionCount: summary.positionCount || 0,
+            lastUpdated: new Date(),
+          };
 
           return {
             id: portfolio.id,
@@ -100,8 +107,7 @@ export function usePortfoliosWithMetrics() {
             throw err;
           }
 
-
-          // Return portfolio with empty metrics if positions fetch fails
+          // Return portfolio with empty metrics if fetch fails
           return {
             id: portfolio.id,
             name: portfolio.name,

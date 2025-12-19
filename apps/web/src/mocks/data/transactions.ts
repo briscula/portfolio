@@ -1,7 +1,7 @@
 export interface Transaction {
   id: number;
   portfolioId: string;
-  stockSymbol: string;
+  tickerSymbol: string;
   type: 'DIVIDEND' | 'BUY' | 'SELL' | 'TAX' | 'SPLIT';
   quantity: number;
   reference: string;
@@ -26,7 +26,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 1,
     portfolioId: "1",
-    stockSymbol: "AAPL",
+    tickerSymbol: "AAPL",
     type: "BUY",
     quantity: 25,
     reference: "TXN-001",
@@ -49,7 +49,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 2,
     portfolioId: "1",
-    stockSymbol: "AAPL",
+    tickerSymbol: "AAPL",
     type: "BUY",
     quantity: 25,
     reference: "TXN-002",
@@ -68,7 +68,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 3,
     portfolioId: "1",
-    stockSymbol: "AAPL",
+    tickerSymbol: "AAPL",
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-001",
@@ -87,7 +87,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 4,
     portfolioId: "1",
-    stockSymbol: "MSFT",
+    tickerSymbol: "MSFT",
     type: "BUY",
     quantity: 30,
     reference: "TXN-003",
@@ -106,7 +106,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 5,
     portfolioId: "1",
-    stockSymbol: "MSFT",
+    tickerSymbol: "MSFT",
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-002",
@@ -125,7 +125,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 6,
     portfolioId: "1",
-    stockSymbol: "GOOGL",
+    tickerSymbol: "GOOGL",
     type: "BUY",
     quantity: 20,
     reference: "TXN-004",
@@ -144,7 +144,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 7,
     portfolioId: "2",
-    stockSymbol: "JNJ",
+    tickerSymbol: "JNJ",
     type: "BUY",
     quantity: 100,
     reference: "TXN-005",
@@ -163,7 +163,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 8,
     portfolioId: "2",
-    stockSymbol: "JNJ",
+    tickerSymbol: "JNJ",
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-003",
@@ -182,7 +182,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 9,
     portfolioId: "2",
-    stockSymbol: "PG",
+    tickerSymbol: "PG",
     type: "BUY",
     quantity: 75,
     reference: "TXN-006",
@@ -201,7 +201,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 10,
     portfolioId: "2",
-    stockSymbol: "PG",
+    tickerSymbol: "PG",
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-004",
@@ -220,7 +220,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 11,
     portfolioId: "2",
-    stockSymbol: "KO",
+    tickerSymbol: "KO",
     type: "BUY",
     quantity: 200,
     reference: "TXN-007",
@@ -239,7 +239,7 @@ export const mockTransactions: Transaction[] = [
   {
     id: 12,
     portfolioId: "2",
-    stockSymbol: "KO",
+    tickerSymbol: "KO",
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-005",

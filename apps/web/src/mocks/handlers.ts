@@ -221,9 +221,9 @@ export const handlers = [
     const url = new URL(request.url);
     const startYear = parseInt(url.searchParams.get('startYear') || '2023');
     const endYear = parseInt(url.searchParams.get('endYear') || '2024');
-    const stockSymbol = url.searchParams.get('stockSymbol');
-    
-    // Filter data by year range and stock symbol if provided
+    const tickerSymbol = url.searchParams.get('tickerSymbol');
+
+    // Filter data by year range and ticker symbol if provided
     let filteredData = mockDividendMonthlyOverview.data.map(monthData => ({
       ...monthData,
       yearlyData: monthData.yearlyData.filter(yearData => {
@@ -231,9 +231,9 @@ export const handlers = [
         return year >= startYear && year <= endYear;
       })
     }));
-    
-    if (stockSymbol) {
-      // In a real implementation, you'd filter by stock symbol
+
+    if (tickerSymbol) {
+      // In a real implementation, you'd filter by ticker symbol
       // For now, we'll return the full dataset
     }
     

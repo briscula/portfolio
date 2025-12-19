@@ -32,19 +32,20 @@ function transactionToActivityItem(transaction: Transaction): ActivityItem {
   };
 
   const getTitle = (transaction: Transaction): string => {
+    const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol || 'Unknown';
     switch (transaction.type) {
       case 'DIVIDEND':
-        return `${transaction.stockSymbol} Dividend Received`;
+        return `${symbol} Dividend Received`;
       case 'BUY':
-        return `Bought ${transaction.stockSymbol}`;
+        return `Bought ${symbol}`;
       case 'SELL':
-        return `Sold ${transaction.stockSymbol}`;
+        return `Sold ${symbol}`;
       case 'TAX':
-        return `Tax on ${transaction.stockSymbol}`;
+        return `Tax on ${symbol}`;
       case 'SPLIT':
-        return `${transaction.stockSymbol} Stock Split`;
+        return `${symbol} Stock Split`;
       default:
-        return `${transaction.stockSymbol} Transaction`;
+        return `${symbol} Transaction`;
     }
   };
 
@@ -66,11 +67,12 @@ function transactionToActivityItem(transaction: Transaction): ActivityItem {
   };
 
   const getDescription = (transaction: Transaction): string => {
+    const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol || 'Unknown';
     // Use notes if available and not empty, otherwise fall back to stock symbol
     if (transaction.notes && transaction.notes.trim() !== '') {
       return transaction.notes;
     }
-    return transaction.stockSymbol;
+    return symbol;
   };
 
   return {
@@ -110,16 +112,20 @@ async function fetchRecentTransactions(
 
     // Build URL with parameters
     const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000';
-    const url = new URL(`${API_BASE_URL}/transactions`);
+    const url = new URL(portfolioId 
+      ? `${API_BASE_URL}/portfolios/${portfolioId}/transactions` 
+      : `${API_BASE_URL}/transactions`
+    );
     
     // Add query parameters
     url.searchParams.append('limit', limit.toString());
     url.searchParams.append('offset', offset.toString());
     url.searchParams.append('sort', 'createdAt:desc'); // Sort by newest first
     
-    if (portfolioId) {
-      url.searchParams.append('portfolioId', portfolioId);
-    }
+    // portfolioId is now in the path, no need to add as a query parameter
+    // if (portfolioId) {
+    //   url.searchParams.append('portfolioId', portfolioId);
+    // }
     
     if (type) {
       url.searchParams.append('type', type);
