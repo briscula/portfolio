@@ -87,7 +87,7 @@ export default function HoldingsYieldChart({
           value: h.yieldOnCost,
           strokeWidth: 10,
           strokeHeight: 0,
-          strokeLineCap: 'round',
+          strokeLineCap: 'round' as const,
           strokeColor: '#10b981', // Green color for YOC marker
         }
       ]
