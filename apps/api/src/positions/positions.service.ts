@@ -212,6 +212,21 @@ export class PositionsService {
       },
     });
 
+    // Get dividend data for each position
+    const dividendData = await this.prisma.transaction.groupBy({
+      by: ['listingIsin', 'listingExchangeCode'],
+      where: {
+        portfolioId,
+        type: 'DIVIDEND',
+        OR: listingIdentifiers.map(id => ({
+          listingIsin: id.isin,
+          listingExchangeCode: id.exchangeCode,
+        })),
+      },
+      _sum: { amount: true },
+      _count: { id: true },
+    });
+
     const listingMap = listings.reduce((acc, listing) => ({
       ...acc,
       [`${listing.isin}_${listing.exchangeCode}`]: listing,
@@ -222,23 +237,34 @@ export class PositionsService {
       [`${p.listingIsin}_${p.listingExchangeCode}`]: p.price,
     }), {});
 
+    const dividendMap = dividendData.reduce((acc, d) => ({
+      ...acc,
+      [`${d.listingIsin}_${d.listingExchangeCode}`]: {
+        totalDividends: Math.abs(d._sum.amount || 0),
+        dividendCount: d._count.id || 0,
+      },
+    }), {});
+
 
     // 5. Combine all data and convert to portfolio currency
     const positionsWithValues = activePositions.map(agg => {
       const listingInfo = listingMap[`${agg.listingIsin}_${agg.listingExchangeCode}`];
+      const dividendInfo = dividendMap[`${agg.listingIsin}_${agg.listingExchangeCode}`] || { totalDividends: 0, dividendCount: 0 };
       const currentQuantity = agg._sum.quantity || 0;
       const totalAmountUSD = Math.abs(agg._sum.amount || 0); // Changed from totalCostUSD to totalAmountUSD
       const currentPriceUSD = priceMap[`${agg.listingIsin}_${agg.listingExchangeCode}`];
-      
+
       const marketValueUSD = currentPriceUSD !== undefined ? currentQuantity * currentPriceUSD : totalAmountUSD;
       const unrealizedGainUSD = marketValueUSD - totalAmountUSD;
-      
+
       // Convert all monetary values to the portfolio's currency
       const totalAmount = totalAmountUSD * fxRate; // Changed from totalCost to totalAmount
+      const totalCost = totalAmount; // Keep totalCost for backward compatibility
       const marketValue = marketValueUSD * fxRate;
       const currentPrice = currentPriceUSD !== undefined ? currentPriceUSD * fxRate : null;
       const unrealizedGain = unrealizedGainUSD * fxRate;
       const unrealizedGainPercent = totalAmount > 0 ? (unrealizedGain / totalAmount) * 100 : 0; // Changed from totalCost to totalAmount
+      const totalDividends = dividendInfo.totalDividends * fxRate;
 
       return {
         tickerSymbol: listingInfo?.tickerSymbol, // Use tickerSymbol from listingInfo
@@ -246,12 +272,16 @@ export class PositionsService {
         sector: null, // Sector is removed, set to null
         currentQuantity,
         totalAmount, // Use totalAmount
+        totalCost, // Keep for backward compatibility
         marketValue,
         currentPrice,
         unrealizedGain,
         unrealizedGainPercent: parseFloat(unrealizedGainPercent.toFixed(2)),
         lastTransactionDate: agg._max.createdAt,
         portfolioName: portfolio.name,
+        // Add dividend fields
+        totalDividends: parseFloat(totalDividends.toFixed(2)),
+        dividendCount: dividendInfo.dividendCount,
         // Add listing details for future use if needed
         listingIsin: listingInfo?.isin,
         listingExchangeCode: listingInfo?.exchangeCode,

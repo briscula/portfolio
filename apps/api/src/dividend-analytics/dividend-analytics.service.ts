@@ -9,6 +9,7 @@ import {
 } from './dto/dividend-monthly-chart.dto';
 import { DividendAnalyticsQueryDto } from './dto/dividend-analytics-query.dto';
 import { DividendSummaryDto } from './dto/dividend-summary.dto';
+import { HoldingsYieldComparisonResponseDto } from './dto/holdings-yield-comparison.dto';
 
 @Injectable()
 export class DividendAnalyticsService {
@@ -354,6 +355,151 @@ export class DividendAnalyticsService {
       totalCost: parseFloat(totalCost.toFixed(2)),
       dividendCount,
       period,
+    };
+  }
+
+  /**
+   * Get holdings yield comparison data for portfolio
+   * Compares Yield on Cost vs Trailing 12-Month Yield for each holding
+   */
+  async getHoldingsYieldComparison(
+    userId: string,
+    portfolioId: string,
+  ): Promise<HoldingsYieldComparisonResponseDto> {
+    // Verify portfolio ownership
+    const portfolio = await this.prisma.portfolio.findFirst({
+      where: { id: portfolioId, userId },
+    });
+
+    if (!portfolio) {
+      throw new Error('Portfolio not found or access denied.');
+    }
+
+    // Calculate date for 12 months ago
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
+
+    console.log('[DEBUG] Querying holdings for:', { userId, portfolioId, twelveMonthsAgo });
+
+    // Calculate positions directly from transactions instead of user_positions
+    const holdingsData = await this.prisma.$queryRawUnsafe<any[]>(
+      `
+      WITH position_calc AS (
+        -- Calculate current positions from BUY/SELL transactions
+        SELECT
+          t."listingIsin",
+          t."listingExchangeCode",
+          l."tickerSymbol" as "stockSymbol",
+          l."companyName",
+          SUM(CASE
+            WHEN t."type" = 'BUY' THEN t."quantity"
+            WHEN t."type" = 'SELL' THEN -t."quantity"
+            ELSE 0
+          END) as "currentQuantity",
+          SUM(CASE
+            WHEN t."type" = 'BUY' THEN ABS(t."amount")
+            WHEN t."type" = 'SELL' THEN -ABS(t."amount")
+            ELSE 0
+          END) as "totalCost",
+          SUM(CASE
+            WHEN t."type" = 'DIVIDEND' THEN ABS(t."amount")
+            ELSE 0
+          END) as "totalDividends",
+          COUNT(CASE WHEN t."type" = 'DIVIDEND' THEN 1 END) as "dividendCount"
+        FROM "transaction" t
+        INNER JOIN "listing" l ON
+          l."isin" = t."listingIsin" AND
+          l."exchangeCode" = t."listingExchangeCode"
+        WHERE t."portfolioId" = $2::uuid
+        GROUP BY t."listingIsin", t."listingExchangeCode", l."tickerSymbol", l."companyName"
+        HAVING SUM(CASE
+          WHEN t."type" = 'BUY' THEN t."quantity"
+          WHEN t."type" = 'SELL' THEN -t."quantity"
+          ELSE 0
+        END) > 0
+        AND SUM(CASE WHEN t."type" = 'DIVIDEND' THEN ABS(t."amount") ELSE 0 END) > 0
+      )
+      SELECT
+        h."stockSymbol",
+        h."companyName",
+        h."currentQuantity",
+        h."totalCost",
+        h."totalDividends",
+        h."listingIsin",
+        h."listingExchangeCode",
+        COALESCE(
+          (SELECT SUM(ABS(t."amount"))
+           FROM "transaction" t
+           WHERE t."portfolioId" = $2::uuid
+             AND t."listingIsin" = h."listingIsin"
+             AND t."listingExchangeCode" = h."listingExchangeCode"
+             AND t."type" = 'DIVIDEND'
+             AND t."createdAt" >= $3),
+          0
+        ) as trailing_total,
+        sp."price" as current_price,
+        sp."currencyCode",
+        sp."lastUpdated" as price_last_updated
+      FROM position_calc h
+      LEFT JOIN "stock_price" sp ON
+        h."listingIsin" = sp."listingIsin" AND
+        h."listingExchangeCode" = sp."listingExchangeCode"
+      ORDER BY h."totalDividends" DESC
+      `,
+      userId,
+      portfolioId,
+      twelveMonthsAgo,
+    );
+
+    console.log('[DEBUG] Holdings calculated from transactions:', holdingsData.length, 'rows');
+    if (holdingsData.length > 0) {
+      console.log('[DEBUG] First holding:', holdingsData[0]);
+    }
+
+    console.log('[DEBUG] Holdings data returned:', holdingsData.length, 'rows');
+    if (holdingsData.length > 0) {
+      console.log('[DEBUG] First row:', holdingsData[0]);
+    }
+
+    // Transform data and calculate metrics
+    const holdings = holdingsData.map((row) => {
+      const currentQuantity = parseFloat(row.currentQuantity);
+      const currentPrice = row.current_price ? parseFloat(row.current_price) : 0;
+      const totalCost = Math.abs(parseFloat(row.totalCost));
+      const totalDividends = Math.abs(parseFloat(row.totalDividends));
+      const trailing12MonthDividends = Math.abs(parseFloat(row.trailing_total || 0));
+
+      // Calculate Yield on Cost (always calculable with cost and dividends)
+      const yieldOnCost = totalCost > 0 ? (totalDividends / totalCost) * 100 : 0;
+
+      // Calculate Trailing 12-Month Yield (requires current price)
+      const currentValue = currentQuantity * currentPrice;
+      const trailing12MonthYield = currentValue > 0
+        ? (trailing12MonthDividends / currentValue) * 100
+        : 0;
+
+      return {
+        tickerSymbol: row.stockSymbol,
+        companyName: row.companyName || row.stockSymbol,
+        currentQuantity,
+        currentPrice,
+        currencyCode: row.currencyCode || 'USD',
+        yieldOnCost: parseFloat(yieldOnCost.toFixed(2)),
+        trailing12MonthYield: parseFloat(trailing12MonthYield.toFixed(2)),
+        trailing12MonthDividends: parseFloat(trailing12MonthDividends.toFixed(2)),
+        totalCost: parseFloat(totalCost.toFixed(2)),
+        totalDividends: parseFloat(totalDividends.toFixed(2)),
+      };
+    });
+
+    // Get the most recent price update timestamp
+    const lastPriceUpdate = holdingsData.length > 0
+      ? new Date(holdingsData[0].price_last_updated)
+      : new Date();
+
+    return {
+      holdings,
+      lastPriceUpdate,
     };
   }
 }

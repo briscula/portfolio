@@ -149,6 +149,10 @@ export class ApiClient {
     });
     return this.makeRequest(`/portfolios/${portfolioId}/dividends/monthly?${params.toString()}`);
   }
+
+  async getHoldingsYieldComparison(portfolioId: string) {
+    return this.makeRequest(`/portfolios/${portfolioId}/dividends/holdings-yield`);
+  }
 }
 
 // Create a singleton instance

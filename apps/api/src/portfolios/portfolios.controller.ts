@@ -31,6 +31,7 @@ import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto
 import { DividendAnalyticsService } from '../dividend-analytics/dividend-analytics.service';
 import { DividendAnalyticsQueryDto } from '../dividend-analytics/dto/dividend-analytics-query.dto';
 import { DividendMonthlyChartResponseDto } from '../dividend-analytics/dto/dividend-monthly-chart.dto';
+import { HoldingsYieldComparisonResponseDto } from '../dividend-analytics/dto/holdings-yield-comparison.dto';
 
 @Controller('portfolios')
 @ApiTags('portfolios')
@@ -312,6 +313,27 @@ export class PortfoliosController {
     return this.dividendAnalyticsService.getMonthlyDividendOverview(
       userId,
       portfolioQuery,
+    );
+  }
+
+  @Get(':id/dividends/holdings-yield')
+  @ApiOkResponse({
+    description: 'Holdings yield comparison data retrieved successfully',
+    type: HoldingsYieldComparisonResponseDto,
+  })
+  @ApiOperation({
+    summary: 'Get holdings yield comparison',
+    description:
+      'Returns yield comparison data for dividend-paying holdings: Yield on Cost vs Trailing 12-Month Yield',
+  })
+  async getHoldingsYieldComparison(
+    @Param('id') portfolioId: string,
+    @Request() req: any,
+  ): Promise<HoldingsYieldComparisonResponseDto> {
+    const userId = await AuthUtils.getUserIdFromToken(req, this.usersService);
+    return this.dividendAnalyticsService.getHoldingsYieldComparison(
+      userId,
+      portfolioId,
     );
   }
 }

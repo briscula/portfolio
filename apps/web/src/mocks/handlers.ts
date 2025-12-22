@@ -3,11 +3,11 @@ import { mockPortfolios, mockPortfolioSummary } from './data/portfolios';
 import { mockPositions } from './data/positions';
 import { mockTransactions, mockRecentActivity } from './data/transactions';
 import { mockDividendMonthlyOverview, mockUpcomingDividends } from './data/dividends';
-import { 
-  paginateData, 
-  sortData, 
-  filterData, 
-  simulateDelay, 
+import {
+  paginateData,
+  sortData,
+  filterData,
+  simulateDelay,
   generateId,
   createErrorResponse,
   createSuccessResponse
@@ -17,6 +17,9 @@ import {
 let portfolios = [...mockPortfolios];
 let positions = [...mockPositions];
 let transactions = [...mockTransactions];
+
+// API base URL to intercept
+const API_BASE = 'http://localhost:3000';
 
 export const handlers = [
   // Auth endpoints
@@ -29,7 +32,7 @@ export const handlers = [
   }),
 
   // Portfolio endpoints
-  http.get('/portfolios', async ({ request }) => {
+  http.get(`${API_BASE}/portfolios`, async ({ request }) => {
     await simulateDelay(200);
     
     const url = new URL(request.url);
@@ -48,7 +51,7 @@ export const handlers = [
     return HttpResponse.json(paginatedResponse);
   }),
 
-  http.get('/portfolios/:id', async ({ params }) => {
+  http.get(`${API_BASE}/portfolios/:id`, async ({ params }) => {
     await simulateDelay(150);
     
     const portfolio = portfolios.find(p => p.id === params.id);
@@ -59,7 +62,7 @@ export const handlers = [
     return createSuccessResponse(portfolio);
   }),
 
-  http.post('/portfolios', async ({ request }) => {
+  http.post(`${API_BASE}/portfolios`, async ({ request }) => {
     await simulateDelay(300);
     
     const body = await request.json() as any;
@@ -80,7 +83,7 @@ export const handlers = [
     return createSuccessResponse(newPortfolio, 201);
   }),
 
-  http.patch('/portfolios/:id', async ({ params, request }) => {
+  http.patch(API_BASE + '/portfolios/:id', async ({ params, request }) => {
     await simulateDelay(250);
     
     const portfolioIndex = portfolios.findIndex(p => p.id === params.id);
@@ -98,7 +101,7 @@ export const handlers = [
     return createSuccessResponse(portfolios[portfolioIndex]);
   }),
 
-  http.delete('/portfolios/:id', async ({ params }) => {
+  http.delete(API_BASE + '/portfolios/:id', async ({ params }) => {
     await simulateDelay(200);
     
     const portfolioIndex = portfolios.findIndex(p => p.id === params.id);
@@ -111,7 +114,7 @@ export const handlers = [
   }),
 
   // Position endpoints
-  http.get('/portfolios/:id/positions', async ({ params, request }) => {
+  http.get(`${API_BASE}/portfolios/:id/positions`, async ({ params, request }) => {
     await simulateDelay(200);
     
     const url = new URL(request.url);
@@ -131,7 +134,7 @@ export const handlers = [
   }),
 
   // Transaction endpoints
-  http.get('/transactions', async ({ request }) => {
+  http.get(`${API_BASE}/transactions`, async ({ request }) => {
     await simulateDelay(200);
     
     const url = new URL(request.url);
@@ -155,7 +158,7 @@ export const handlers = [
     return HttpResponse.json(paginatedResponse);
   }),
 
-  http.get('/portfolios/:id/transactions', async ({ params, request }) => {
+  http.get(`${API_BASE}/portfolios/:id/transactions`, async ({ params, request }) => {
     await simulateDelay(200);
     
     const url = new URL(request.url);
@@ -174,7 +177,7 @@ export const handlers = [
     return HttpResponse.json(paginatedResponse);
   }),
 
-  http.post('/portfolios/:id/transactions', async ({ params, request }) => {
+  http.post(`${API_BASE}/portfolios/:id/transactions`, async ({ params, request }) => {
     await simulateDelay(300);
     
     const body = await request.json() as any;
@@ -191,7 +194,7 @@ export const handlers = [
   }),
 
   // Portfolio summary
-  http.get('/portfolios/:id/summary', async ({ params }) => {
+  http.get(`${API_BASE}/portfolios/:id/summary`, async ({ params }) => {
     await simulateDelay(150);
     
     const portfolioPositions = positions.filter(p => p.portfolioId.toString() === params.id);
@@ -215,9 +218,67 @@ export const handlers = [
   }),
 
   // Dividend endpoints
-  http.get('/portfolios/:id/dividends/monthly', async ({ params, request }) => {
+  http.get(`${API_BASE}/portfolios/:id/dividends/summary`, async ({ params, request }) => {
+    await simulateDelay(150);
+
+    const url = new URL(request.url);
+    const period = url.searchParams.get('period') || 'last12Months';
+
+    // Calculate dividend summary from positions
+    const portfolioPositions = positions.filter(p => p.portfolioId.toString() === params.id);
+    const totalDividends = portfolioPositions.reduce((sum, pos) => sum + (pos.totalDividends || 0), 0);
+    const totalCost = portfolioPositions.reduce((sum, pos) => sum + pos.totalCost, 0);
+    const dividendYield = totalCost > 0 ? (totalDividends / totalCost) * 100 : 0;
+
+    const summary = {
+      totalDividends,
+      dividendYield,
+      avgMonthlyDividends: totalDividends / 12,
+      totalCost,
+      dividendCount: portfolioPositions.length,
+      period
+    };
+
+    return HttpResponse.json(summary);
+  }),
+
+  http.get(`${API_BASE}/portfolios/:id/dividends/holdings-yield`, async ({ params }) => {
     await simulateDelay(200);
-    
+
+    // Get positions for this portfolio that have dividends
+    const portfolioPositions = positions.filter(p =>
+      p.portfolioId.toString() === params.id &&
+      p.totalDividends &&
+      p.totalDividends > 0
+    );
+
+    // Calculate yield metrics for each position
+    const holdings = portfolioPositions.map(pos => {
+      const yieldOnCost = pos.totalCost > 0 ? (pos.totalDividends / pos.totalCost) * 100 : 0;
+      const currentValue = pos.currentQuantity * (pos.currentPrice || 0);
+      const trailing12MonthDividends = pos.totalDividends * 0.8; // Mock: 80% of total as trailing 12mo
+      const trailing12MonthYield = currentValue > 0 ? (trailing12MonthDividends / currentValue) * 100 : 0;
+
+      return {
+        tickerSymbol: pos.tickerSymbol,
+        companyName: pos.companyName,
+        currentQuantity: pos.currentQuantity,
+        currentPrice: pos.currentPrice || 0,
+        currencyCode: 'USD',
+        yieldOnCost,
+        trailing12MonthYield,
+        trailing12MonthDividends,
+        totalCost: pos.totalCost,
+        totalDividends: pos.totalDividends
+      };
+    });
+
+    return HttpResponse.json({ holdings });
+  }),
+
+  http.get(`${API_BASE}/portfolios/:id/dividends/monthly`, async ({ params, request }) => {
+    await simulateDelay(200);
+
     const url = new URL(request.url);
     const startYear = parseInt(url.searchParams.get('startYear') || '2023');
     const endYear = parseInt(url.searchParams.get('endYear') || '2024');
@@ -236,15 +297,15 @@ export const handlers = [
       // In a real implementation, you'd filter by ticker symbol
       // For now, we'll return the full dataset
     }
-    
+
     // Filter out months that have no data for the requested year range
     filteredData = filteredData.filter(monthData => monthData.yearlyData.length > 0);
-    
+
     const response = {
       ...mockDividendMonthlyOverview,
       data: filteredData
     };
-    
+
     return HttpResponse.json(response);
   }),
 ];

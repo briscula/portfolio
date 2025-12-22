@@ -310,7 +310,7 @@ export default function PortfolioDetailPage() {
     redirect('/api/auth/login');
   }
 
-  if (!selectedPortfolio && !portfolioLoading) {
+  if (!selectedPortfolio && !portfolioLoading && !authLoading && isAuthenticated) {
     return (
       <AppLayout>
         <div className="text-center py-12">

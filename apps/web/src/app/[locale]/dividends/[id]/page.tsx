@@ -8,6 +8,7 @@ import AppLayout from '@/components/AppLayout';
 import { usePortfolios, usePositions } from '@/hooks/usePortfolio';
 import { Card, CardHeader, CardTitle, CardContent, DividendCalendar, MetricCard, MetricCardsGrid, DollarSignIcon, CalendarIcon, PercentIcon } from '@/components/ui';
 import DividendChart from '@/components/DividendChart';
+import HoldingsYieldChart from '@/components/HoldingsYieldChart';
 import { useApiClient } from '@/lib/apiClient';
 
 export default function PortfolioDividendsPage() {
@@ -265,6 +266,20 @@ export default function PortfolioDividendsPage() {
                                 </table>
                             </div>
                         )}
+                    </CardContent>
+                </Card>
+
+                {/* Dividend Yield Comparison Chart */}
+                <Card>
+                    <CardHeader>
+                        <CardTitle>Dividend Yield Comparison</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <HoldingsYieldChart
+                            portfolioId={portfolioId}
+                            apiClient={apiClient}
+                            isAuthenticated={isAuthenticated}
+                        />
                     </CardContent>
                 </Card>
 
