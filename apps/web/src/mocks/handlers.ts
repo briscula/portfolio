@@ -254,9 +254,10 @@ export const handlers = [
 
     // Calculate yield metrics for each position
     const holdings = portfolioPositions.map(pos => {
-      const yieldOnCost = pos.totalCost > 0 ? (pos.totalDividends / pos.totalCost) * 100 : 0;
+      const totalDividends = pos.totalDividends ?? 0;
+      const yieldOnCost = pos.totalCost > 0 ? (totalDividends / pos.totalCost) * 100 : 0;
       const currentValue = pos.currentQuantity * (pos.currentPrice || 0);
-      const trailing12MonthDividends = pos.totalDividends * 0.8; // Mock: 80% of total as trailing 12mo
+      const trailing12MonthDividends = totalDividends * 0.8; // Mock: 80% of total as trailing 12mo
       const trailing12MonthYield = currentValue > 0 ? (trailing12MonthDividends / currentValue) * 100 : 0;
 
       return {
@@ -269,7 +270,7 @@ export const handlers = [
         trailing12MonthYield,
         trailing12MonthDividends,
         totalCost: pos.totalCost,
-        totalDividends: pos.totalDividends
+        totalDividends
       };
     });
 
