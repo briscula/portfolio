@@ -14,6 +14,7 @@ describe('DividendAnalyticsService', () => {
           provide: PrismaService,
           useValue: {
             $queryRaw: jest.fn(),
+            $queryRawUnsafe: jest.fn(),
           },
         },
       ],
@@ -40,9 +41,22 @@ describe('DividendAnalyticsService', () => {
         },
       ];
 
-      jest.spyOn(prismaService, '$queryRaw').mockResolvedValue(mockData);
+      jest.spyOn(prismaService, '$queryRawUnsafe').mockResolvedValue(mockData);
 
       const result = await service.getMonthlyDividendOverview(1, {});
+
+      const emptyMonths = Array.from({ length: 11 }, (_, i) => ({
+        month: String(i + 1).padStart(2, '0'),
+        monthName: new Date(2000, i, 1).toLocaleString('en-US', { month: 'long' }),
+        yearlyData: [
+          {
+            year: '2023',
+            totalDividends: 0,
+            dividendCount: 0,
+            companies: [],
+          },
+        ],
+      }));
 
       expect(result).toEqual({
         months: [
@@ -61,6 +75,7 @@ describe('DividendAnalyticsService', () => {
         ],
         years: ['2023'],
         data: [
+          ...emptyMonths,
           {
             month: '12',
             monthName: 'December',
@@ -93,7 +108,7 @@ describe('DividendAnalyticsService', () => {
         },
       ];
 
-      jest.spyOn(prismaService, '$queryRaw').mockResolvedValue(mockData);
+      jest.spyOn(prismaService, '$queryRawUnsafe').mockResolvedValue(mockData);
 
       const result = await service.getCompanyDividendSummaries(1, {});
 

@@ -49,6 +49,11 @@ const apiEnvSchema = sharedEnvSchema.extend({
         .enum(['error', 'warn', 'log', 'debug', 'verbose'])
         .default('log')
         .optional(),
+    
+    /**
+     * API key for Financial Modeling Prep
+     */
+    FMP_API_KEY: z.string().min(1, 'FMP_API_KEY is required'),
 });
 
 /**
