@@ -7,5 +7,5 @@
 
 // Export schemas for custom validation if needed
 export { sharedEnvSchema, type SharedEnv } from './shared';
-export { webEnv, type WebEnv } from './web';
-export { apiEnv, type ApiEnv } from './api';
+export { getWebEnv, type WebEnv } from './web';
+export { getApiEnv, type ApiEnv } from './api';

@@ -58,6 +58,12 @@ const webEnvSchema = sharedEnvSchema.extend({
  * Validated and typed web environment variables
  * This will throw an error at startup if any required variables are missing or invalid
  */
-export const webEnv = webEnvSchema.parse(process.env);
+export function getWebEnv() {
+    /**
+     * Validated and typed web environment variables
+     * This will throw an error at startup if any required variables are missing or invalid
+     */
+    return webEnvSchema.parse(process.env);
+}
 
 export type WebEnv = z.infer<typeof webEnvSchema>;

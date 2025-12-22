@@ -1,7 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { Cron } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
-import { apiEnv } from '@repo/env';
+import { getApiEnv } from '@repo/env';
 import axios from 'axios';
 import { z } from 'zod';
 
@@ -19,8 +18,8 @@ export class PriceUpdaterService {
 
   constructor(private prisma: PrismaService) {}
 
-  @Cron('0 2 * * *') // Every day at 2:00 AM UTC
-  async handleCron() {
+  // This method can be called manually or by an external scheduler
+  async runPriceUpdate() {
     this.logger.log('Starting daily stock price update job...');
     await this.updatePrices();
     this.logger.log('Finished daily stock price update job.');
@@ -47,7 +46,7 @@ export class PriceUpdaterService {
 
     try {
       // T010: Make batch API call to FMP
-      const apiKey = apiEnv.FMP_API_KEY;
+      const apiKey = getApiEnv().FMP_API_KEY;
       const url = `https://financialmodelingprep.com/api/v3/quote/${symbols}?apikey=${apiKey}`;
       const response = await axios.get(url);
 
@@ -55,28 +54,39 @@ export class PriceUpdaterService {
       const validatedQuotes = FmpQuoteSchema.parse(response.data);
       this.logger.log(`Received ${validatedQuotes.length} valid quotes from FMP.`);
 
-      // T012: Loop and upsert into the database
+      // T012: Loop and update/create into the database
       for (const quote of validatedQuotes) {
         const listing = listings.find((l) => l.tickerSymbol === quote.symbol);
         if (listing) {
-          await this.prisma.stockPrice.upsert({
+          const existingPrice = await this.prisma.stockPrice.findUnique({
             where: {
-              listingIsin_listingExchangeCode: {
+              listingIsin_listingExchangeCode_currencyCode: {
                 listingIsin: listing.isin,
                 listingExchangeCode: listing.exchangeCode,
+                currencyCode: listing.currencyCode,
               },
             },
-            update: {
-              price: quote.price,
-              currencyCode: listing.currencyCode, // Assuming the price is in the listing's currency
-            },
-            create: {
-              listingIsin: listing.isin,
-              listingExchangeCode: listing.exchangeCode,
-              price: quote.price,
-              currencyCode: listing.currencyCode,
-            },
           });
+
+          if (existingPrice) {
+            await this.prisma.stockPrice.update({
+              where: {
+                id: existingPrice.id,
+              },
+              data: {
+                price: quote.price,
+              },
+            });
+          } else {
+            await this.prisma.stockPrice.create({
+              data: {
+                listingIsin: listing.isin,
+                listingExchangeCode: listing.exchangeCode,
+                price: quote.price,
+                currencyCode: listing.currencyCode,
+              },
+            });
+          }
         }
       }
     } catch (error) {
