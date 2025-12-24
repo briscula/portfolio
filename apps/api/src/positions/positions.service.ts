@@ -337,21 +337,25 @@ export class PositionsService {
       exchangeCode: p.listingExchangeCode,
     }));
 
-    const listings = await this.prisma.listing.findMany({
-      where: {
-        OR: listingIdentifiers,
-      },
-      select: {
-        isin: true,
-        exchangeCode: true,
-        currentPrice: true,
-      },
-    });
+    let priceMap: Record<string, number | null> = {};
 
-    const priceMap = listings.reduce((acc, l) => ({
-      ...acc,
-      [`${l.isin}_${l.exchangeCode}`]: l.currentPrice,
-    }), {} as Record<string, number | null>);
+    if (listingIdentifiers.length > 0) {
+      const listings = await this.prisma.listing.findMany({
+        where: {
+          OR: listingIdentifiers,
+        },
+        select: {
+          isin: true,
+          exchangeCode: true,
+          currentPrice: true,
+        },
+      });
+
+      priceMap = listings.reduce((acc, l) => ({
+        ...acc,
+        [`${l.isin}_${l.exchangeCode}`]: l.currentPrice,
+      }), {} as Record<string, number | null>);
+    }
 
     // 6. Calculate total value in USD
     const totalValueUSD = activePositions.reduce((sum, position) => {
