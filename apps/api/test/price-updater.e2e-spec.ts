@@ -32,7 +32,6 @@ describe('PriceUpdaterService (Integration)', () => {
 
   beforeEach(async () => {
     // Clear the test database before each test
-    await prisma.stockPrice.deleteMany({});
     await prisma.listing.deleteMany({});
   });
 
@@ -61,15 +60,15 @@ describe('PriceUpdaterService (Integration)', () => {
     // We are testing the private method directly for simplicity here.
     await (priceUpdaterService as any).updatePrices();
 
-    // 4. Assert: Check if the stock_price table was updated
-    const stockPrice = await prisma.stockPrice.findFirst({
+    // 4. Assert: Check if the listing's price was updated
+    const listing = await prisma.listing.findFirst({
       where: {
-        listingIsin: 'US0378331005',
+        isin: 'US0378331005',
       },
     });
 
-    expect(stockPrice).not.toBeNull();
-    expect(stockPrice?.price).toEqual(175.5);
-    expect(stockPrice?.currencyCode).toEqual('USD');
+    expect(listing).not.toBeNull();
+    expect(listing?.currentPrice).toEqual(175.5);
+    expect(listing?.priceSource).toEqual('yahoo_finance');
   });
 });

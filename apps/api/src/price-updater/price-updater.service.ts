@@ -50,20 +50,17 @@ export class PriceUpdaterService {
           continue;
         }
 
-        await this.prisma.stockPrice.upsert({
+        await this.prisma.listing.update({
           where: {
-            listingIsin_listingExchangeCode_currencyCode: {
-              listingIsin: listing.isin,
-              listingExchangeCode: listing.exchangeCode,
-              currencyCode: listing.currencyCode,
+            isin_exchangeCode: {
+              isin: listing.isin,
+              exchangeCode: listing.exchangeCode,
             },
           },
-          update: { price },
-          create: {
-            listingIsin: listing.isin,
-            listingExchangeCode: listing.exchangeCode,
-            price,
-            currencyCode: listing.currencyCode,
+          data: {
+            currentPrice: price,
+            priceLastUpdated: new Date(),
+            priceSource: 'yahoo_finance',
           },
         });
         successCount++;
