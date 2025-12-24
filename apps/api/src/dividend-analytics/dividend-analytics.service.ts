@@ -437,13 +437,13 @@ export class DividendAnalyticsService {
              AND t."createdAt" >= $3),
           0
         ) as trailing_total,
-        sp."price" as current_price,
-        sp."currencyCode",
-        sp."lastUpdated" as price_last_updated
+        l."currentPrice" as current_price,
+        l."currencyCode",
+        l."priceLastUpdated" as price_last_updated
       FROM position_calc h
-      LEFT JOIN "stock_price" sp ON
-        h."listingIsin" = sp."listingIsin" AND
-        h."listingExchangeCode" = sp."listingExchangeCode"
+      LEFT JOIN "listing" l ON
+        h."listingIsin" = l."isin" AND
+        h."listingExchangeCode" = l."exchangeCode"
       ORDER BY h."totalDividends" DESC
       `,
       userId,
