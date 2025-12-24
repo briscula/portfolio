@@ -40,6 +40,9 @@ export class TransactionsService {
     }
 
     // 2. Find or create the Listing
+    // For DIVIDEND transactions, don't update companyName/tickerSymbol as they may contain dividend description text
+    const isDividend = createTransactionDto.type === 'DIVIDEND';
+
     const listing = await this.prisma.listing.upsert({
       where: {
         isin_exchangeCode: {
@@ -47,11 +50,13 @@ export class TransactionsService {
           exchangeCode: createTransactionDto.exchangeCode,
         },
       },
-      update: {
-        tickerSymbol: createTransactionDto.tickerSymbol,
-        companyName: createTransactionDto.companyName,
-        currencyCode: createTransactionDto.currencyCode,
-      },
+      update: isDividend
+        ? { currencyCode: createTransactionDto.currencyCode }
+        : {
+            tickerSymbol: createTransactionDto.tickerSymbol,
+            companyName: createTransactionDto.companyName,
+            currencyCode: createTransactionDto.currencyCode,
+          },
       create: {
         isin: createTransactionDto.isin,
         exchangeCode: createTransactionDto.exchangeCode,

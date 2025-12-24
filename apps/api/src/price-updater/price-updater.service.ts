@@ -35,7 +35,12 @@ export class PriceUpdaterService {
     // Fetch quotes individually to handle errors per symbol
     for (const listing of listings) {
       try {
-        const quote = await yahooFinance.quote(listing.tickerSymbol) as { regularMarketPrice?: number } | undefined;
+        const quote = await yahooFinance.quote(listing.tickerSymbol) as {
+          regularMarketPrice?: number;
+          shortName?: string;
+          longName?: string;
+          symbol?: string;
+        } | undefined;
 
         if (!quote) {
           this.logger.warn(`Symbol not found: ${listing.tickerSymbol}`);
@@ -50,6 +55,30 @@ export class PriceUpdaterService {
           continue;
         }
 
+        // Build update data - always update price
+        const updateData: {
+          currentPrice: number;
+          priceLastUpdated: Date;
+          priceSource: string;
+          companyName?: string;
+          tickerSymbol?: string;
+        } = {
+          currentPrice: price,
+          priceLastUpdated: new Date(),
+          priceSource: 'yahoo_finance',
+        };
+
+        // Update companyName if available from Yahoo Finance
+        const companyName = quote.longName || quote.shortName;
+        if (companyName) {
+          updateData.companyName = companyName;
+        }
+
+        // Update tickerSymbol if available (fixes bad ticker symbols like "1")
+        if (quote.symbol) {
+          updateData.tickerSymbol = quote.symbol;
+        }
+
         await this.prisma.listing.update({
           where: {
             isin_exchangeCode: {
@@ -57,11 +86,7 @@ export class PriceUpdaterService {
               exchangeCode: listing.exchangeCode,
             },
           },
-          data: {
-            currentPrice: price,
-            priceLastUpdated: new Date(),
-            priceSource: 'yahoo_finance',
-          },
+          data: updateData,
         });
         successCount++;
       } catch (error) {
