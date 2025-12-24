@@ -28,19 +28,16 @@ export class TransactionsService {
       throw new BadRequestException('Invalid Portfolio ID or access denied');
     }
 
-    // 1. Find or create the Exchange
-    const exchange = await this.prisma.exchange.upsert({
+    // 1. Validate that the Exchange exists
+    const exchange = await this.prisma.exchange.findUnique({
       where: { code: createTransactionDto.exchangeCode },
-      update: {
-        name: createTransactionDto.exchangeCode, // Assuming name is same as code if not provided
-        country: createTransactionDto.exchangeCountry ?? 'Unknown', // Use provided country or 'Unknown'
-      },
-      create: {
-        code: createTransactionDto.exchangeCode,
-        name: createTransactionDto.exchangeCode,
-        country: createTransactionDto.exchangeCountry ?? 'Unknown', // Use provided country or 'Unknown'
-      },
     });
+
+    if (!exchange) {
+      throw new BadRequestException(
+        `Invalid exchange code: ${createTransactionDto.exchangeCode}. Exchange must exist in the system.`
+      );
+    }
 
     // 2. Find or create the Listing
     const listing = await this.prisma.listing.upsert({
