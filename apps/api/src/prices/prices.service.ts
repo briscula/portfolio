@@ -1,7 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PriceProvider, Quote, FxRate } from './price-provider.interface';
-import { Listing } from '@repo/database'; // Import Listing model
 
 interface CachedFxRate {
   rate: number;
@@ -62,16 +61,18 @@ export class PricesService {
         tickerSymbol: true,
         currencyCode: true,
         companyName: true,
+        priceLastUpdated: true,
         createdAt: true,
         updatedAt: true,
       },
     });
 
-    // Create a map from tickerSymbol to the full listing object
+    // Create a map from isin_exchangeCode to the listing object
     // Note: This assumes tickerSymbols are unique across exchanges which might not always be true.
     // A more robust solution would be to create a map of cleanedSymbol -> originalListing[]
     // For now, let's use isin_exchangeCode as a unique identifier for mapping.
-    const listingMap = new Map<string, Listing>(); // Key: tickerSymbol, Value: Listing
+    type ListingInfo = typeof uniqueListings[number];
+    const listingMap = new Map<string, ListingInfo>();
     const listingsToFetch: string[] = []; // tickerSymbols for priceProvider
 
     uniqueListings.forEach(listing => {
@@ -84,18 +85,13 @@ export class PricesService {
         }
     });
 
-    // 2. Get the last update time for each listing
-    const lastUpdates = await this.prisma.stockPrice.findMany({
-      where: {
-        OR: uniqueListings.map(l => ({
-          listingIsin: l.isin,
-          listingExchangeCode: l.exchangeCode,
-        })),
-      },
-      select: { listingIsin: true, listingExchangeCode: true, lastUpdated: true },
+    // 2. Get the last update time for each listing (now stored directly on listing)
+    const lastUpdateMap = new Map<string, Date>(); // Key: isin_exchangeCode, Value: priceLastUpdated
+    uniqueListings.forEach(l => {
+      if (l.priceLastUpdated) {
+        lastUpdateMap.set(`${l.isin}_${l.exchangeCode}`, l.priceLastUpdated);
+      }
     });
-    const lastUpdateMap = new Map<string, Date>(); // Key: isin_exchangeCode, Value: lastUpdated
-    lastUpdates.forEach(u => lastUpdateMap.set(`${u.listingIsin}_${u.listingExchangeCode}`, u.lastUpdated));
 
 
     // 3. Sort listings by last update time (oldest first)
@@ -146,44 +142,20 @@ export class PricesService {
           continue;
         }
 
-        let existingStockPrice = await this.prisma.stockPrice.findFirst({
-            where: {
-                listingIsin: matchedListing.isin,
-                listingExchangeCode: matchedListing.exchangeCode,
-                currencyCode: quote.currency,
+        // Update price directly on the listing
+        await this.prisma.listing.update({
+          where: {
+            isin_exchangeCode: {
+              isin: matchedListing.isin,
+              exchangeCode: matchedListing.exchangeCode,
             },
+          },
+          data: {
+            currentPrice: quote.price,
+            priceSource: 'yahoo_finance',
+            priceLastUpdated: new Date(),
+          },
         });
-
-        if (existingStockPrice) {
-            await this.prisma.stockPrice.update({
-                where: { id: existingStockPrice.id },
-                data: {
-                    price: quote.price,
-                    source: 'yahoo_finance',
-                    lastUpdated: new Date(),
-                },
-            });
-        } else {
-            await this.prisma.stockPrice.create({
-                data: {
-                    price: quote.price,
-                    source: 'yahoo_finance',
-                    currency: {
-                        connect: {
-                            code: quote.currency,
-                        },
-                    },
-                    listing: {
-                      connect: {
-                        isin_exchangeCode: {
-                          isin: matchedListing.isin,
-                          exchangeCode: matchedListing.exchangeCode,
-                        },
-                      },
-                    },
-                },
-            });
-        }
         this.logger.log(`Successfully updated price for ${matchedListing.tickerSymbol} (${matchedListing.isin}_${matchedListing.exchangeCode}): ${quote.price} ${quote.currency}`);
       }
 

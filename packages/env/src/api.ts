@@ -49,12 +49,23 @@ const apiEnvSchema = sharedEnvSchema.extend({
         .enum(['error', 'warn', 'log', 'debug', 'verbose'])
         .default('log')
         .optional(),
+    
+    /**
+     * API key for Financial Modeling Prep
+     */
+    FMP_API_KEY: z.string().min(1, 'FMP_API_KEY is required'),
 });
 
 /**
  * Validated and typed API environment variables
  * This will throw an error at startup if any required variables are missing or invalid
  */
-export const apiEnv = apiEnvSchema.parse(process.env);
+export function getApiEnv() {
+    /**
+     * Validated and typed API environment variables
+     * This will throw an error at startup if any required variables are missing or invalid
+     */
+    return apiEnvSchema.parse(process.env);
+}
 
 export type ApiEnv = z.infer<typeof apiEnvSchema>;

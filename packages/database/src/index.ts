@@ -16,7 +16,7 @@ export type {
   Portfolio,
   Currency,
   CorporateAction,
-  StockPrice,
+  Listing,
   Transaction,
   UserAuthAccount,
   UserPosition,

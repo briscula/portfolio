@@ -76,6 +76,9 @@ NODE_ENV=production
 
 # CORS Origins
 ALLOWED_ORIGINS=https://your-frontend-domain.vercel.app
+
+# Financial Modeling Prep API Key
+FMP_API_KEY=your_fmp_api_key
 ```
 
 **⚠️ Important**:

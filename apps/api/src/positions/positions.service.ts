@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { PricesService } from '../prices/prices.service';
-import { Listing } from '@repo/database'; // Import Listing model
 
 @Injectable()
 export class PositionsService {
@@ -198,17 +197,7 @@ export class PositionsService {
         exchangeCode: true,
         tickerSymbol: true,
         companyName: true,
-        // sector: true, // Sector is not directly on Listing, might need to derive or remove
-      },
-    });
-
-    const prices = await this.prisma.stockPrice.findMany({
-      where: {
-        OR: listingIdentifiers.map(id => ({
-          listingIsin: id.isin,
-          listingExchangeCode: id.exchangeCode,
-        })),
-        currencyCode: 'USD',
+        currentPrice: true,
       },
     });
 
@@ -230,12 +219,7 @@ export class PositionsService {
     const listingMap = listings.reduce((acc, listing) => ({
       ...acc,
       [`${listing.isin}_${listing.exchangeCode}`]: listing,
-    }), {});
-
-    const priceMap = prices.reduce((acc, p) => ({
-      ...acc,
-      [`${p.listingIsin}_${p.listingExchangeCode}`]: p.price,
-    }), {});
+    }), {} as Record<string, typeof listings[0]>);
 
     const dividendMap = dividendData.reduce((acc, d) => ({
       ...acc,
@@ -252,7 +236,7 @@ export class PositionsService {
       const dividendInfo = dividendMap[`${agg.listingIsin}_${agg.listingExchangeCode}`] || { totalDividends: 0, dividendCount: 0 };
       const currentQuantity = agg._sum.quantity || 0;
       const totalAmountUSD = Math.abs(agg._sum.amount || 0); // Changed from totalCostUSD to totalAmountUSD
-      const currentPriceUSD = priceMap[`${agg.listingIsin}_${agg.listingExchangeCode}`];
+      const currentPriceUSD = listingInfo?.currentPrice ?? undefined;
 
       const marketValueUSD = currentPriceUSD !== undefined ? currentQuantity * currentPriceUSD : totalAmountUSD;
       const unrealizedGainUSD = marketValueUSD - totalAmountUSD;
@@ -347,33 +331,38 @@ export class PositionsService {
       0,
     );
 
-    // 5. Get latest prices in USD
+    // 5. Get listings with current prices
     const listingIdentifiers = activePositions.map(p => ({
       isin: p.listingIsin,
       exchangeCode: p.listingExchangeCode,
     }));
 
-    const prices = await this.prisma.stockPrice.findMany({
-      where: {
-        OR: listingIdentifiers.map(id => ({
-          listingIsin: id.isin,
-          listingExchangeCode: id.exchangeCode,
-        })),
-        currencyCode: 'USD',
-      },
-    });
+    let priceMap: Record<string, number | null> = {};
 
-    const priceMap = prices.reduce((acc, p) => ({
-      ...acc,
-      [`${p.listingIsin}_${p.listingExchangeCode}`]: p.price,
-    }), {});
+    if (listingIdentifiers.length > 0) {
+      const listings = await this.prisma.listing.findMany({
+        where: {
+          OR: listingIdentifiers,
+        },
+        select: {
+          isin: true,
+          exchangeCode: true,
+          currentPrice: true,
+        },
+      });
+
+      priceMap = listings.reduce((acc, l) => ({
+        ...acc,
+        [`${l.isin}_${l.exchangeCode}`]: l.currentPrice,
+      }), {} as Record<string, number | null>);
+    }
 
     // 6. Calculate total value in USD
     const totalValueUSD = activePositions.reduce((sum, position) => {
       const currentPrice = priceMap[`${position.listingIsin}_${position.listingExchangeCode}`];
       const quantity = position._sum.quantity || 0;
       const historicalAmount = Math.abs(position._sum.amount || 0); // Changed from historicalCost to historicalAmount
-      const marketValue = currentPrice !== undefined ? quantity * currentPrice : historicalAmount;
+      const marketValue = currentPrice !== undefined && currentPrice !== null ? quantity * currentPrice : historicalAmount;
       return sum + marketValue;
     }, 0);
 
