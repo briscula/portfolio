@@ -310,7 +310,27 @@ export default function PortfolioDetailPage() {
     redirect('/api/auth/login');
   }
 
+  // Handle auth errors - redirect to login
+  if (portfolioError && (portfolioError.includes('Authentication') || portfolioError.includes('401'))) {
+    redirect('/api/auth/login');
+  }
+
   if (!selectedPortfolio && !portfolioLoading && !authLoading && isAuthenticated) {
+    // If there's an error, show it instead of "Not Found"
+    if (portfolioError) {
+      return (
+        <AppLayout>
+          <div className="text-center py-12">
+            <h1 className="text-2xl font-semibold text-gray-900 mb-4">Error Loading Portfolio</h1>
+            <p className="text-gray-600 mb-6">{portfolioError}</p>
+            <Link href="/en/portfolio" className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+              Back to Portfolios
+            </Link>
+          </div>
+        </AppLayout>
+      );
+    }
+
     return (
       <AppLayout>
         <div className="text-center py-12">
