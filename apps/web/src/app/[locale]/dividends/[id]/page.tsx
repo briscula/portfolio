@@ -289,7 +289,7 @@ export default function PortfolioDividendsPage() {
                                                 Last 12M Dividends
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Total Dividends
+                                                Total Cost
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Yield on Cost
@@ -316,7 +316,7 @@ export default function PortfolioDividendsPage() {
                                                     {formatCurrency(holding.trailing12MonthDividends)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">
-                                                    {formatCurrency(holding.totalDividends)}
+                                                    {formatCurrency(holding.totalCost)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
                                                     {holding.yieldOnCost.toFixed(2)}%
