@@ -382,7 +382,7 @@ export class PositionsService {
 
     return {
       totalValue,
-      totalAmount, // Changed from totalCost to totalAmount
+      totalCost: totalAmount, // Frontend expects totalCost
       totalGain,
       totalGainPercent: parseFloat(totalGainPercent.toFixed(2)),
       positionCount: activePositions.length,
