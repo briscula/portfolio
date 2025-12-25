@@ -8,8 +8,9 @@ Welcome to the Portfolio Monorepo documentation. This documentation is organized
 
 ## 📚 Documentation Structure
 
-### 🛠️ Setup & Deployment
+### 🛠️ Setup & Development
 - **[SETUP.md](./SETUP.md)** - Development environment setup instructions
+- **[PATTERNS.md](./PATTERNS.md)** - Code patterns and examples (auth, API, validation, database)
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment guide for Vercel (frontend & backend)
 
 ---
@@ -93,7 +94,8 @@ Historical documentation and migration guides.
 ## 🔍 Quick Links
 
 ### For Developers
-- [AGENTS.md](../AGENTS.md) - Quick reference for development
+- [AGENTS.md](../AGENTS.md) - Quick reference and rules
+- [PATTERNS.md](./PATTERNS.md) - Code patterns and examples
 - [System Architecture](./architecture/system-architecture.md) - Understand the codebase
 - [Database Schema](./architecture/database-schema.md) - Database structure and rules
 - [SETUP.md](./SETUP.md) - Get started with local development
@@ -132,4 +134,4 @@ Historical documentation and migration guides.
 
 ---
 
-**Last Updated**: 2024-12-04
+**Last Updated**: 2025-12-26
