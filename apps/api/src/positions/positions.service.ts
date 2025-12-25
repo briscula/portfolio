@@ -182,10 +182,10 @@ export class PositionsService {
       _sum: { quantity: true },
     });
 
-    // Create maps for easy lookup
+    // Create maps for easy lookup (use Math.abs since SELL quantities may be stored as negative)
     const sellMap = sellTransactions.reduce((acc, s) => ({
       ...acc,
-      [`${s.listingIsin}_${s.listingExchangeCode}`]: s._sum.quantity || 0,
+      [`${s.listingIsin}_${s.listingExchangeCode}`]: Math.abs(s._sum.quantity || 0),
     }), {} as Record<string, number>);
 
     // Calculate active positions with correct cost basis
@@ -193,9 +193,9 @@ export class PositionsService {
       .map(buy => {
         const key = `${buy.listingIsin}_${buy.listingExchangeCode}`;
         const soldQuantity = sellMap[key] || 0;
-        const currentQuantity = (buy._sum.quantity || 0) - soldQuantity;
+        const currentQuantity = Math.abs(buy._sum.quantity || 0) - soldQuantity;
         const totalBuyAmount = Math.abs(buy._sum.amount || 0);
-        const totalBuyQuantity = buy._sum.quantity || 0;
+        const totalBuyQuantity = Math.abs(buy._sum.quantity || 0);
         // Cost basis using average cost method
         const costBasis = totalBuyQuantity > 0
           ? (totalBuyAmount / totalBuyQuantity) * currentQuantity
@@ -358,9 +358,10 @@ export class PositionsService {
       _sum: { quantity: true },
     });
 
+    // Use Math.abs since SELL quantities may be stored as negative
     const sellMap = sellTransactions.reduce((acc, s) => ({
       ...acc,
-      [`${s.listingIsin}_${s.listingExchangeCode}`]: s._sum.quantity || 0,
+      [`${s.listingIsin}_${s.listingExchangeCode}`]: Math.abs(s._sum.quantity || 0),
     }), {} as Record<string, number>);
 
     // Calculate active positions with correct cost basis
@@ -368,9 +369,9 @@ export class PositionsService {
       .map(buy => {
         const key = `${buy.listingIsin}_${buy.listingExchangeCode}`;
         const soldQuantity = sellMap[key] || 0;
-        const currentQuantity = (buy._sum.quantity || 0) - soldQuantity;
+        const currentQuantity = Math.abs(buy._sum.quantity || 0) - soldQuantity;
         const totalBuyAmount = Math.abs(buy._sum.amount || 0);
-        const totalBuyQuantity = buy._sum.quantity || 0;
+        const totalBuyQuantity = Math.abs(buy._sum.quantity || 0);
         const costBasis = totalBuyQuantity > 0
           ? (totalBuyAmount / totalBuyQuantity) * currentQuantity
           : 0;
@@ -382,7 +383,7 @@ export class PositionsService {
           costBasis,
         };
       })
-      .filter(p => p.currentQuantity > 0);
+      .filter(p => p.currentQuantity > 0.000001);
 
     // 4. Calculate total cost basis in USD
     const totalCostUSD = activePositions.reduce(
