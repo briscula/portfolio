@@ -396,11 +396,10 @@ export class DividendAnalyticsService {
             WHEN t."type" = 'SELL' THEN -t."quantity"
             ELSE 0
           END) as "currentQuantity",
-          SUM(CASE
-            WHEN t."type" = 'BUY' THEN ABS(t."amount")
-            WHEN t."type" = 'SELL' THEN -ABS(t."amount")
-            ELSE 0
-          END) as "totalCost",
+          -- Total amount spent on BUY transactions
+          SUM(CASE WHEN t."type" = 'BUY' THEN ABS(t."amount") ELSE 0 END) as "totalBuyAmount",
+          -- Total quantity bought
+          SUM(CASE WHEN t."type" = 'BUY' THEN t."quantity" ELSE 0 END) as "totalBuyQuantity",
           SUM(CASE
             WHEN t."type" = 'DIVIDEND' THEN ABS(t."amount")
             ELSE 0
@@ -423,7 +422,11 @@ export class DividendAnalyticsService {
         h."stockSymbol",
         h."companyName",
         h."currentQuantity",
-        h."totalCost",
+        -- Calculate cost basis using average cost method: (avg cost per share) * current quantity
+        CASE
+          WHEN h."totalBuyQuantity" > 0 THEN (h."totalBuyAmount" / h."totalBuyQuantity") * h."currentQuantity"
+          ELSE 0
+        END as "totalCost",
         h."totalDividends",
         h."listingIsin",
         h."listingExchangeCode",

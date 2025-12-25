@@ -167,16 +167,49 @@ export class PositionsService {
       : await this.pricesService.getExchangeRate('USD', portfolio.currencyCode);
 
     // 3. Calculate aggregated transaction data for positions
-    const aggregatedTransactions = await this.prisma.transaction.groupBy({
-      by: ['listingIsin', 'listingExchangeCode'], // Group by listing composite key
-      where: { portfolioId, type: { in: ['BUY', 'SELL'] } },
+    // Get BUY transactions for cost basis calculation
+    const buyTransactions = await this.prisma.transaction.groupBy({
+      by: ['listingIsin', 'listingExchangeCode'],
+      where: { portfolioId, type: 'BUY' },
       _sum: { quantity: true, amount: true },
       _max: { createdAt: true },
     });
 
-    const activePositions = aggregatedTransactions.filter(
-      p => (p._sum.quantity || 0) > 0.000001,
-    );
+    // Get SELL transactions for quantity adjustment
+    const sellTransactions = await this.prisma.transaction.groupBy({
+      by: ['listingIsin', 'listingExchangeCode'],
+      where: { portfolioId, type: 'SELL' },
+      _sum: { quantity: true },
+    });
+
+    // Create maps for easy lookup
+    const sellMap = sellTransactions.reduce((acc, s) => ({
+      ...acc,
+      [`${s.listingIsin}_${s.listingExchangeCode}`]: s._sum.quantity || 0,
+    }), {} as Record<string, number>);
+
+    // Calculate active positions with correct cost basis
+    const activePositions = buyTransactions
+      .map(buy => {
+        const key = `${buy.listingIsin}_${buy.listingExchangeCode}`;
+        const soldQuantity = sellMap[key] || 0;
+        const currentQuantity = (buy._sum.quantity || 0) - soldQuantity;
+        const totalBuyAmount = Math.abs(buy._sum.amount || 0);
+        const totalBuyQuantity = buy._sum.quantity || 0;
+        // Cost basis using average cost method
+        const costBasis = totalBuyQuantity > 0
+          ? (totalBuyAmount / totalBuyQuantity) * currentQuantity
+          : 0;
+
+        return {
+          listingIsin: buy.listingIsin,
+          listingExchangeCode: buy.listingExchangeCode,
+          currentQuantity,
+          costBasis,
+          lastTransactionDate: buy._max.createdAt,
+        };
+      })
+      .filter(p => p.currentQuantity > 0.000001);
 
     if (activePositions.length === 0) {
       return { data: [], meta: { total: 0, page, limit, totalPages: 0, hasNextPage: false, hasPrevPage: false }};
@@ -231,44 +264,39 @@ export class PositionsService {
 
 
     // 5. Combine all data and convert to portfolio currency
-    const positionsWithValues = activePositions.map(agg => {
-      const listingInfo = listingMap[`${agg.listingIsin}_${agg.listingExchangeCode}`];
-      const dividendInfo = dividendMap[`${agg.listingIsin}_${agg.listingExchangeCode}`] || { totalDividends: 0, dividendCount: 0 };
-      const currentQuantity = agg._sum.quantity || 0;
-      const totalAmountUSD = Math.abs(agg._sum.amount || 0); // Changed from totalCostUSD to totalAmountUSD
+    const positionsWithValues = activePositions.map(pos => {
+      const listingInfo = listingMap[`${pos.listingIsin}_${pos.listingExchangeCode}`];
+      const dividendInfo = dividendMap[`${pos.listingIsin}_${pos.listingExchangeCode}`] || { totalDividends: 0, dividendCount: 0 };
       const currentPriceUSD = listingInfo?.currentPrice ?? undefined;
 
-      const marketValueUSD = currentPriceUSD !== undefined ? currentQuantity * currentPriceUSD : totalAmountUSD;
-      const unrealizedGainUSD = marketValueUSD - totalAmountUSD;
+      const marketValueUSD = currentPriceUSD !== undefined ? pos.currentQuantity * currentPriceUSD : pos.costBasis;
+      const unrealizedGainUSD = marketValueUSD - pos.costBasis;
 
       // Convert all monetary values to the portfolio's currency
-      const totalAmount = totalAmountUSD * fxRate; // Changed from totalCost to totalAmount
-      const totalCost = totalAmount; // Keep totalCost for backward compatibility
+      const totalCost = pos.costBasis * fxRate;
       const marketValue = marketValueUSD * fxRate;
       const currentPrice = currentPriceUSD !== undefined ? currentPriceUSD * fxRate : null;
       const unrealizedGain = unrealizedGainUSD * fxRate;
-      const unrealizedGainPercent = totalAmount > 0 ? (unrealizedGain / totalAmount) * 100 : 0; // Changed from totalCost to totalAmount
+      const unrealizedGainPercent = totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
       const totalDividends = dividendInfo.totalDividends * fxRate;
 
       return {
-        tickerSymbol: listingInfo?.tickerSymbol, // Use tickerSymbol from listingInfo
+        tickerSymbol: listingInfo?.tickerSymbol,
         companyName: listingInfo?.companyName || listingInfo?.tickerSymbol,
-        sector: null, // Sector is removed, set to null
-        currentQuantity,
-        totalAmount, // Use totalAmount
-        totalCost, // Keep for backward compatibility
+        sector: null,
+        currentQuantity: pos.currentQuantity,
+        totalAmount: totalCost, // For backward compatibility
+        totalCost,
         marketValue,
         currentPrice,
         unrealizedGain,
         unrealizedGainPercent: parseFloat(unrealizedGainPercent.toFixed(2)),
-        lastTransactionDate: agg._max.createdAt,
+        lastTransactionDate: pos.lastTransactionDate,
         portfolioName: portfolio.name,
-        // Add dividend fields
         totalDividends: parseFloat(totalDividends.toFixed(2)),
         dividendCount: dividendInfo.dividendCount,
-        // Add listing details for future use if needed
-        listingIsin: listingInfo?.isin,
-        listingExchangeCode: listingInfo?.exchangeCode,
+        listingIsin: pos.listingIsin,
+        listingExchangeCode: pos.listingExchangeCode,
       };
     });
     
@@ -317,17 +345,48 @@ export class PositionsService {
       ? 1
       : await this.pricesService.getExchangeRate('USD', portfolio.currencyCode);
 
-    // 3. Aggregate transactions to get position data in USD
-    const positions = await this.prisma.transaction.groupBy({
-      by: ['listingIsin', 'listingExchangeCode'], // Group by listing composite key
-      where: { portfolioId, type: { in: ['BUY', 'SELL'] } },
+    // 3. Get BUY and SELL transactions separately for correct cost basis
+    const buyTransactions = await this.prisma.transaction.groupBy({
+      by: ['listingIsin', 'listingExchangeCode'],
+      where: { portfolioId, type: 'BUY' },
       _sum: { quantity: true, amount: true },
     });
-    const activePositions = positions.filter(p => (p._sum.quantity || 0) > 0);
 
-    // 4. Calculate total amount in USD
-    const totalAmountUSD = activePositions.reduce(
-      (sum, position) => sum + Math.abs(position._sum.amount || 0),
+    const sellTransactions = await this.prisma.transaction.groupBy({
+      by: ['listingIsin', 'listingExchangeCode'],
+      where: { portfolioId, type: 'SELL' },
+      _sum: { quantity: true },
+    });
+
+    const sellMap = sellTransactions.reduce((acc, s) => ({
+      ...acc,
+      [`${s.listingIsin}_${s.listingExchangeCode}`]: s._sum.quantity || 0,
+    }), {} as Record<string, number>);
+
+    // Calculate active positions with correct cost basis
+    const activePositions = buyTransactions
+      .map(buy => {
+        const key = `${buy.listingIsin}_${buy.listingExchangeCode}`;
+        const soldQuantity = sellMap[key] || 0;
+        const currentQuantity = (buy._sum.quantity || 0) - soldQuantity;
+        const totalBuyAmount = Math.abs(buy._sum.amount || 0);
+        const totalBuyQuantity = buy._sum.quantity || 0;
+        const costBasis = totalBuyQuantity > 0
+          ? (totalBuyAmount / totalBuyQuantity) * currentQuantity
+          : 0;
+
+        return {
+          listingIsin: buy.listingIsin,
+          listingExchangeCode: buy.listingExchangeCode,
+          currentQuantity,
+          costBasis,
+        };
+      })
+      .filter(p => p.currentQuantity > 0);
+
+    // 4. Calculate total cost basis in USD
+    const totalCostUSD = activePositions.reduce(
+      (sum, position) => sum + position.costBasis,
       0,
     );
 
@@ -360,9 +419,9 @@ export class PositionsService {
     // 6. Calculate total value in USD
     const totalValueUSD = activePositions.reduce((sum, position) => {
       const currentPrice = priceMap[`${position.listingIsin}_${position.listingExchangeCode}`];
-      const quantity = position._sum.quantity || 0;
-      const historicalAmount = Math.abs(position._sum.amount || 0); // Changed from historicalCost to historicalAmount
-      const marketValue = currentPrice !== undefined && currentPrice !== null ? quantity * currentPrice : historicalAmount;
+      const marketValue = currentPrice !== undefined && currentPrice !== null
+        ? position.currentQuantity * currentPrice
+        : position.costBasis;
       return sum + marketValue;
     }, 0);
 
@@ -375,14 +434,14 @@ export class PositionsService {
 
     // 8. Convert all monetary values to the portfolio's currency
     const totalValue = totalValueUSD * fxRate;
-    const totalAmount = totalAmountUSD * fxRate; // Changed from totalCost to totalAmount
+    const totalCost = totalCostUSD * fxRate;
     const totalDividends = totalDividendsUSD * fxRate;
-    const totalGain = totalValue - totalAmount; // Changed from totalCost to totalAmount
-    const totalGainPercent = totalAmount > 0 ? (totalGain / totalAmount) * 100 : 0; // Changed from totalCost to totalAmount
+    const totalGain = totalValue - totalCost;
+    const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
 
     return {
       totalValue,
-      totalCost: totalAmount, // Frontend expects totalCost
+      totalCost,
       totalGain,
       totalGainPercent: parseFloat(totalGainPercent.toFixed(2)),
       positionCount: activePositions.length,
