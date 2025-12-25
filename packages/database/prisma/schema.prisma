@@ -90,6 +90,8 @@ model Listing {
   currencyCode     String      @db.VarChar(10)
   /// The current price of the stock.
   currentPrice     Float?
+  /// The official dividend yield (annual dividend / price * 100).
+  dividendYield    Float?
   /// The date the price was last updated.
   priceLastUpdated DateTime?
   /// The source of the price data (e.g., "yahoo_finance", "manual").

@@ -18,6 +18,7 @@ interface HoldingYieldData {
   trailing12MonthDividends: number;
   totalCost: number;
   totalDividends: number;
+  officialDividendYield: number | null;
 }
 
 interface HoldingsYieldChartProps {
@@ -78,10 +79,8 @@ export default function HoldingsYieldChart({
 
   // Transform data to include goals (markers) on bars
   const chartData = useMemo(() => {
-    const data = sortedHoldings.map(h => ({
-      x: h.tickerSymbol,
-      y: h.trailing12MonthYield,
-      goals: [
+    const data = sortedHoldings.map(h => {
+      const goals = [
         {
           name: 'Yield on Cost',
           value: h.yieldOnCost,
@@ -90,8 +89,26 @@ export default function HoldingsYieldChart({
           strokeLineCap: 'round' as const,
           strokeColor: '#10b981', // Green color for YOC marker
         }
-      ]
-    }));
+      ];
+
+      // Add official dividend yield marker if available
+      if (h.officialDividendYield !== null) {
+        goals.push({
+          name: 'Official Dividend Yield',
+          value: h.officialDividendYield,
+          strokeWidth: 10,
+          strokeHeight: 0,
+          strokeLineCap: 'round' as const,
+          strokeColor: '#f59e0b', // Amber color for official yield marker
+        });
+      }
+
+      return {
+        x: h.tickerSymbol,
+        y: h.trailing12MonthYield,
+        goals,
+      };
+    });
     console.log('[HoldingsYieldChart] Chart data:', data);
     return data;
   }, [sortedHoldings]);
@@ -133,19 +150,26 @@ export default function HoldingsYieldChart({
         const holding = sortedHoldings[dataPointIndex];
         const trailingYield = holding.trailing12MonthYield;
         const yoc = holding.yieldOnCost;
+        const officialYield = holding.officialDividendYield;
 
         return `
-          <div class="bg-white p-3 border border-gray-200 rounded shadow-lg" style="min-width: 200px;">
+          <div class="bg-white p-3 border border-gray-200 rounded shadow-lg" style="min-width: 220px;">
             <p class="font-semibold text-gray-900 mb-2">${holding.tickerSymbol}</p>
-            <div class="text-sm">
-              <div class="mb-1">
+            <div class="text-sm space-y-1">
+              <div>
                 <span class="font-medium text-blue-600">Trailing 12mo:</span> ${trailingYield.toFixed(2)}%
                 <div class="text-xs text-gray-500">($${holding.trailing12MonthDividends.toFixed(2)})</div>
               </div>
               <div>
                 <span class="font-medium text-green-600">Yield on Cost:</span> ${yoc.toFixed(2)}%
-                <div class="text-xs text-gray-500">Total: $${holding.totalDividends.toFixed(2)} / Cost: $${holding.totalCost.toFixed(2)}</div>
+                <div class="text-xs text-gray-500">Cost: $${holding.totalCost.toFixed(2)}</div>
               </div>
+              ${officialYield !== null ? `
+              <div>
+                <span class="font-medium text-amber-600">Official Yield:</span> ${officialYield.toFixed(2)}%
+                <div class="text-xs text-gray-500">From Yahoo Finance</div>
+              </div>
+              ` : ''}
             </div>
           </div>
         `;
@@ -154,9 +178,9 @@ export default function HoldingsYieldChart({
     legend: {
       show: true,
       showForSingleSeries: true,
-      customLegendItems: ['Trailing 12-Month Yield', 'Yield on Cost'],
+      customLegendItems: ['Trailing 12-Month Yield', 'Yield on Cost', 'Official Dividend Yield'],
       markers: {
-        fillColors: ['#3b82f6', '#10b981']
+        fillColors: ['#3b82f6', '#10b981', '#f59e0b']
       }
     },
     grid: {
@@ -238,9 +262,11 @@ export default function HoldingsYieldChart({
 
       <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
         <p className="text-xs text-blue-800">
-          <strong>Bars:</strong> Trailing 12-Month Yield - Last 12 months of dividends divided by current position value.
+          <strong>Bars (blue):</strong> Trailing 12-Month Yield - Last 12 months of dividends divided by current position value.
           <br />
-          <strong>Markers (●):</strong> Yield on Cost - Total dividends received divided by original investment cost.
+          <strong>Green markers (●):</strong> Yield on Cost - Last 12 months of dividends divided by your original cost basis.
+          <br />
+          <strong>Amber markers (●):</strong> Official Dividend Yield - Annual dividend yield from Yahoo Finance based on current market price.
         </p>
       </div>
     </div>

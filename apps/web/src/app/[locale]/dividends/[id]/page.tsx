@@ -22,6 +22,7 @@ interface HoldingYieldData {
     trailing12MonthDividends: number;
     totalCost: number;
     totalDividends: number;
+    officialDividendYield: number | null;
 }
 
 export default function PortfolioDividendsPage() {

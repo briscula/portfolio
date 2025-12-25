@@ -442,7 +442,8 @@ export class DividendAnalyticsService {
         ) as trailing_total,
         l."currentPrice" as current_price,
         l."currencyCode",
-        l."priceLastUpdated" as price_last_updated
+        l."priceLastUpdated" as price_last_updated,
+        l."dividendYield" as official_dividend_yield
       FROM position_calc h
       LEFT JOIN "listing" l ON
         h."listingIsin" = l."isin" AND
@@ -481,6 +482,11 @@ export class DividendAnalyticsService {
         ? (trailing12MonthDividends / currentValue) * 100
         : 0;
 
+      // Official dividend yield from Yahoo Finance (stored in Listing table)
+      const officialDividendYield = row.official_dividend_yield !== null
+        ? parseFloat(parseFloat(row.official_dividend_yield).toFixed(2))
+        : null;
+
       return {
         tickerSymbol: row.stockSymbol,
         companyName: row.companyName || row.stockSymbol,
@@ -492,6 +498,7 @@ export class DividendAnalyticsService {
         trailing12MonthDividends: parseFloat(trailing12MonthDividends.toFixed(2)),
         totalCost: parseFloat(totalCost.toFixed(2)),
         totalDividends: parseFloat(totalDividends.toFixed(2)),
+        officialDividendYield,
       };
     });
 

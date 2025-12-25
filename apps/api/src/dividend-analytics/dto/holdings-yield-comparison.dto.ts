@@ -30,6 +30,9 @@ export class HoldingYieldDataDto {
 
   @ApiProperty({ example: 850.00, description: 'Total dividends received all time' })
   totalDividends: number;
+
+  @ApiProperty({ example: 2.5, description: 'Official dividend yield from Yahoo Finance', nullable: true })
+  officialDividendYield: number | null;
 }
 
 export class HoldingsYieldComparisonResponseDto {

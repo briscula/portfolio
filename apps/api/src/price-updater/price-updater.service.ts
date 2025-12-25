@@ -40,6 +40,8 @@ export class PriceUpdaterService {
           shortName?: string;
           longName?: string;
           symbol?: string;
+          dividendYield?: number; // Decimal (e.g., 0.0412 for 4.12%)
+          trailingAnnualDividendYield?: number; // Alternative field
         } | undefined;
 
         if (!quote) {
@@ -62,6 +64,7 @@ export class PriceUpdaterService {
           priceSource: string;
           companyName?: string;
           tickerSymbol?: string;
+          dividendYield?: number;
         } = {
           currentPrice: price,
           priceLastUpdated: new Date(),
@@ -77,6 +80,13 @@ export class PriceUpdaterService {
         // Update tickerSymbol if available (fixes bad ticker symbols like "1")
         if (quote.symbol) {
           updateData.tickerSymbol = quote.symbol;
+        }
+
+        // Update dividend yield (Yahoo returns as decimal, convert to percentage)
+        const dividendYield = quote.dividendYield ?? quote.trailingAnnualDividendYield;
+        if (dividendYield !== undefined && dividendYield !== null) {
+          // Yahoo returns as decimal (0.0412), convert to percentage (4.12)
+          updateData.dividendYield = dividendYield * 100;
         }
 
         await this.prisma.listing.update({
