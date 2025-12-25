@@ -69,25 +69,12 @@ Product requirements and roadmaps.
 
 ---
 
-### 📊 Reports and Analysis
+### 📊 Reports
 
-Performance analysis, optimization reports, and technical assessments.
+Performance analysis and optimization reports.
 
 - **[Performance Optimization](./reports/performance-optimization.md)** - Bundle optimization and performance improvements
-- **[Code Improvements Tracker](./reports/WEB_CODE_IMPROVEMENTS.md)** - Refactoring tasks and codebase improvements
 - **[Portfolio Metrics Performance](./reports/portfolio-metrics-performance.md)** - Portfolio metrics calculation analysis
-- **[Reports Index](./reports/README.md)** - Complete list of available reports
-
----
-
-### 🗄️ Archived Documentation
-
-Historical documentation and migration guides.
-
-> Old migration guides and checklists are preserved in [docs/archive/](./archive/) for reference.
-
-- **[MONOREPO_MIGRATION_GUIDE.md](./archive/MONOREPO_MIGRATION_GUIDE.md)** - Complete monorepo migration guide
-- **[MIGRATION.md](./archive/MIGRATION.md)** - Migration history and references
 
 ---
 
@@ -130,7 +117,7 @@ Historical documentation and migration guides.
 
 - Update the "Last Updated" date at the bottom of files
 - Keep documentation in sync with code changes
-- Archive outdated documentation instead of deleting it
+- Delete outdated documentation (don't accumulate stale content)
 
 ---
 
