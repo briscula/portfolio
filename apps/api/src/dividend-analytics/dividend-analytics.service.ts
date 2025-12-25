@@ -472,8 +472,8 @@ export class DividendAnalyticsService {
       const totalDividends = Math.abs(parseFloat(row.totalDividends));
       const trailing12MonthDividends = Math.abs(parseFloat(row.trailing_total || 0));
 
-      // Calculate Yield on Cost (always calculable with cost and dividends)
-      const yieldOnCost = totalCost > 0 ? (totalDividends / totalCost) * 100 : 0;
+      // Calculate Yield on Cost (using last 12 months dividends / original cost)
+      const yieldOnCost = totalCost > 0 ? (trailing12MonthDividends / totalCost) * 100 : 0;
 
       // Calculate Trailing 12-Month Yield (requires current price)
       const currentValue = currentQuantity * currentPrice;
