@@ -1,15 +1,28 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useUser } from '@auth0/nextjs-auth0/client';
 import { redirect, useParams } from 'next/navigation';
 import Link from 'next/link';
 import AppLayout from '@/components/AppLayout';
-import { usePortfolios, usePositions } from '@/hooks/usePortfolio';
+import { usePortfolios } from '@/hooks/usePortfolio';
 import { Card, CardHeader, CardTitle, CardContent, DividendCalendar, MetricCard, MetricCardsGrid, DollarSignIcon, CalendarIcon, PercentIcon } from '@/components/ui';
 import DividendChart from '@/components/DividendChart';
 import HoldingsYieldChart from '@/components/HoldingsYieldChart';
 import { useApiClient } from '@/lib/apiClient';
+
+interface HoldingYieldData {
+    tickerSymbol: string;
+    companyName: string;
+    currentQuantity: number;
+    currentPrice: number;
+    currencyCode: string;
+    yieldOnCost: number;
+    trailing12MonthYield: number;
+    trailing12MonthDividends: number;
+    totalCost: number;
+    totalDividends: number;
+}
 
 export default function PortfolioDividendsPage() {
     const { user, isLoading } = useUser();
@@ -19,7 +32,11 @@ export default function PortfolioDividendsPage() {
 
     const { portfolios, loading: portfoliosLoading, error: portfoliosError } = usePortfolios();
     const selectedPortfolio = portfolios.find(p => p.id === portfolioId);
-    const { positions, loading: positionsLoading, error: positionsError } = usePositions(portfolioId);
+
+    // State for dividend-paying holdings (last 12 months)
+    const [holdings, setHoldings] = useState<HoldingYieldData[]>([]);
+    const [holdingsLoading, setHoldingsLoading] = useState(true);
+    const [holdingsError, setHoldingsError] = useState<string | null>(null);
 
     // State for dividend summary
     const [dividendSummary, setDividendSummary] = React.useState({
@@ -52,6 +69,34 @@ export default function PortfolioDividendsPage() {
         };
 
         fetchDividendSummary();
+    }, [isAuthenticated, portfolioId, apiClient]);
+
+    // Fetch dividend-paying holdings (last 12 months)
+    useEffect(() => {
+        const fetchHoldings = async () => {
+            if (!isAuthenticated || !portfolioId) {
+                setHoldingsLoading(false);
+                return;
+            }
+
+            try {
+                setHoldingsLoading(true);
+                setHoldingsError(null);
+                const response = await apiClient.getHoldingsYieldComparison(portfolioId) as { holdings: HoldingYieldData[] };
+                // Filter to only show holdings with dividends in last 12 months
+                const holdingsWithRecentDividends = (response.holdings || []).filter(
+                    (h: HoldingYieldData) => h.trailing12MonthDividends > 0
+                );
+                setHoldings(holdingsWithRecentDividends);
+            } catch (error) {
+                console.error('Failed to fetch holdings:', error);
+                setHoldingsError(error instanceof Error ? error.message : 'Failed to fetch holdings');
+            } finally {
+                setHoldingsLoading(false);
+            }
+        };
+
+        fetchHoldings();
     }, [isAuthenticated, portfolioId, apiClient]);
 
     if (isLoading) {
@@ -164,10 +209,10 @@ export default function PortfolioDividendsPage() {
                 </div>
 
                 {/* Error handling */}
-                {(portfoliosError || positionsError) && (
+                {(portfoliosError || holdingsError) && (
                     <div className="bg-red-50 border border-red-200 rounded-md p-4">
                         <p className="text-red-800">
-                            Error loading data: {portfoliosError || positionsError}
+                            Error loading data: {portfoliosError || holdingsError}
                         </p>
                     </div>
                 )}
@@ -203,27 +248,27 @@ export default function PortfolioDividendsPage() {
                     </MetricCardsGrid>
                 )}
 
-                {/* Dividend Holdings Table */}
+                {/* Dividend Holdings Table - Last 12 Months */}
                 <Card>
                     <CardHeader>
-                        <CardTitle>Dividend-Paying Holdings</CardTitle>
+                        <CardTitle>Dividend-Paying Holdings (Last 12 Months)</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        {positionsLoading ? (
+                        {holdingsLoading ? (
                             <div className="text-center py-12">
                                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                                <p className="text-sm text-gray-600">Loading positions...</p>
+                                <p className="text-sm text-gray-600">Loading holdings...</p>
                             </div>
-                        ) : positions.length === 0 ? (
+                        ) : holdings.length === 0 ? (
                             <div className="text-center py-8">
                                 <div className="w-12 h-12 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
                                     <span className="text-2xl">💰</span>
                                 </div>
                                 <h3 className="text-sm font-medium text-gray-900 mb-1">
-                                    No dividend data found
+                                    No dividends received in the last 12 months
                                 </h3>
                                 <p className="text-sm text-gray-600">
-                                    Add dividend-paying stocks to see dividend information.
+                                    Holdings that paid dividends in the last year will appear here.
                                 </p>
                             </div>
                         ) : (
@@ -241,10 +286,10 @@ export default function PortfolioDividendsPage() {
                                                 Shares
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Total Dividends
+                                                Last 12M Dividends
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                                Dividend Count
+                                                Total Dividends
                                             </th>
                                             <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                                 Yield on Cost
@@ -252,33 +297,29 @@ export default function PortfolioDividendsPage() {
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white divide-y divide-gray-200">
-                                        {positions.filter(pos => pos.totalDividends && pos.totalDividends > 0).map((position) => (
-                                            <tr key={position.tickerSymbol} className="hover:bg-gray-50">
+                                        {holdings.map((holding) => (
+                                            <tr key={holding.tickerSymbol} className="hover:bg-gray-50">
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm font-medium text-gray-900">
-                                                        {position.tickerSymbol}
+                                                        {holding.tickerSymbol}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="text-sm text-gray-900 max-w-xs truncate">
-                                                        {position.companyName}
+                                                        {holding.companyName}
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                                                    {position.currentQuantity?.toLocaleString() || 'N/A'}
+                                                    {holding.currentQuantity?.toLocaleString() || 'N/A'}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-green-600">
-                                                    {formatCurrency(position.totalDividends || 0)}
+                                                    {formatCurrency(holding.trailing12MonthDividends)}
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                                                    {position.dividendCount}
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-600">
+                                                    {formatCurrency(holding.totalDividends)}
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
-                                                    {(
-                                                        position.totalDividends && position.totalCost && position.totalCost !== 0
-                                                        ? `${((position.totalDividends / Math.abs(position.totalCost)) * 100).toFixed(2)}%`
-                                                        : 'N/A'
-                                                    )}
+                                                    {holding.yieldOnCost.toFixed(2)}%
                                                 </td>
                                             </tr>
                                         ))}
