@@ -1,26 +1,59 @@
 import { Injectable, Logger } from '@nestjs/common';
 import YahooFinance from 'yahoo-finance2';
-import { PriceProvider, Quote, FxRate } from './price-provider.interface';
+import { PriceProvider, Quote, FxRate, SymbolRequest } from './price-provider.interface';
+
+// Yahoo Finance exchange suffixes
+// See: https://help.yahoo.com/kb/SLN2310.html
+const EXCHANGE_SUFFIXES: Record<string, string> = {
+  XLON: '.L',    // London Stock Exchange
+  XAMS: '.AS',   // Euronext Amsterdam
+  XPAR: '.PA',   // Euronext Paris
+  XETR: '.DE',   // Deutsche Börse XETRA
+  XMAD: '.MC',   // Bolsa de Madrid
+  XMIL: '.MI',   // Borsa Italiana (Milan)
+  XHKG: '.HK',   // Hong Kong Stock Exchange
+  XTSE: '.TO',   // Toronto Stock Exchange
+  XASX: '.AX',   // Australian Securities Exchange
+  // US exchanges don't need suffixes
+  XNYS: '',      // NYSE
+  XNAS: '',      // NASDAQ
+};
 
 @Injectable()
 export class YahooFinanceProvider implements PriceProvider {
   private readonly logger = new Logger(YahooFinanceProvider.name);
   private readonly yahoo = new YahooFinance();
 
-  async getQuotes(symbols: string[]): Promise<Quote[]> {
-    if (symbols.length === 0) {
+  async getQuotes(symbolRequests: SymbolRequest[]): Promise<Quote[]> {
+    if (symbolRequests.length === 0) {
       return [];
     }
-    this.logger.log(`Fetching quotes for symbols: ${symbols.join(', ')}`);
+
+    // Build Yahoo symbols with exchange suffixes and track original symbols
+    const symbolMap = new Map<string, string>(); // yahooSymbol -> originalSymbol
+    const yahooSymbols: string[] = [];
+
+    for (const req of symbolRequests) {
+      const suffix = EXCHANGE_SUFFIXES[req.exchangeCode] ?? '';
+      const yahooSymbol = `${req.symbol}${suffix}`;
+      symbolMap.set(yahooSymbol, req.symbol);
+      yahooSymbols.push(yahooSymbol);
+    }
+
+    this.logger.log(`Fetching quotes for symbols: ${yahooSymbols.join(', ')}`);
 
     try {
       // TODO: Improve typing when library's types are better understood
-      const results = await this.yahoo.quote(symbols) as any[];
-      const quotes: Quote[] = results.map(result => ({
-        symbol: result.symbol,
-        price: result.regularMarketPrice,
-        currency: result.currency || 'USD',
-      }));
+      const results = await this.yahoo.quote(yahooSymbols) as any[];
+      const quotes: Quote[] = results.map(result => {
+        // Map back to original symbol (without suffix)
+        const originalSymbol = symbolMap.get(result.symbol) || result.symbol;
+        return {
+          symbol: originalSymbol,
+          price: result.regularMarketPrice,
+          currency: result.currency || 'USD',
+        };
+      });
       return quotes.filter(q => q.price != null); // Filter out any quotes that failed to fetch a price
     } catch (error) {
       this.logger.error('Failed to fetch quotes from Yahoo Finance', error);

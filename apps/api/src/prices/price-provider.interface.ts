@@ -1,3 +1,8 @@
+export interface SymbolRequest {
+  symbol: string;
+  exchangeCode: string;
+}
+
 export interface Quote {
   symbol: string;
   price: number;
@@ -11,6 +16,6 @@ export interface FxRate {
 }
 
 export interface PriceProvider {
-  getQuotes(symbols: string[]): Promise<Quote[]>;
+  getQuotes(symbols: SymbolRequest[]): Promise<Quote[]>;
   getFxRate(from: string, to: string): Promise<FxRate>;
 }

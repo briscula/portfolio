@@ -1,6 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { PriceProvider, Quote, FxRate } from './price-provider.interface';
+import { PriceProvider, Quote, FxRate, SymbolRequest } from './price-provider.interface';
 
 interface CachedFxRate {
   rate: number;
@@ -63,20 +63,17 @@ export class PricesService {
     });
 
     // Create a map from isin_exchangeCode to the listing object
-    // Note: This assumes tickerSymbols are unique across exchanges which might not always be true.
-    // A more robust solution would be to create a map of cleanedSymbol -> originalListing[]
-    // For now, let's use isin_exchangeCode as a unique identifier for mapping.
     type ListingInfo = typeof uniqueListings[number];
     const listingMap = new Map<string, ListingInfo>();
-    const listingsToFetch: string[] = []; // tickerSymbols for priceProvider
+    const symbolRequests: SymbolRequest[] = [];
 
     uniqueListings.forEach(listing => {
-        // Here we can clean the tickerSymbol if necessary, but the cleaning logic should be in PriceProvider now.
-        // Or, we expect tickerSymbol to be clean from the database.
-        // Let's assume tickerSymbol is already clean from DB or will be cleaned by priceProvider.
         if (listing.tickerSymbol) {
-            listingMap.set(`${listing.isin}_${listing.exchangeCode}`, listing); // Map by unique composite key
-            listingsToFetch.push(listing.tickerSymbol);
+            listingMap.set(`${listing.isin}_${listing.exchangeCode}`, listing);
+            symbolRequests.push({
+              symbol: listing.tickerSymbol,
+              exchangeCode: listing.exchangeCode,
+            });
         }
     });
 
@@ -106,8 +103,8 @@ export class PricesService {
     }
 
     try {
-      // The price provider expects symbols, so we pass the tickerSymbols
-      const quotes = await this.priceProvider.getQuotes(listingsToFetch);
+      // The price provider expects symbol requests with exchange codes
+      const quotes = await this.priceProvider.getQuotes(symbolRequests);
 
       if (quotes.length === 0) {
         this.logger.warn('Price provider returned no quotes. Ending sync job.');
@@ -128,9 +125,17 @@ export class PricesService {
             continue;
         }
 
-        // Skip currencies that are not supported in our system (e.g., not USD or EUR)
-        const SUPPORTED_CURRENCIES = ['USD', 'EUR'];
-        if (!SUPPORTED_CURRENCIES.includes(quote.currency)) {
+        // Normalize currency codes (Yahoo Finance returns 'GBp' for British pence)
+        let currency = quote.currency;
+        let price = quote.price;
+        if (currency === 'GBp') {
+          currency = 'GBP';
+          price = price / 100; // Convert pence to pounds
+        }
+
+        // Skip currencies that are not supported in our system
+        const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP'];
+        if (!SUPPORTED_CURRENCIES.includes(currency)) {
           this.logger.warn(
             `Skipping price update for ${matchedListing.tickerSymbol} (${matchedListing.isin}_${matchedListing.exchangeCode}) because currency '${quote.currency}' is not supported.`,
           );
@@ -146,12 +151,12 @@ export class PricesService {
             },
           },
           data: {
-            currentPrice: quote.price,
+            currentPrice: price,
             priceSource: 'yahoo_finance',
             priceLastUpdated: new Date(),
           },
         });
-        this.logger.log(`Successfully updated price for ${matchedListing.tickerSymbol} (${matchedListing.isin}_${matchedListing.exchangeCode}): ${quote.price} ${quote.currency}`);
+        this.logger.log(`Successfully updated price for ${matchedListing.tickerSymbol} (${matchedListing.isin}_${matchedListing.exchangeCode}): ${price} ${currency}`);
       }
 
       this.logger.log(`Finished stock price synchronization job. Updated ${quotes.length} listings.`);
