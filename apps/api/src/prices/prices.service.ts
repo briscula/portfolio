@@ -47,12 +47,7 @@ export class PricesService {
       distinct: ['isin', 'exchangeCode'], // Ensure unique listings
       where: {
         transactions: {
-          some: {
-            // Only consider listings that have at least one transaction
-            portfolio: {
-              NOT: { userId: null }, // Ensure it's linked to a user's portfolio
-            },
-          },
+          some: {}, // Only consider listings that have at least one transaction
         },
       },
       select: {
