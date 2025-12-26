@@ -29,6 +29,7 @@ import { PositionsService } from '../positions/positions.service';
 import { TransactionsService } from '../transactions/transactions.service';
 import { CreateTransactionDto } from '../transactions/dto/create-transaction.dto';
 import { DividendAnalyticsService } from '../dividend-analytics/dividend-analytics.service';
+import { DividendProjectionService } from '../dividend-analytics/dividend-projection.service';
 import { DividendAnalyticsQueryDto } from '../dividend-analytics/dto/dividend-analytics-query.dto';
 import { DividendMonthlyChartResponseDto } from '../dividend-analytics/dto/dividend-monthly-chart.dto';
 import { HoldingsYieldComparisonResponseDto } from '../dividend-analytics/dto/holdings-yield-comparison.dto';
@@ -44,6 +45,7 @@ export class PortfoliosController {
     private readonly positionsService: PositionsService,
     private readonly transactionsService: TransactionsService,
     private readonly dividendAnalyticsService: DividendAnalyticsService,
+    private readonly dividendProjectionService: DividendProjectionService,
   ) {}
 
   @Post()
@@ -335,5 +337,22 @@ export class PortfoliosController {
       userId,
       portfolioId,
     );
+  }
+
+  @Get(':id/dividends/projections')
+  @ApiOkResponse({
+    description: 'Dividend projections retrieved successfully',
+  })
+  @ApiOperation({
+    summary: 'Get dividend projections for portfolio',
+    description:
+      'Returns 12-month dividend projections based on historical patterns and external data',
+  })
+  async getDividendProjections(
+    @Param('id') portfolioId: string,
+    @Request() req: any,
+  ) {
+    const userId = await AuthUtils.getUserIdFromToken(req, this.usersService);
+    return this.dividendProjectionService.getProjections(userId, portfolioId);
   }
 }

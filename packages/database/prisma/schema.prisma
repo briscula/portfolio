@@ -102,12 +102,48 @@ model Listing {
 
   transactions     Transaction[]
   corporateActions CorporateAction[]
+  dividendInfo     DividendInfo?
 
   createdAt        DateTime    @default(now())
   updatedAt        DateTime    @updatedAt
 
   @@id([isin, exchangeCode])
   @@map("listing")
+}
+
+model DividendInfo {
+  /// The ISIN of the listing.
+  listingIsin         String    @db.VarChar(12)
+  /// The exchange code of the listing.
+  listingExchangeCode String    @db.VarChar(10)
+  listing             Listing   @relation(fields: [listingIsin, listingExchangeCode], references: [isin, exchangeCode])
+
+  /// Inferred dividend frequency from historical payments.
+  frequency           DividendFrequency?
+  /// Average per-share dividend amount (from history).
+  avgAmount           Float?
+  /// Date of the last dividend payment.
+  lastPaymentDate     DateTime?
+
+  /// Next ex-dividend date (from external API).
+  nextExDate          DateTime?
+  /// Next payment date (from external API).
+  nextPaymentDate     DateTime?
+  /// Declared dividend amount for next payment (from external API).
+  nextAmount          Float?
+
+  updatedAt           DateTime  @updatedAt
+
+  @@id([listingIsin, listingExchangeCode])
+  @@map("dividend_info")
+}
+
+enum DividendFrequency {
+  MONTHLY
+  QUARTERLY
+  SEMI_ANNUAL
+  ANNUAL
+  IRREGULAR
 }
 
 model CorporateAction {
