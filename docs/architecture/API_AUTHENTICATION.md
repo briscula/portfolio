@@ -23,12 +23,14 @@ Multi-provider authentication supporting Auth0 OAuth and email/password.
 ## Authentication Methods
 
 ### Auth0 (Primary)
+
 1. Frontend redirects to Auth0 login
 2. Auth0 returns JWT to frontend
 3. Frontend includes JWT in `Authorization: Bearer <token>` header
 4. Backend validates JWT using Auth0's JWKS
 
 ### Email/Password (Fallback)
+
 1. User registers via `POST /auth/register`
 2. User logs in via `POST /auth/login`
 3. Backend returns signed JWT
@@ -46,14 +48,14 @@ export class UnifiedAuthGuard implements CanActivate {
 
     try {
       // Try Auth0 first
-      const auth0Guard = new (AuthGuard('auth0-jwt'))();
-      return await auth0Guard.canActivate(context) === true;
+      const auth0Guard = new (AuthGuard("auth0-jwt"))();
+      return (await auth0Guard.canActivate(context)) === true;
     } catch {
       // Fallback to local JWT
       const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET
+        secret: process.env.JWT_SECRET,
       });
-      request['user'] = { userId: payload.sub, ...payload };
+      request["user"] = { userId: payload.sub, ...payload };
       return true;
     }
   }
@@ -66,9 +68,9 @@ Both methods return consistent user object:
 
 ```typescript
 interface User {
-  userId: string;      // UUID
+  userId: string; // UUID
   email: string;
-  provider: 'AUTH0' | 'EMAIL_PASSWORD';
+  provider: "AUTH0" | "EMAIL_PASSWORD";
   providerSub: string;
 }
 ```
@@ -86,12 +88,12 @@ JWT_SECRET=your-jwt-secret-key
 
 ## Endpoints
 
-| Method | Endpoint | Auth Required |
-|--------|----------|---------------|
-| POST | `/auth/register` | No |
-| POST | `/auth/login` | No |
-| POST | `/auth/auth0/callback` | No |
-| GET | `/auth/profile` | Yes |
+| Method | Endpoint               | Auth Required |
+| ------ | ---------------------- | ------------- |
+| POST   | `/auth/register`       | No            |
+| POST   | `/auth/login`          | No            |
+| POST   | `/auth/auth0/callback` | No            |
+| GET    | `/auth/profile`        | Yes           |
 
 All other endpoints require authentication. See Swagger at `/api`.
 

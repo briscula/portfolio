@@ -10,7 +10,7 @@ export class HoldingYieldDataDto {
   @ApiProperty({ example: 100 })
   currentQuantity: number;
 
-  @ApiProperty({ example: 150.50 })
+  @ApiProperty({ example: 150.5 })
   currentPrice: number;
 
   @ApiProperty({ example: 'USD' })
@@ -19,19 +19,32 @@ export class HoldingYieldDataDto {
   @ApiProperty({ example: 8.5, description: 'Yield on Cost percentage' })
   yieldOnCost: number;
 
-  @ApiProperty({ example: 6.2, description: 'Trailing 12-month yield percentage' })
+  @ApiProperty({
+    example: 6.2,
+    description: 'Trailing 12-month yield percentage',
+  })
   trailing12MonthYield: number;
 
-  @ApiProperty({ example: 450.00, description: 'Total dividends received in last 12 months' })
+  @ApiProperty({
+    example: 450.0,
+    description: 'Total dividends received in last 12 months',
+  })
   trailing12MonthDividends: number;
 
-  @ApiProperty({ example: 12000.00, description: 'Original cost basis' })
+  @ApiProperty({ example: 12000.0, description: 'Original cost basis' })
   totalCost: number;
 
-  @ApiProperty({ example: 850.00, description: 'Total dividends received all time' })
+  @ApiProperty({
+    example: 850.0,
+    description: 'Total dividends received all time',
+  })
   totalDividends: number;
 
-  @ApiProperty({ example: 2.5, description: 'Official dividend yield from Yahoo Finance', nullable: true })
+  @ApiProperty({
+    example: 2.5,
+    description: 'Official dividend yield from Yahoo Finance',
+    nullable: true,
+  })
   officialDividendYield: number | null;
 }
 

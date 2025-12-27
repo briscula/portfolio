@@ -13,24 +13,29 @@ This document describes the database schema for the Portfolio application, inclu
 ## Core Models
 
 ### User
+
 Represents authenticated users who can own multiple portfolios.
 
 **Key Fields**:
+
 - `id` (UUID) - Primary key
 - `email` (String, unique) - User's email address
 - `name` (String) - User's display name
 - `password` (String) - Hashed password
 
 **Relations**:
+
 - `portfolios` → One-to-many with Portfolio
 - `authAccounts` → One-to-many with UserAuthAccount
 
 ---
 
 ### Portfolio
+
 Represents an investment portfolio owned by a user.
 
 **Key Fields**:
+
 - `id` (UUID) - Primary key
 - `userId` (UUID) - Foreign key to User
 - `name` (String) - Portfolio name
@@ -38,19 +43,23 @@ Represents an investment portfolio owned by a user.
 - `currencyCode` (String) - Base currency (default: "USD")
 
 **Relations**:
+
 - `user` → Many-to-one with User
 - `currency` → Many-to-one with Currency
 - `transactions` → One-to-many with Transaction
 
 **Constraints**:
+
 - `@@unique([userId, name])` - Each user must have unique portfolio names
 
 ---
 
 ### Transaction
+
 Represents a financial transaction (buy, sell, dividend, etc.) within a portfolio.
 
 **Key Fields**:
+
 - `id` (Int) - Primary key (auto-increment)
 - `portfolioId` (UUID) - Foreign key to Portfolio
 - `stockSymbol` (String) - Stock ticker symbol
@@ -68,11 +77,13 @@ Represents a financial transaction (buy, sell, dividend, etc.) within a portfoli
 - `createdAt` (DateTime) - Transaction date
 
 **Relations**:
+
 - `portfolio` → Many-to-one with Portfolio
 - `stock` → Many-to-one with Stock
 - `currency` → Many-to-one with Currency
 
 **Constraints**:
+
 ```prisma
 @@unique([portfolioId, stockSymbol, reference])
 ```
@@ -86,11 +97,13 @@ A transaction is considered **equal (duplicate)** when all of these fields match
 3. **`reference`** - Same transaction reference
 
 **Why these fields?**
+
 - **Simplified from original constraint**: Previously included `createdAt` and `quantity`, which was too restrictive
 - **`reference` field**: Serves as the primary unique identifier within a portfolio/stock combination
 - **Default reference generation**: If not provided, the reference is auto-generated from date + symbol + quantity (see `transactions.service.ts:60-66`)
 
 **Example**:
+
 ```typescript
 // These two transactions would be considered duplicates:
 const tx1 = {
@@ -109,20 +122,24 @@ const tx2 = {
 ```
 
 **Related Files**:
+
 - Schema: `packages/database/prisma/schema.prisma:161`
 - Service: `apps/api/src/transactions/transactions.service.ts:60-66`
 
 ---
 
 ### Stock
+
 Represents a publicly traded stock.
 
 **Key Fields**:
+
 - `symbol` (String) - Stock ticker symbol (primary key)
 - `companyName` (String, optional) - Company name
 - `sector` (String, optional) - Business sector
 
 **Relations**:
+
 - `transactions` → One-to-many with Transaction
 - `prices` → One-to-many with StockPrice
 - `corporateActions` → One-to-many with CorporateAction
@@ -130,14 +147,17 @@ Represents a publicly traded stock.
 ---
 
 ### Currency
+
 Represents a currency type used in portfolios and transactions.
 
 **Key Fields**:
+
 - `code` (String) - Currency code (e.g., "USD", "EUR") - Primary key
 - `name` (String) - Currency name (e.g., "US Dollar")
 - `symbol` (String) - Currency symbol (e.g., "$", "€")
 
 **Relations**:
+
 - `portfolios` → One-to-many with Portfolio
 - `transactions` → One-to-many with Transaction
 - `stockPrices` → One-to-many with StockPrice
@@ -145,9 +165,11 @@ Represents a currency type used in portfolios and transactions.
 ---
 
 ### StockPrice
+
 Represents historical or current stock prices.
 
 **Key Fields**:
+
 - `id` (Int) - Primary key (auto-increment)
 - `stockSymbol` (String) - Foreign key to Stock
 - `price` (Float) - Stock price
@@ -156,14 +178,17 @@ Represents historical or current stock prices.
 - `source` (String, optional) - Data source (e.g., "alpha_vantage", "yahoo")
 
 **Constraints**:
+
 - `@@unique([stockSymbol, currencyCode])` - One price per stock per currency
 
 ---
 
 ### CorporateAction
+
 Represents corporate actions like stock splits, spinoffs, and mergers.
 
 **Key Fields**:
+
 - `id` (Int) - Primary key (auto-increment)
 - `stockSymbol` (String) - Foreign key to Stock
 - `type` (CorporateActionType) - Type of action (SPLIT, SPINOFF, MERGER)
@@ -174,9 +199,11 @@ Represents corporate actions like stock splits, spinoffs, and mergers.
 ---
 
 ### UserAuthAccount
+
 Represents authentication accounts linked to a user (Auth0, email/password, etc.).
 
 **Key Fields**:
+
 - `id` (Int) - Primary key (auto-increment)
 - `userId` (UUID) - Foreign key to User
 - `provider` (AuthProvider) - Auth provider (AUTH0, EMAIL_PASSWORD)
@@ -186,14 +213,17 @@ Represents authentication accounts linked to a user (Auth0, email/password, etc.
 - `lastUsedAt` (DateTime, optional) - Last login time
 
 **Constraints**:
+
 - `@@unique([provider, providerSub])` - One account per provider per user
 
 ---
 
 ### UserPosition (View)
+
 Materialized view or computed table showing aggregated positions per user/portfolio/stock.
 
 **Key Fields**:
+
 - `userId` (UUID)
 - `portfolioId` (UUID)
 - `stockSymbol` (String)
@@ -204,6 +234,7 @@ Materialized view or computed table showing aggregated positions per user/portfo
 - `lastTransactionDate` (DateTime)
 
 **Constraints**:
+
 - `@@unique([userId, portfolioId, stockSymbol])` - One position per user/portfolio/stock
 
 ---
@@ -211,6 +242,7 @@ Materialized view or computed table showing aggregated positions per user/portfo
 ## Enums
 
 ### TransactionType
+
 ```prisma
 enum TransactionType {
   DIVIDEND
@@ -223,6 +255,7 @@ enum TransactionType {
 ```
 
 ### CorporateActionType
+
 ```prisma
 enum CorporateActionType {
   SPLIT
@@ -232,6 +265,7 @@ enum CorporateActionType {
 ```
 
 ### AuthProvider
+
 ```prisma
 enum AuthProvider {
   AUTH0
@@ -261,15 +295,19 @@ pnpm --filter @repo/database db:studio
 ## Key Business Rules
 
 ### 1. Transaction Uniqueness
+
 Transactions are identified by the combination of `portfolioId`, `stockSymbol`, and `reference`. This prevents duplicate transactions while allowing flexibility for multiple transactions of the same stock on the same date with different quantities.
 
 ### 2. Portfolio Naming
+
 Each user must have unique portfolio names within their account, enforced by the `@@unique([userId, name])` constraint.
 
 ### 3. Stock Price Uniqueness
+
 Each stock can only have one price entry per currency, enforced by `@@unique([stockSymbol, currencyCode])`.
 
 ### 4. Auth Account Uniqueness
+
 Each authentication provider can only have one account per user, enforced by `@@unique([provider, providerSub])`.
 
 ---

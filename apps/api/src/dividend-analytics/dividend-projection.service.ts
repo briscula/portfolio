@@ -48,7 +48,8 @@ export class DividendProjectionService {
     }
 
     // Get active positions with dividend info
-    const positions = await this.getActivePositionsWithDividendInfo(portfolioId);
+    const positions =
+      await this.getActivePositionsWithDividendInfo(portfolioId);
 
     // Generate 12-month projection array
     const projections = this.generateProjectionArray(positions);
@@ -63,7 +64,9 @@ export class DividendProjectionService {
       projections,
       summary: {
         total12MonthProjection: parseFloat(total12MonthProjection.toFixed(2)),
-        avgMonthlyProjection: parseFloat((total12MonthProjection / 12).toFixed(2)),
+        avgMonthlyProjection: parseFloat(
+          (total12MonthProjection / 12).toFixed(2),
+        ),
       },
     };
   }
@@ -88,7 +91,9 @@ export class DividendProjectionService {
     const sellMap = sellTransactions.reduce(
       (acc, s) => ({
         ...acc,
-        [`${s.listingIsin}_${s.listingExchangeCode}`]: Math.abs(s._sum.quantity || 0),
+        [`${s.listingIsin}_${s.listingExchangeCode}`]: Math.abs(
+          s._sum.quantity || 0,
+        ),
       }),
       {} as Record<string, number>,
     );
@@ -131,7 +136,8 @@ export class DividendProjectionService {
     );
 
     return activePositions.map((pos) => {
-      const listing = listingMap[`${pos.listingIsin}_${pos.listingExchangeCode}`];
+      const listing =
+        listingMap[`${pos.listingIsin}_${pos.listingExchangeCode}`];
       return {
         ...pos,
         tickerSymbol: listing?.tickerSymbol || 'UNKNOWN',
@@ -147,7 +153,9 @@ export class DividendProjectionService {
    * Generate 12-month projection array for all positions
    */
   private generateProjectionArray(
-    positions: Awaited<ReturnType<typeof this.getActivePositionsWithDividendInfo>>,
+    positions: Awaited<
+      ReturnType<typeof this.getActivePositionsWithDividendInfo>
+    >,
   ): MonthlyProjection[] {
     const now = new Date();
     const projections: MonthlyProjection[] = [];
@@ -160,10 +168,7 @@ export class DividendProjectionService {
       const holdings: ProjectedDividend[] = [];
 
       for (const position of positions) {
-        const projection = this.projectDividendForMonth(
-          position,
-          monthDate,
-        );
+        const projection = this.projectDividendForMonth(position, monthDate);
 
         if (projection) {
           holdings.push(projection);
@@ -201,7 +206,8 @@ export class DividendProjectionService {
     },
     targetMonth: Date,
   ): ProjectedDividend | null {
-    const { dividendInfo, currentQuantity, tickerSymbol, companyName } = position;
+    const { dividendInfo, currentQuantity, tickerSymbol, companyName } =
+      position;
 
     // No dividend info - skip
     if (!dividendInfo) {
@@ -241,15 +247,22 @@ export class DividendProjectionService {
         return {
           tickerSymbol,
           companyName,
-          amount: parseFloat((dividendInfo.avgAmount * currentQuantity).toFixed(2)),
+          amount: parseFloat(
+            (dividendInfo.avgAmount * currentQuantity).toFixed(2),
+          ),
           source: 'HISTORICAL_PATTERN',
         };
       }
     }
 
     // Try to estimate from dividend yield if no other data
-    if (!dividendInfo.avgAmount && position.dividendYield && position.currentPrice) {
-      const annualDividendPerShare = (position.dividendYield / 100) * position.currentPrice;
+    if (
+      !dividendInfo.avgAmount &&
+      position.dividendYield &&
+      position.currentPrice
+    ) {
+      const annualDividendPerShare =
+        (position.dividendYield / 100) * position.currentPrice;
       const frequency = dividendInfo.frequency || 'QUARTERLY';
       const paymentsPerYear = this.getPaymentsPerYear(frequency);
       const perPaymentAmount = annualDividendPerShare / paymentsPerYear;

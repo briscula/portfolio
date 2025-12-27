@@ -4,10 +4,10 @@ Performance analysis and optimization reports.
 
 ## Available Reports
 
-| Report | Description |
-|--------|-------------|
-| [performance-optimization.md](./performance-optimization.md) | Bundle size, query optimization, React performance |
-| [portfolio-metrics-performance.md](./portfolio-metrics-performance.md) | Portfolio metrics calculation analysis |
+| Report                                                                 | Description                                        |
+| ---------------------------------------------------------------------- | -------------------------------------------------- |
+| [performance-optimization.md](./performance-optimization.md)           | Bundle size, query optimization, React performance |
+| [portfolio-metrics-performance.md](./portfolio-metrics-performance.md) | Portfolio metrics calculation analysis             |
 
 ## Adding New Reports
 

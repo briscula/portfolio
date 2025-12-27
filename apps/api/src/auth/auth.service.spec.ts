@@ -32,14 +32,24 @@ describe('AuthService', () => {
   });
 
   it('should call createOrUpdateFromAuth0 on usersService', async () => {
-    const auth0User = { sub: 'auth0|123', email: 'test@example.com', name: 'Test User' };
-    const expectedUser = { id: '1', email: 'test@example.com', name: 'Test User' };
+    const auth0User = {
+      sub: 'auth0|123',
+      email: 'test@example.com',
+      name: 'Test User',
+    };
+    const expectedUser = {
+      id: '1',
+      email: 'test@example.com',
+      name: 'Test User',
+    };
 
     mockUsersService.createOrUpdateFromAuth0.mockResolvedValue(expectedUser);
 
     const result = await service.createOrUpdateUserFromAuth0(auth0User);
 
-    expect(mockUsersService.createOrUpdateFromAuth0).toHaveBeenCalledWith(auth0User);
+    expect(mockUsersService.createOrUpdateFromAuth0).toHaveBeenCalledWith(
+      auth0User,
+    );
     expect(result).toEqual(expectedUser);
   });
 });

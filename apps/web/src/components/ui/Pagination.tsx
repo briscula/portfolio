@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { Button } from './Button';
-import { cn } from '@/lib/utils';
-import { ChevronLeftIcon, ChevronRightIcon, EllipsisHorizontalIcon } from './icons';
+import React from "react";
+import { Button } from "./Button";
+import { cn } from "@/lib/utils";
+import {
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  EllipsisHorizontalIcon,
+} from "./icons";
 
 export interface PaginationProps {
   currentPage: number;
@@ -28,7 +32,7 @@ export const Pagination: React.FC<PaginationProps> = ({
   pageSizeOptions = [10, 25, 50, 100],
   showPageSizeSelector = true,
   showItemCount = true,
-  className
+  className,
 }) => {
   // Don't render if there's only one page or no items
   if (totalPages <= 1) {
@@ -45,7 +49,11 @@ export const Pagination: React.FC<PaginationProps> = ({
     range.push(1);
 
     // Add pages around current page
-    for (let i = Math.max(2, currentPage - delta); i <= Math.min(totalPages - 1, currentPage + delta); i++) {
+    for (
+      let i = Math.max(2, currentPage - delta);
+      i <= Math.min(totalPages - 1, currentPage + delta);
+      i++
+    ) {
       range.push(i);
     }
 
@@ -61,7 +69,7 @@ export const Pagination: React.FC<PaginationProps> = ({
     let prev = 0;
     for (const page of uniqueRange) {
       if (page - prev > 1) {
-        rangeWithDots.push('...');
+        rangeWithDots.push("...");
       }
       rangeWithDots.push(page);
       prev = page;
@@ -75,17 +83,22 @@ export const Pagination: React.FC<PaginationProps> = ({
   const endItem = Math.min(currentPage * itemsPerPage, totalItems);
 
   return (
-    <div className={cn('flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4', className)}>
+    <div
+      className={cn(
+        "flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4",
+        className,
+      )}
+    >
       {/* Item count and page size selector */}
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-sm text-gray-700">
         {showItemCount && (
           <div>
-            Showing <span className="font-medium">{startItem}</span> to{' '}
-            <span className="font-medium">{endItem}</span> of{' '}
+            Showing <span className="font-medium">{startItem}</span> to{" "}
+            <span className="font-medium">{endItem}</span> of{" "}
             <span className="font-medium">{totalItems}</span> results
           </div>
         )}
-        
+
         {showPageSizeSelector && onPageSizeChange && (
           <div className="flex items-center gap-2">
             <label htmlFor="page-size" className="text-sm text-gray-700">
@@ -125,7 +138,7 @@ export const Pagination: React.FC<PaginationProps> = ({
         {/* Page numbers */}
         <div className="flex items-center gap-1">
           {visiblePages.map((page, index) => {
-            if (page === '...') {
+            if (page === "...") {
               return (
                 <span
                   key={`ellipsis-${index}`}
@@ -145,13 +158,13 @@ export const Pagination: React.FC<PaginationProps> = ({
                 key={pageNumber}
                 onClick={() => onPageChange(pageNumber)}
                 className={cn(
-                  'px-3 py-1 text-sm font-medium rounded-md transition-colors touch-manipulation min-h-[36px] min-w-[36px]',
+                  "px-3 py-1 text-sm font-medium rounded-md transition-colors touch-manipulation min-h-[36px] min-w-[36px]",
                   isCurrentPage
-                    ? 'bg-blue-600 text-white'
-                    : 'text-gray-700 hover:bg-gray-100 focus:bg-gray-100'
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-700 hover:bg-gray-100 focus:bg-gray-100",
                 )}
                 aria-label={`Go to page ${pageNumber}`}
-                aria-current={isCurrentPage ? 'page' : undefined}
+                aria-current={isCurrentPage ? "page" : undefined}
               >
                 {pageNumber}
               </button>

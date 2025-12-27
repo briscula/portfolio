@@ -1,7 +1,4 @@
-import {
-  BadRequestException,
-  Injectable,
-} from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { QueryTransactionsDto } from './dto/query-transactions.dto';
 import {
@@ -13,9 +10,13 @@ import { Transaction } from '@repo/database';
 
 @Injectable()
 export class TransactionsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
-  async create(createTransactionDto: CreateTransactionDto, userId: string, portfolioId: string): Promise<Transaction> {
+  async create(
+    createTransactionDto: CreateTransactionDto,
+    userId: string,
+    portfolioId: string,
+  ): Promise<Transaction> {
     // Verify that the portfolio belongs to the user
     const portfolio = await this.prisma.portfolio.findUnique({
       where: {
@@ -35,7 +36,7 @@ export class TransactionsService {
 
     if (!exchange) {
       throw new BadRequestException(
-        `Invalid exchange code: ${createTransactionDto.exchangeCode}. Exchange must exist in the system.`
+        `Invalid exchange code: ${createTransactionDto.exchangeCode}. Exchange must exist in the system.`,
       );
     }
 
@@ -66,7 +67,6 @@ export class TransactionsService {
       },
     });
 
-
     return this.prisma.transaction.create({
       data: {
         portfolio: {
@@ -74,7 +74,8 @@ export class TransactionsService {
             id: portfolioId, // Use portfolioId from argument
           },
         },
-        listing: { // Connect to Listing instead of Stock
+        listing: {
+          // Connect to Listing instead of Stock
           connect: {
             isin_exchangeCode: {
               isin: listing.isin,
@@ -93,10 +94,10 @@ export class TransactionsService {
         reference:
           createTransactionDto.reference ||
           createTransactionDto.date +
-          ' ' +
-          createTransactionDto.tickerSymbol + // Use tickerSymbol from DTO/Listing
-          ' ' +
-          createTransactionDto.quantity,
+            ' ' +
+            createTransactionDto.tickerSymbol + // Use tickerSymbol from DTO/Listing
+            ' ' +
+            createTransactionDto.quantity,
         amount: createTransactionDto.amount,
         totalAmount: createTransactionDto.totalAmount,
         tax: createTransactionDto.tax || 0,
@@ -113,7 +114,8 @@ export class TransactionsService {
     portfolioId: string,
     page: number = 1,
     limit: number = 50,
-  ): Promise<Transaction[]> { // Specify return type for better type safety
+  ): Promise<Transaction[]> {
+    // Specify return type for better type safety
     const skip = (page - 1) * limit;
 
     return this.prisma.transaction.findMany({
@@ -128,7 +130,8 @@ export class TransactionsService {
       },
       skip,
       take: limit,
-      include: { // Add include for listing
+      include: {
+        // Add include for listing
         listing: {
           select: {
             tickerSymbol: true,
@@ -263,7 +266,8 @@ export class TransactionsService {
             name: true,
           },
         },
-        listing: { // Include listing details
+        listing: {
+          // Include listing details
           select: {
             tickerSymbol: true,
             companyName: true,

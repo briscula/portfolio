@@ -13,7 +13,7 @@ import { HoldingsYieldComparisonResponseDto } from './dto/holdings-yield-compari
 
 @Injectable()
 export class DividendAnalyticsService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async getCompanyDividendSummaries(
     userId: string,
@@ -161,9 +161,9 @@ export class DividendAnalyticsService {
       paramIndex++;
     }
 
-    const joinClause = 'LEFT JOIN "listing" l ON t."listingIsin" = l."isin" AND t."listingExchangeCode" = l."exchangeCode"';
+    const joinClause =
+      'LEFT JOIN "listing" l ON t."listingIsin" = l."isin" AND t."listingExchangeCode" = l."exchangeCode"';
     const whereClause = conditions.join(' AND ');
-
 
     const monthlyAggregates = await this.prisma.$queryRawUnsafe<any[]>(
       `SELECT 
@@ -224,9 +224,11 @@ export class DividendAnalyticsService {
       const monthIndex = month - 1;
 
       // Create yearly data for this month across all years
-      const yearlyData = years.map(year => {
+      const yearlyData = years.map((year) => {
         // Check if we have data for this month/year combination
-        const existingData = monthGroups.get(monthKey)?.find(data => data.year === year);
+        const existingData = monthGroups
+          .get(monthKey)
+          ?.find((data) => data.year === year);
 
         if (existingData) {
           return existingData;
@@ -244,7 +246,9 @@ export class DividendAnalyticsService {
       allMonths.push({
         month: monthKey,
         monthName: monthNames[monthIndex],
-        yearlyData: yearlyData.sort((a, b) => parseInt(a.year) - parseInt(b.year)),
+        yearlyData: yearlyData.sort(
+          (a, b) => parseInt(a.year) - parseInt(b.year),
+        ),
       });
     }
 
@@ -282,9 +286,8 @@ export class DividendAnalyticsService {
     twelveMonthsAgo.setMonth(now.getMonth() - 12);
 
     // Build WHERE clause based on period
-    const dateFilter = period === 'last12Months'
-      ? { createdAt: { gte: twelveMonthsAgo } }
-      : {};
+    const dateFilter =
+      period === 'last12Months' ? { createdAt: { gte: twelveMonthsAgo } } : {};
 
     // Get total dividends for the period
     const dividendResult = await this.prisma.transaction.aggregate({
@@ -313,9 +316,9 @@ export class DividendAnalyticsService {
       },
     });
 
-    const listingIdentifiers = dividendPayingListings.map(d => ({
-        isin: d.listingIsin,
-        exchangeCode: d.listingExchangeCode,
+    const listingIdentifiers = dividendPayingListings.map((d) => ({
+      isin: d.listingIsin,
+      exchangeCode: d.listingExchangeCode,
     }));
 
     // Calculate total cost for these stocks
@@ -325,9 +328,9 @@ export class DividendAnalyticsService {
         by: ['listingIsin', 'listingExchangeCode'],
         where: {
           portfolioId,
-          OR: listingIdentifiers.map(id => ({
-              listingIsin: id.isin,
-              listingExchangeCode: id.exchangeCode,
+          OR: listingIdentifiers.map((id) => ({
+            listingIsin: id.isin,
+            listingExchangeCode: id.exchangeCode,
           })),
           type: { in: ['BUY', 'SELL'] },
         },
@@ -339,13 +342,15 @@ export class DividendAnalyticsService {
 
       // Sum up costs for positions with current holdings
       totalCost = positions
-        .filter(p => (p._sum.quantity || 0) > 0)
+        .filter((p) => (p._sum.quantity || 0) > 0)
         .reduce((sum, p) => sum + Math.abs(p._sum.amount || 0), 0);
     }
 
     // Calculate metrics
-    const dividendYield = totalCost > 0 ? (totalDividends / totalCost) * 100 : 0;
-    const monthsInPeriod = period === 'last12Months' ? 12 : (dividendCount > 0 ? 12 : 1);
+    const dividendYield =
+      totalCost > 0 ? (totalDividends / totalCost) * 100 : 0;
+    const monthsInPeriod =
+      period === 'last12Months' ? 12 : dividendCount > 0 ? 12 : 1;
     const avgMonthlyDividends = totalDividends / monthsInPeriod;
 
     return {
@@ -379,7 +384,11 @@ export class DividendAnalyticsService {
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12);
 
-    console.log('[DEBUG] Querying holdings for:', { userId, portfolioId, twelveMonthsAgo });
+    console.log('[DEBUG] Querying holdings for:', {
+      userId,
+      portfolioId,
+      twelveMonthsAgo,
+    });
 
     // Calculate positions directly from transactions instead of user_positions
     const holdingsData = await this.prisma.$queryRawUnsafe<any[]>(
@@ -455,7 +464,11 @@ export class DividendAnalyticsService {
       twelveMonthsAgo,
     );
 
-    console.log('[DEBUG] Holdings calculated from transactions:', holdingsData.length, 'rows');
+    console.log(
+      '[DEBUG] Holdings calculated from transactions:',
+      holdingsData.length,
+      'rows',
+    );
     if (holdingsData.length > 0) {
       console.log('[DEBUG] First holding:', holdingsData[0]);
     }
@@ -468,24 +481,29 @@ export class DividendAnalyticsService {
     // Transform data and calculate metrics
     const holdings = holdingsData.map((row) => {
       const currentQuantity = parseFloat(row.currentQuantity);
-      const currentPrice = row.current_price ? parseFloat(row.current_price) : 0;
+      const currentPrice = row.current_price
+        ? parseFloat(row.current_price)
+        : 0;
       const totalCost = Math.abs(parseFloat(row.totalCost));
       const totalDividends = Math.abs(parseFloat(row.totalDividends));
-      const trailing12MonthDividends = Math.abs(parseFloat(row.trailing_total || 0));
+      const trailing12MonthDividends = Math.abs(
+        parseFloat(row.trailing_total || 0),
+      );
 
       // Calculate Yield on Cost (using last 12 months dividends / original cost)
-      const yieldOnCost = totalCost > 0 ? (trailing12MonthDividends / totalCost) * 100 : 0;
+      const yieldOnCost =
+        totalCost > 0 ? (trailing12MonthDividends / totalCost) * 100 : 0;
 
       // Calculate Trailing 12-Month Yield (requires current price)
       const currentValue = currentQuantity * currentPrice;
-      const trailing12MonthYield = currentValue > 0
-        ? (trailing12MonthDividends / currentValue) * 100
-        : 0;
+      const trailing12MonthYield =
+        currentValue > 0 ? (trailing12MonthDividends / currentValue) * 100 : 0;
 
       // Official dividend yield from Yahoo Finance (stored in Listing table)
-      const officialDividendYield = row.official_dividend_yield !== null
-        ? parseFloat(parseFloat(row.official_dividend_yield).toFixed(2))
-        : null;
+      const officialDividendYield =
+        row.official_dividend_yield !== null
+          ? parseFloat(parseFloat(row.official_dividend_yield).toFixed(2))
+          : null;
 
       return {
         tickerSymbol: row.stockSymbol,
@@ -495,7 +513,9 @@ export class DividendAnalyticsService {
         currencyCode: row.currencyCode || 'USD',
         yieldOnCost: parseFloat(yieldOnCost.toFixed(2)),
         trailing12MonthYield: parseFloat(trailing12MonthYield.toFixed(2)),
-        trailing12MonthDividends: parseFloat(trailing12MonthDividends.toFixed(2)),
+        trailing12MonthDividends: parseFloat(
+          trailing12MonthDividends.toFixed(2),
+        ),
         totalCost: parseFloat(totalCost.toFixed(2)),
         totalDividends: parseFloat(totalDividends.toFixed(2)),
         officialDividendYield,
@@ -503,9 +523,10 @@ export class DividendAnalyticsService {
     });
 
     // Get the most recent price update timestamp
-    const lastPriceUpdate = holdingsData.length > 0
-      ? new Date(holdingsData[0].price_last_updated)
-      : new Date();
+    const lastPriceUpdate =
+      holdingsData.length > 0
+        ? new Date(holdingsData[0].price_last_updated)
+        : new Date();
 
     return {
       holdings,

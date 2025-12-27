@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { usePortfolios, Portfolio } from './usePortfolio';
+import { useState, useEffect } from "react";
+import { usePortfolios, Portfolio } from "./usePortfolio";
 
-const SELECTED_PORTFOLIO_KEY = 'selectedPortfolioId';
+const SELECTED_PORTFOLIO_KEY = "selectedPortfolioId";
 
 export interface SelectedPortfolioState {
   selectedPortfolioId: string | null;
@@ -16,7 +16,9 @@ export interface SelectedPortfolioState {
  */
 export function useSelectedPortfolio(): SelectedPortfolioState {
   const { portfolios, loading: portfoliosLoading } = usePortfolios();
-  const [selectedPortfolioId, setSelectedPortfolioIdState] = useState<string | null>(null);
+  const [selectedPortfolioId, setSelectedPortfolioIdState] = useState<
+    string | null
+  >(null);
 
   // Initialize selected portfolio from localStorage or first portfolio
   useEffect(() => {
@@ -24,8 +26,8 @@ export function useSelectedPortfolio(): SelectedPortfolioState {
 
     // Try to get from localStorage first
     const storedId = localStorage.getItem(SELECTED_PORTFOLIO_KEY);
-    
-    if (storedId && portfolios.some(p => p.id === storedId)) {
+
+    if (storedId && portfolios.some((p) => p.id === storedId)) {
       // Use stored portfolio if it exists in current portfolios
       setSelectedPortfolioIdState(storedId);
     } else {
@@ -33,7 +35,7 @@ export function useSelectedPortfolio(): SelectedPortfolioState {
       if (storedId) {
         localStorage.removeItem(SELECTED_PORTFOLIO_KEY);
       }
-      
+
       // Fallback to first portfolio
       const firstPortfolio = portfolios[0];
       if (firstPortfolio) {
@@ -60,12 +62,14 @@ export function useSelectedPortfolio(): SelectedPortfolioState {
   };
 
   // Expose clear function for debugging (you can call this in browser console)
-  if (typeof window !== 'undefined') {
-    (window as unknown as Record<string, unknown>).clearSelectedPortfolio = clearSelectedPortfolio;
+  if (typeof window !== "undefined") {
+    (window as unknown as Record<string, unknown>).clearSelectedPortfolio =
+      clearSelectedPortfolio;
   }
 
   // Find the selected portfolio object
-  const selectedPortfolio = portfolios.find(p => p.id === selectedPortfolioId) || null;
+  const selectedPortfolio =
+    portfolios.find((p) => p.id === selectedPortfolioId) || null;
 
   return {
     selectedPortfolioId,

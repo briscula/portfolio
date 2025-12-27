@@ -1,6 +1,11 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { PriceProvider, Quote, FxRate, SymbolRequest } from './price-provider.interface';
+import {
+  PriceProvider,
+  Quote,
+  FxRate,
+  SymbolRequest,
+} from './price-provider.interface';
 
 interface CachedFxRate {
   rate: number;
@@ -34,7 +39,7 @@ export class PricesService {
     this.logger.log(`Fetching new FX rate for ${cacheKey}`);
     const fxRate = await this.priceProvider.getFxRate(from, to);
     this.fxCache.set(cacheKey, { rate: fxRate.rate, timestamp: Date.now() });
-    
+
     return fxRate.rate;
   }
 
@@ -63,34 +68,35 @@ export class PricesService {
     });
 
     // Create a map from isin_exchangeCode to the listing object
-    type ListingInfo = typeof uniqueListings[number];
+    type ListingInfo = (typeof uniqueListings)[number];
     const listingMap = new Map<string, ListingInfo>();
     const symbolRequests: SymbolRequest[] = [];
 
-    uniqueListings.forEach(listing => {
-        if (listing.tickerSymbol) {
-            listingMap.set(`${listing.isin}_${listing.exchangeCode}`, listing);
-            symbolRequests.push({
-              symbol: listing.tickerSymbol,
-              exchangeCode: listing.exchangeCode,
-            });
-        }
+    uniqueListings.forEach((listing) => {
+      if (listing.tickerSymbol) {
+        listingMap.set(`${listing.isin}_${listing.exchangeCode}`, listing);
+        symbolRequests.push({
+          symbol: listing.tickerSymbol,
+          exchangeCode: listing.exchangeCode,
+        });
+      }
     });
 
     // 2. Get the last update time for each listing (now stored directly on listing)
     const lastUpdateMap = new Map<string, Date>(); // Key: isin_exchangeCode, Value: priceLastUpdated
-    uniqueListings.forEach(l => {
+    uniqueListings.forEach((l) => {
       if (l.priceLastUpdated) {
         lastUpdateMap.set(`${l.isin}_${l.exchangeCode}`, l.priceLastUpdated);
       }
     });
 
-
     // 3. Sort listings by last update time (oldest first)
     uniqueListings.sort((a, b) => {
-        const aTime = lastUpdateMap.get(`${a.isin}_${a.exchangeCode}`)?.getTime() || 0;
-        const bTime = lastUpdateMap.get(`${b.isin}_${b.exchangeCode}`)?.getTime() || 0;
-        return aTime - bTime;
+      const aTime =
+        lastUpdateMap.get(`${a.isin}_${a.exchangeCode}`)?.getTime() || 0;
+      const bTime =
+        lastUpdateMap.get(`${b.isin}_${b.exchangeCode}`)?.getTime() || 0;
+      return aTime - bTime;
     });
 
     this.logger.log(
@@ -118,11 +124,15 @@ export class PricesService {
         // For robustness, we need a way to map the quote.symbol back to its original (isin, exchangeCode)
         // For now, we assume quote.symbol is the clean tickerSymbol and find a matching listing.
 
-        const matchedListing = uniqueListings.find(l => l.tickerSymbol === quote.symbol);
+        const matchedListing = uniqueListings.find(
+          (l) => l.tickerSymbol === quote.symbol,
+        );
 
         if (!matchedListing) {
-            this.logger.warn(`Could not find a matching listing for quote symbol: ${quote.symbol}. Skipping update.`);
-            continue;
+          this.logger.warn(
+            `Could not find a matching listing for quote symbol: ${quote.symbol}. Skipping update.`,
+          );
+          continue;
         }
 
         // Normalize currency codes (Yahoo Finance returns 'GBp' for British pence)
@@ -156,13 +166,19 @@ export class PricesService {
             priceLastUpdated: new Date(),
           },
         });
-        this.logger.log(`Successfully updated price for ${matchedListing.tickerSymbol} (${matchedListing.isin}_${matchedListing.exchangeCode}): ${price} ${currency}`);
+        this.logger.log(
+          `Successfully updated price for ${matchedListing.tickerSymbol} (${matchedListing.isin}_${matchedListing.exchangeCode}): ${price} ${currency}`,
+        );
       }
 
-      this.logger.log(`Finished stock price synchronization job. Updated ${quotes.length} listings.`);
+      this.logger.log(
+        `Finished stock price synchronization job. Updated ${quotes.length} listings.`,
+      );
     } catch (error) {
-      this.logger.error('An error occurred during the price synchronization job', error);
+      this.logger.error(
+        'An error occurred during the price synchronization job',
+        error,
+      );
     }
   }
 }
-

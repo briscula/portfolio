@@ -1,22 +1,22 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from "@prisma/client";
 
 // initialize Prisma Client
 const prisma = new PrismaClient();
 
 async function main() {
-  console.log('🌱 Seeding currencies...');
+  console.log("🌱 Seeding currencies...");
 
   // Create currencies
   const currencies = [
     {
-      code: 'USD',
-      name: 'US Dollar',
-      symbol: '$',
+      code: "USD",
+      name: "US Dollar",
+      symbol: "$",
     },
     {
-      code: 'EUR',
-      name: 'Euro',
-      symbol: '€',
+      code: "EUR",
+      name: "Euro",
+      symbol: "€",
     },
   ];
 
@@ -29,7 +29,7 @@ async function main() {
     console.log(`✅ Created currency: ${currency.code} - ${currency.name}`);
   }
 
-  console.log('🎉 Currency seeding completed!');
+  console.log("🎉 Currency seeding completed!");
 }
 
 // execute the main function

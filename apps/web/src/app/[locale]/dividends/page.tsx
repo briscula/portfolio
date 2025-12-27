@@ -1,14 +1,14 @@
-'use client';
+"use client";
 
-import { useUser } from '@auth0/nextjs-auth0/client';
-import { useRouter, useParams } from 'next/navigation';
-import { useEffect, useState } from 'react';
-import AppLayout from '@/components/AppLayout';
-import { usePortfolios } from '@/hooks/usePortfolio';
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useRouter, useParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import AppLayout from "@/components/AppLayout";
+import { usePortfolios } from "@/hooks/usePortfolio";
 
 // Force dynamic rendering to prevent static generation errors
 // This page uses localStorage which is not available during SSR
-export const dynamic = 'force-dynamic';
+export const dynamic = "force-dynamic";
 
 export default function DividendsRedirectPage() {
   const { user, isLoading } = useUser();
@@ -22,7 +22,7 @@ export default function DividendsRedirectPage() {
     if (isLoading || portfoliosLoading) return;
 
     if (!user) {
-      router.push('/api/auth/login');
+      router.push("/api/auth/login");
       return;
     }
 
@@ -33,11 +33,11 @@ export default function DividendsRedirectPage() {
     }
 
     // Get the last viewed portfolio from localStorage
-    const lastViewedPortfolioId = localStorage.getItem('lastViewedPortfolioId');
+    const lastViewedPortfolioId = localStorage.getItem("lastViewedPortfolioId");
 
     // Check if the last viewed portfolio still exists
     const lastViewedPortfolio = lastViewedPortfolioId
-      ? portfolios.find(p => p.id === lastViewedPortfolioId)
+      ? portfolios.find((p) => p.id === lastViewedPortfolioId)
       : null;
 
     // Use last viewed portfolio or fall back to first portfolio

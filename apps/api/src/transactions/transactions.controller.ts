@@ -37,7 +37,11 @@ export class TransactionsController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new transaction' })
-  @ApiParam({ name: 'portfolioId', description: 'ID of the portfolio', type: 'string' }) // Added for Swagger
+  @ApiParam({
+    name: 'portfolioId',
+    description: 'ID of the portfolio',
+    type: 'string',
+  }) // Added for Swagger
   @ApiCreatedResponse({ type: TransactionEntity })
   async create(
     @Param('portfolioId') portfolioId: string, // Extracted from path
@@ -60,12 +64,20 @@ export class TransactionsController {
     description:
       'Returns paginated list of transactions for the authenticated user and specified portfolio with optional filtering',
   })
-  @ApiParam({ name: 'portfolioId', description: 'ID of the portfolio', type: 'string' }) // Added for Swagger
-  async findAll(@Param('portfolioId') portfolioId: string, @Query() queryDto: QueryTransactionsDto, @Request() req: any) { // portfolioId from path
+  @ApiParam({
+    name: 'portfolioId',
+    description: 'ID of the portfolio',
+    type: 'string',
+  }) // Added for Swagger
+  async findAll(
+    @Param('portfolioId') portfolioId: string,
+    @Query() queryDto: QueryTransactionsDto,
+    @Request() req: any,
+  ) {
+    // portfolioId from path
     const userId = await AuthUtils.getUserIdFromToken(req, this.usersService);
     // You might need to adjust findAll to filter by portfolioId from path
     // For now, let's assume queryDto.portfolioId is still used or this is implicitly filtered
     return this.transactionsService.findAll(queryDto, userId, portfolioId); // Pass portfolioId from path
   }
-
 }

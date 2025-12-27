@@ -11,6 +11,7 @@ The frontend was displaying the "Total Cost" of a portfolio as the same as its "
 The issue was in the frontend's `apps/web/src/services/portfolioService.ts` file. The functions responsible for calculating portfolio metrics were not correctly using the `marketValue` data that was being provided by the backend API.
 
 Specifically:
+
 - The `calculatePortfolioMetrics` function was trying to use a non-existent `totalValue` property on the `Position` object.
 - The `calculatePortfolioSummary` function was hardcoded to use `totalCost` as `totalValue`.
 

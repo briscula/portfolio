@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
-import { useState, useEffect, useMemo } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
-import type { ApexOptions } from 'apexcharts';
+import dynamic from "next/dynamic";
+import { useState, useEffect, useMemo } from "react";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import type { ApexOptions } from "apexcharts";
 
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+const Chart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
 interface HoldingYieldData {
   tickerSymbol: string;
@@ -36,7 +36,9 @@ export default function HoldingsYieldChart({
   const [holdings, setHoldings] = useState<HoldingYieldData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<'symbol' | 'yieldOnCost' | 'trailing'>('yieldOnCost');
+  const [sortBy, setSortBy] = useState<"symbol" | "yieldOnCost" | "trailing">(
+    "yieldOnCost",
+  );
 
   useEffect(() => {
     const fetchData = async () => {
@@ -48,13 +50,19 @@ export default function HoldingsYieldChart({
       try {
         setLoading(true);
         setError(null);
-        const response = await apiClient.getHoldingsYieldComparison(portfolioId);
-        console.log('[HoldingsYieldChart] Response:', response);
-        console.log('[HoldingsYieldChart] Holdings count:', response.holdings?.length || 0);
+        const response =
+          await apiClient.getHoldingsYieldComparison(portfolioId);
+        console.log("[HoldingsYieldChart] Response:", response);
+        console.log(
+          "[HoldingsYieldChart] Holdings count:",
+          response.holdings?.length || 0,
+        );
         setHoldings(response.holdings || []);
       } catch (err) {
-        console.error('[HoldingsYieldChart] Error:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch yield data');
+        console.error("[HoldingsYieldChart] Error:", err);
+        setError(
+          err instanceof Error ? err.message : "Failed to fetch yield data",
+        );
       } finally {
         setLoading(false);
       }
@@ -66,12 +74,16 @@ export default function HoldingsYieldChart({
   const sortedHoldings = useMemo(() => {
     const sorted = [...holdings];
     switch (sortBy) {
-      case 'symbol':
-        return sorted.sort((a, b) => a.tickerSymbol.localeCompare(b.tickerSymbol));
-      case 'yieldOnCost':
+      case "symbol":
+        return sorted.sort((a, b) =>
+          a.tickerSymbol.localeCompare(b.tickerSymbol),
+        );
+      case "yieldOnCost":
         return sorted.sort((a, b) => b.yieldOnCost - a.yieldOnCost);
-      case 'trailing':
-        return sorted.sort((a, b) => b.trailing12MonthYield - a.trailing12MonthYield);
+      case "trailing":
+        return sorted.sort(
+          (a, b) => b.trailing12MonthYield - a.trailing12MonthYield,
+        );
       default:
         return sorted;
     }
@@ -79,27 +91,27 @@ export default function HoldingsYieldChart({
 
   // Transform data to include goals (markers) on bars
   const chartData = useMemo(() => {
-    const data = sortedHoldings.map(h => {
+    const data = sortedHoldings.map((h) => {
       const goals = [
         {
-          name: 'Yield on Cost',
+          name: "Yield on Cost",
           value: h.yieldOnCost,
           strokeWidth: 10,
           strokeHeight: 0,
-          strokeLineCap: 'round' as const,
-          strokeColor: '#10b981', // Green color for YOC marker
-        }
+          strokeLineCap: "round" as const,
+          strokeColor: "#10b981", // Green color for YOC marker
+        },
       ];
 
       // Add official dividend yield marker if available
       if (h.officialDividendYield !== null) {
         goals.push({
-          name: 'Official Dividend Yield',
+          name: "Official Dividend Yield",
           value: h.officialDividendYield,
           strokeWidth: 10,
           strokeHeight: 0,
-          strokeLineCap: 'round' as const,
-          strokeColor: '#f59e0b', // Amber color for official yield marker
+          strokeLineCap: "round" as const,
+          strokeColor: "#f59e0b", // Amber color for official yield marker
         });
       }
 
@@ -109,50 +121,51 @@ export default function HoldingsYieldChart({
         goals,
       };
     });
-    console.log('[HoldingsYieldChart] Chart data:', data);
+    console.log("[HoldingsYieldChart] Chart data:", data);
     return data;
   }, [sortedHoldings]);
 
   // ApexCharts configuration for bar with markers (goals)
-  const chartOptions = useMemo<ApexOptions>(() => ({
-    chart: {
-      height: 400,
-      type: 'bar'
-    },
-    plotOptions: {
-      bar: {
-        columnWidth: '60%'
-      }
-    },
-    colors: ['#3b82f6'],
-    dataLabels: {
-      enabled: false
-    },
-    xaxis: {
-      labels: {
-        style: {
-          fontSize: '12px',
+  const chartOptions = useMemo<ApexOptions>(
+    () => ({
+      chart: {
+        height: 400,
+        type: "bar",
+      },
+      plotOptions: {
+        bar: {
+          columnWidth: "60%",
         },
       },
-    },
-    yaxis: {
-      title: {
-        text: 'Yield (%)',
+      colors: ["#3b82f6"],
+      dataLabels: {
+        enabled: false,
       },
-      labels: {
-        formatter: (value) => `${value.toFixed(1)}%`,
+      xaxis: {
+        labels: {
+          style: {
+            fontSize: "12px",
+          },
+        },
       },
-    },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      custom: function({ series, seriesIndex, dataPointIndex, w }) {
-        const holding = sortedHoldings[dataPointIndex];
-        const trailingYield = holding.trailing12MonthYield;
-        const yoc = holding.yieldOnCost;
-        const officialYield = holding.officialDividendYield;
+      yaxis: {
+        title: {
+          text: "Yield (%)",
+        },
+        labels: {
+          formatter: (value) => `${value.toFixed(1)}%`,
+        },
+      },
+      tooltip: {
+        shared: true,
+        intersect: false,
+        custom: function ({ series, seriesIndex, dataPointIndex, w }) {
+          const holding = sortedHoldings[dataPointIndex];
+          const trailingYield = holding.trailing12MonthYield;
+          const yoc = holding.yieldOnCost;
+          const officialYield = holding.officialDividendYield;
 
-        return `
+          return `
           <div class="bg-white p-3 border border-gray-200 rounded shadow-lg" style="min-width: 220px;">
             <p class="font-semibold text-gray-900 mb-2">${holding.tickerSymbol}</p>
             <div class="text-sm space-y-1">
@@ -164,37 +177,50 @@ export default function HoldingsYieldChart({
                 <span class="font-medium text-green-600">Yield on Cost:</span> ${yoc.toFixed(2)}%
                 <div class="text-xs text-gray-500">Cost: $${holding.totalCost.toFixed(2)}</div>
               </div>
-              ${officialYield !== null ? `
+              ${
+                officialYield !== null
+                  ? `
               <div>
                 <span class="font-medium text-amber-600">Official Yield:</span> ${officialYield.toFixed(2)}%
                 <div class="text-xs text-gray-500">From Yahoo Finance</div>
               </div>
-              ` : ''}
+              `
+                  : ""
+              }
             </div>
           </div>
         `;
+        },
       },
-    },
-    legend: {
-      show: true,
-      showForSingleSeries: true,
-      customLegendItems: ['Trailing 12-Month Yield', 'Yield on Cost', 'Official Dividend Yield'],
-      markers: {
-        fillColors: ['#3b82f6', '#10b981', '#f59e0b']
-      }
-    },
-    grid: {
-      borderColor: '#e5e7eb',
-      strokeDashArray: 4,
-    },
-  }), [sortedHoldings]);
+      legend: {
+        show: true,
+        showForSingleSeries: true,
+        customLegendItems: [
+          "Trailing 12-Month Yield",
+          "Yield on Cost",
+          "Official Dividend Yield",
+        ],
+        markers: {
+          fillColors: ["#3b82f6", "#10b981", "#f59e0b"],
+        },
+      },
+      grid: {
+        borderColor: "#e5e7eb",
+        strokeDashArray: 4,
+      },
+    }),
+    [sortedHoldings],
+  );
 
-  const series = useMemo(() => [
-    {
-      name: 'Trailing 12-Month Yield',
-      data: chartData,
-    },
-  ], [chartData]);
+  const series = useMemo(
+    () => [
+      {
+        name: "Trailing 12-Month Yield",
+        data: chartData,
+      },
+    ],
+    [chartData],
+  );
 
   if (userLoading || loading) {
     return (
@@ -225,7 +251,9 @@ export default function HoldingsYieldChart({
           <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
             <span className="text-3xl">📊</span>
           </div>
-          <p className="text-gray-600 mb-2">No dividend-paying holdings found</p>
+          <p className="text-gray-600 mb-2">
+            No dividend-paying holdings found
+          </p>
           <p className="text-sm text-gray-500">
             Add stocks with dividend payments and ensure prices are synced
           </p>
@@ -251,22 +279,20 @@ export default function HoldingsYieldChart({
         </div>
       </div>
 
-      <div className="w-full" style={{ height: '400px' }}>
-        <Chart
-          options={chartOptions}
-          series={series}
-          type="bar"
-          height={400}
-        />
+      <div className="w-full" style={{ height: "400px" }}>
+        <Chart options={chartOptions} series={series} type="bar" height={400} />
       </div>
 
       <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-md">
         <p className="text-xs text-blue-800">
-          <strong>Bars (blue):</strong> Trailing 12-Month Yield - Last 12 months of dividends divided by current position value.
+          <strong>Bars (blue):</strong> Trailing 12-Month Yield - Last 12 months
+          of dividends divided by current position value.
           <br />
-          <strong>Green markers (●):</strong> Yield on Cost - Last 12 months of dividends divided by your original cost basis.
+          <strong>Green markers (●):</strong> Yield on Cost - Last 12 months of
+          dividends divided by your original cost basis.
           <br />
-          <strong>Amber markers (●):</strong> Official Dividend Yield - Annual dividend yield from Yahoo Finance based on current market price.
+          <strong>Amber markers (●):</strong> Official Dividend Yield - Annual
+          dividend yield from Yahoo Finance based on current market price.
         </p>
       </div>
     </div>

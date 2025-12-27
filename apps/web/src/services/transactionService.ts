@@ -1,7 +1,7 @@
-import { ApiClient } from '@/lib/apiClient';
-import type { Transaction, TransactionType } from '@/types';
-import type { ActivityItem } from '@/components/ui/ActivityList';
-import { formatCurrency } from '@/lib/utils';
+import { ApiClient } from "@/lib/apiClient";
+import type { Transaction, TransactionType } from "@/types";
+import type { ActivityItem } from "@/components/ui/ActivityList";
+import { formatCurrency } from "@/lib/utils";
 
 export interface TransactionFilters {
   portfolioId?: string;
@@ -27,9 +27,13 @@ export class TransactionService {
   async getTransactions(
     portfolioId?: string,
     page: number = 1,
-    limit: number = 50
+    limit: number = 50,
   ): Promise<Transaction[]> {
-    const response = await this.apiClient.getTransactions(portfolioId, page, limit);
+    const response = await this.apiClient.getTransactions(
+      portfolioId,
+      page,
+      limit,
+    );
 
     // Normalize response format
     if (Array.isArray(response)) {
@@ -43,41 +47,44 @@ export class TransactionService {
     return await this.getTransactions(undefined, 1, limit);
   }
 
-  async getTransactionsByPortfolio(portfolioId: string): Promise<Transaction[]> {
+  async getTransactionsByPortfolio(
+    portfolioId: string,
+  ): Promise<Transaction[]> {
     return await this.getTransactions(portfolioId, 1, 1000); // Large limit to get all
   }
 
   // Transformation Operations
-  getActivityType(type: TransactionType): ActivityItem['type'] {
+  getActivityType(type: TransactionType): ActivityItem["type"] {
     switch (type) {
-      case 'DIVIDEND':
-        return 'dividend_received';
-      case 'BUY':
-        return 'stock_added';
-      case 'SELL':
-        return 'stock_removed';
-      case 'TAX':
-      case 'SPLIT':
+      case "DIVIDEND":
+        return "dividend_received";
+      case "BUY":
+        return "stock_added";
+      case "SELL":
+        return "stock_removed";
+      case "TAX":
+      case "SPLIT":
       default:
-        return 'stock_added'; // fallback
+        return "stock_added"; // fallback
     }
   }
 
   // Business Logic - Display Formatting
   getTitle(transaction: Transaction): string {
     const { type } = transaction;
-    const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol || 'Unknown';
+    const symbol =
+      transaction.listing?.tickerSymbol || transaction.stockSymbol || "Unknown";
 
     switch (type) {
-      case 'DIVIDEND':
+      case "DIVIDEND":
         return `${symbol} Dividend Received`;
-      case 'BUY':
+      case "BUY":
         return `Bought ${symbol}`;
-      case 'SELL':
+      case "SELL":
         return `Sold ${symbol}`;
-      case 'TAX':
+      case "TAX":
         return `Tax on ${symbol}`;
-      case 'SPLIT':
+      case "SPLIT":
         return `${symbol} Stock Split`;
       default:
         return `${symbol} Transaction`;
@@ -86,24 +93,24 @@ export class TransactionService {
 
   getAmount(transaction: Transaction): string {
     const { type, quantity, amount, tax, portfolio } = transaction;
-    const currencyCode = portfolio?.currencyCode || 'USD';
+    const currencyCode = portfolio?.currencyCode || "USD";
 
     switch (type) {
-      case 'DIVIDEND':
+      case "DIVIDEND":
         // Show absolute value for dividends
         return formatCurrency(amount, currencyCode);
 
-      case 'BUY':
-      case 'SELL':
+      case "BUY":
+      case "SELL":
         // Show shares and total amount
         return `${quantity} shares • ${formatCurrency(amount, currencyCode)}`;
 
-      case 'TAX':
+      case "TAX":
         // Use tax field if available, otherwise use amount field
         const taxAmount = tax !== 0 ? tax : amount;
         return formatCurrency(taxAmount, currencyCode);
 
-      case 'SPLIT':
+      case "SPLIT":
         // For stock splits, just show the number of shares
         return `${quantity} shares`;
 
@@ -114,10 +121,11 @@ export class TransactionService {
 
   getDescription(transaction: Transaction): string {
     const { notes } = transaction;
-    const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol || 'Unknown';
+    const symbol =
+      transaction.listing?.tickerSymbol || transaction.stockSymbol || "Unknown";
 
     // Use notes if available and not empty
-    if (notes && notes.trim() !== '') {
+    if (notes && notes.trim() !== "") {
       return notes;
     }
 
@@ -134,12 +142,14 @@ export class TransactionService {
       description: this.getDescription(transaction),
       amount: this.getAmount(transaction),
       date: new Date(transaction.createdAt),
-      status: 'completed'
+      status: "completed",
     };
   }
 
   transactionsToActivityItems(transactions: Transaction[]): ActivityItem[] {
-    return transactions.map(transaction => this.transactionToActivityItem(transaction));
+    return transactions.map((transaction) =>
+      this.transactionToActivityItem(transaction),
+    );
   }
 
   // Analysis Operations
@@ -149,19 +159,20 @@ export class TransactionService {
     let totalDividends = 0;
     let totalTax = 0;
 
-    transactions.forEach(transaction => {
+    transactions.forEach((transaction) => {
       switch (transaction.type) {
-        case 'BUY':
+        case "BUY":
           totalBuys += Math.abs(transaction.amount);
           break;
-        case 'SELL':
+        case "SELL":
           totalSells += Math.abs(transaction.amount);
           break;
-        case 'DIVIDEND':
+        case "DIVIDEND":
           totalDividends += Math.abs(transaction.amount);
           break;
-        case 'TAX':
-          const taxAmount = transaction.tax !== 0 ? transaction.tax : transaction.amount;
+        case "TAX":
+          const taxAmount =
+            transaction.tax !== 0 ? transaction.tax : transaction.amount;
           totalTax += Math.abs(taxAmount);
           break;
       }
@@ -175,16 +186,18 @@ export class TransactionService {
       totalDividends,
       totalTax,
       totalAmount,
-      transactionCount: transactions.length
+      transactionCount: transactions.length,
     };
   }
 
-  groupTransactionsByMonth(transactions: Transaction[]): Map<string, Transaction[]> {
+  groupTransactionsByMonth(
+    transactions: Transaction[],
+  ): Map<string, Transaction[]> {
     const grouped = new Map<string, Transaction[]>();
 
-    transactions.forEach(transaction => {
+    transactions.forEach((transaction) => {
       const date = new Date(transaction.createdAt);
-      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 
       if (!grouped.has(key)) {
         grouped.set(key, []);
@@ -196,11 +209,16 @@ export class TransactionService {
     return grouped;
   }
 
-  groupTransactionsByStock(transactions: Transaction[]): Map<string, Transaction[]> {
+  groupTransactionsByStock(
+    transactions: Transaction[],
+  ): Map<string, Transaction[]> {
     const grouped = new Map<string, Transaction[]>();
 
-    transactions.forEach(transaction => {
-      const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol || 'Unknown';
+    transactions.forEach((transaction) => {
+      const symbol =
+        transaction.listing?.tickerSymbol ||
+        transaction.stockSymbol ||
+        "Unknown";
 
       if (!grouped.has(symbol)) {
         grouped.set(symbol, []);
@@ -215,11 +233,14 @@ export class TransactionService {
   // Filtering & Sorting
   filterTransactions(
     transactions: Transaction[],
-    filters: TransactionFilters
+    filters: TransactionFilters,
   ): Transaction[] {
-    return transactions.filter(transaction => {
+    return transactions.filter((transaction) => {
       // Filter by portfolio ID
-      if (filters.portfolioId && transaction.portfolioId !== filters.portfolioId) {
+      if (
+        filters.portfolioId &&
+        transaction.portfolioId !== filters.portfolioId
+      ) {
         return false;
       }
 
@@ -230,7 +251,8 @@ export class TransactionService {
 
       // Filter by ticker symbol
       if (filters.tickerSymbol) {
-        const symbol = transaction.listing?.tickerSymbol || transaction.stockSymbol;
+        const symbol =
+          transaction.listing?.tickerSymbol || transaction.stockSymbol;
         if (symbol !== filters.tickerSymbol) {
           return false;
         }
@@ -253,13 +275,13 @@ export class TransactionService {
 
   sortByDate(
     transactions: Transaction[],
-    order: 'asc' | 'desc' = 'desc'
+    order: "asc" | "desc" = "desc",
   ): Transaction[] {
     return [...transactions].sort((a, b) => {
       const dateA = new Date(a.createdAt).getTime();
       const dateB = new Date(b.createdAt).getTime();
 
-      return order === 'desc' ? dateB - dateA : dateA - dateB;
+      return order === "desc" ? dateB - dateA : dateA - dateB;
     });
   }
 }

@@ -43,6 +43,7 @@ pnpm install
 ```
 
 This will:
+
 - Install root dependencies
 - Install dependencies for `apps/web`
 - Install dependencies for `apps/api`
@@ -62,6 +63,7 @@ nano apps/api/.env  # or use your preferred editor
 ```
 
 Required environment variables for backend:
+
 ```env
 # Database
 DATABASE_URL="postgresql://user:password@localhost:5432/portfolio"
@@ -87,6 +89,7 @@ nano apps/web/.env.local
 ```
 
 Required environment variables for frontend:
+
 ```env
 # API Configuration
 NEXT_PUBLIC_API_URL="http://localhost:4000"
@@ -151,6 +154,7 @@ pnpm dev
 ```
 
 This will start:
+
 - **Backend**: http://localhost:4000 (or your configured port)
 - **Frontend**: http://localhost:3001
 
@@ -291,12 +295,12 @@ pnpm --filter @repo/web test:coverage
 In both frontend and backend:
 
 ```typescript
-import { PrismaClient, User, Transaction, Portfolio } from '@repo/database';
+import { PrismaClient, User, Transaction, Portfolio } from "@repo/database";
 
 // Use Prisma types
 const user: User = {
-  id: '1',
-  email: 'user@example.com',
+  id: "1",
+  email: "user@example.com",
   // ...
 };
 ```
@@ -304,22 +308,22 @@ const user: User = {
 ### Using Shared Types
 
 ```typescript
-import { ApiResponse, PaginatedResponse } from '@repo/shared';
+import { ApiResponse, PaginatedResponse } from "@repo/shared";
 
 // Use shared types
 const response: ApiResponse<User> = {
   data: user,
-  message: 'Success',
+  message: "Success",
 };
 ```
 
 ### Using Shared Validators
 
 ```typescript
-import { emailSchema, passwordSchema } from '@repo/shared';
+import { emailSchema, passwordSchema } from "@repo/shared";
 
 // Validate data
-const email = emailSchema.parse('user@example.com');
+const email = emailSchema.parse("user@example.com");
 ```
 
 ### Adding New Shared Code
@@ -334,6 +338,7 @@ const email = emailSchema.parse('user@example.com');
 ### Issue: "Cannot find module '@repo/database'"
 
 **Solution**:
+
 ```bash
 pnpm install
 pnpm --filter @repo/database db:generate
@@ -342,6 +347,7 @@ pnpm --filter @repo/database db:generate
 ### Issue: "Prisma Client is not generated"
 
 **Solution**:
+
 ```bash
 pnpm --filter @repo/database db:generate
 ```
@@ -349,6 +355,7 @@ pnpm --filter @repo/database db:generate
 ### Issue: Type errors after pulling changes
 
 **Solution**:
+
 ```bash
 pnpm install
 pnpm --filter @repo/database db:generate
@@ -358,6 +365,7 @@ pnpm typecheck
 ### Issue: Build failures
 
 **Solution**:
+
 ```bash
 pnpm clean
 pnpm install
@@ -370,6 +378,7 @@ pnpm build
 Frontend (3001) or Backend (4000) port already in use:
 
 **Solution**:
+
 ```bash
 # Kill process on port
 lsof -ti:3001 | xargs kill -9
@@ -381,6 +390,7 @@ lsof -ti:4000 | xargs kill -9
 ### Issue: Database connection errors
 
 **Solution**:
+
 1. Verify PostgreSQL is running
 2. Check `DATABASE_URL` in `apps/api/.env`
 3. Ensure database exists
@@ -389,6 +399,7 @@ lsof -ti:4000 | xargs kill -9
 ### Issue: Workspace dependency not found
 
 **Solution**:
+
 ```bash
 # Reinstall and relink
 rm -rf node_modules
@@ -400,12 +411,14 @@ pnpm install
 ### VS Code
 
 Recommended extensions:
+
 - Prisma
 - ESLint
 - Prettier
 - TypeScript and JavaScript Language Features
 
 Workspace settings (`.vscode/settings.json`):
+
 ```json
 {
   "typescript.tsdk": "node_modules/typescript/lib",
@@ -471,20 +484,20 @@ After setup is complete:
 
 ## Quick Reference
 
-| Task | Command |
-|------|---------|
-| Install all | `pnpm install` |
+| Task            | Command                                    |
+| --------------- | ------------------------------------------ |
+| Install all     | `pnpm install`                             |
 | Generate Prisma | `pnpm --filter @repo/database db:generate` |
-| Migrate DB | `pnpm --filter @repo/database db:migrate` |
-| Dev (all) | `pnpm dev` |
-| Dev (backend) | `pnpm --filter @repo/api dev` |
-| Dev (frontend) | `pnpm --filter @repo/web dev` |
-| Build all | `pnpm build` |
-| Test all | `pnpm test` |
-| Lint all | `pnpm lint` |
-| Type check | `pnpm typecheck` |
-| Clean all | `pnpm clean` |
-| DB Studio | `pnpm db:studio` |
+| Migrate DB      | `pnpm --filter @repo/database db:migrate`  |
+| Dev (all)       | `pnpm dev`                                 |
+| Dev (backend)   | `pnpm --filter @repo/api dev`              |
+| Dev (frontend)  | `pnpm --filter @repo/web dev`              |
+| Build all       | `pnpm build`                               |
+| Test all        | `pnpm test`                                |
+| Lint all        | `pnpm lint`                                |
+| Type check      | `pnpm typecheck`                           |
+| Clean all       | `pnpm clean`                               |
+| DB Studio       | `pnpm db:studio`                           |
 
 ## Getting Help
 

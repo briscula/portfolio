@@ -2,7 +2,7 @@ export interface Transaction {
   id: number;
   portfolioId: string;
   tickerSymbol: string;
-  type: 'DIVIDEND' | 'BUY' | 'SELL' | 'TAX' | 'SPLIT';
+  type: "DIVIDEND" | "BUY" | "SELL" | "TAX" | "SPLIT";
   quantity: number;
   reference: string;
   amount: number;
@@ -30,9 +30,9 @@ export const mockTransactions: Transaction[] = [
     type: "BUY",
     quantity: 25,
     reference: "TXN-001",
-    amount:3750.00,
-    totalAmount:3750.00,
-    tax: 0.00,
+    amount: 3750.0,
+    totalAmount: 3750.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Initial purchase",
     createdAt: "2024-01-15T10:30:00Z",
@@ -42,9 +42,9 @@ export const mockTransactions: Transaction[] = [
       currency: {
         code: "USD",
         name: "US Dollar",
-        symbol: "$"
-      }
-    }
+        symbol: "$",
+      },
+    },
   },
   {
     id: 2,
@@ -53,17 +53,17 @@ export const mockTransactions: Transaction[] = [
     type: "BUY",
     quantity: 25,
     reference: "TXN-002",
-    amount:3750.00,
-    totalAmount:3750.00,
-    tax: 0.00,
+    amount: 3750.0,
+    totalAmount: 3750.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Additional shares",
     createdAt: "2024-01-20T14:15:00Z",
     updatedAt: "2024-01-20T14:15:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 3,
@@ -72,17 +72,17 @@ export const mockTransactions: Transaction[] = [
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-001",
-    amount:31.25,
-    totalAmount:31.25,
-    tax: 0.00,
+    amount: 31.25,
+    totalAmount: 31.25,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Quarterly dividend",
     createdAt: "2024-01-25T09:00:00Z",
     updatedAt: "2024-01-25T09:00:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 4,
@@ -91,17 +91,17 @@ export const mockTransactions: Transaction[] = [
     type: "BUY",
     quantity: 30,
     reference: "TXN-003",
-    amount:9000.00,
-    totalAmount:9000.00,
-    tax: 0.00,
+    amount: 9000.0,
+    totalAmount: 9000.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Microsoft position",
     createdAt: "2024-01-20T14:15:00Z",
     updatedAt: "2024-01-20T14:15:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 5,
@@ -110,17 +110,17 @@ export const mockTransactions: Transaction[] = [
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-002",
-    amount:45.00,
-    totalAmount:45.00,
-    tax: 0.00,
+    amount: 45.0,
+    totalAmount: 45.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Quarterly dividend",
     createdAt: "2024-02-01T09:00:00Z",
     updatedAt: "2024-02-01T09:00:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 6,
@@ -129,17 +129,17 @@ export const mockTransactions: Transaction[] = [
     type: "BUY",
     quantity: 20,
     reference: "TXN-004",
-    amount:2800.00,
-    totalAmount:2800.00,
-    tax: 0.00,
+    amount: 2800.0,
+    totalAmount: 2800.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Alphabet position",
     createdAt: "2024-02-01T11:20:00Z",
     updatedAt: "2024-02-01T11:20:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 7,
@@ -148,17 +148,17 @@ export const mockTransactions: Transaction[] = [
     type: "BUY",
     quantity: 100,
     reference: "TXN-005",
-    amount:15000.00,
-    totalAmount:15000.00,
-    tax: 0.00,
+    amount: 15000.0,
+    totalAmount: 15000.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Johnson & Johnson position",
     createdAt: "2024-01-10T09:30:00Z",
     updatedAt: "2024-01-10T09:30:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 8,
@@ -167,17 +167,17 @@ export const mockTransactions: Transaction[] = [
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-003",
-    amount:100.00,
-    totalAmount:100.00,
-    tax: 0.00,
+    amount: 100.0,
+    totalAmount: 100.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Quarterly dividend",
     createdAt: "2024-01-15T09:00:00Z",
     updatedAt: "2024-01-15T09:00:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 9,
@@ -186,17 +186,17 @@ export const mockTransactions: Transaction[] = [
     type: "BUY",
     quantity: 75,
     reference: "TXN-006",
-    amount:12000.00,
-    totalAmount:12000.00,
-    tax: 0.00,
+    amount: 12000.0,
+    totalAmount: 12000.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Procter & Gamble position",
     createdAt: "2024-01-25T13:45:00Z",
     updatedAt: "2024-01-25T13:45:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 10,
@@ -205,17 +205,17 @@ export const mockTransactions: Transaction[] = [
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-004",
-    amount:75.00,
-    totalAmount:75.00,
-    tax: 0.00,
+    amount: 75.0,
+    totalAmount: 75.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Quarterly dividend",
     createdAt: "2024-02-01T09:00:00Z",
     updatedAt: "2024-02-01T09:00:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 11,
@@ -224,17 +224,17 @@ export const mockTransactions: Transaction[] = [
     type: "BUY",
     quantity: 200,
     reference: "TXN-007",
-    amount:10000.00,
-    totalAmount:10000.00,
-    tax: 0.00,
+    amount: 10000.0,
+    totalAmount: 10000.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Coca-Cola position",
     createdAt: "2024-02-05T15:20:00Z",
     updatedAt: "2024-02-05T15:20:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
   },
   {
     id: 12,
@@ -243,20 +243,22 @@ export const mockTransactions: Transaction[] = [
     type: "DIVIDEND",
     quantity: 0,
     reference: "DIV-005",
-    amount:70.00,
-    totalAmount:70.00,
-    tax: 0.00,
+    amount: 70.0,
+    totalAmount: 70.0,
+    tax: 0.0,
     taxPercentage: 0.0,
     notes: "Quarterly dividend",
     createdAt: "2024-02-10T09:00:00Z",
     updatedAt: "2024-02-10T09:00:00Z",
     portfolio: {
       currencyCode: "USD",
-      currency: { code: "USD", name: "US Dollar", symbol: "$" }
-    }
-  }
+      currency: { code: "USD", name: "US Dollar", symbol: "$" },
+    },
+  },
 ];
 
 export const mockRecentActivity = mockTransactions
-  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  .sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+  )
   .slice(0, 10);

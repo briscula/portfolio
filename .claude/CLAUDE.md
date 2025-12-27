@@ -3,6 +3,7 @@
 > **⚠️ IMPORTANT**: This file has been superseded by the root-level [AGENTS.md](../AGENTS.md).
 
 Please refer to [AGENTS.md](../AGENTS.md) for:
+
 - Project structure and technology stack
 - Development commands and workflows
 - Critical guidelines and patterns

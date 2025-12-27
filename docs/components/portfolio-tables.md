@@ -38,6 +38,7 @@ ResponsivePortfolioTable (Adaptive Wrapper)
 **Purpose:** Simple, lightweight table for desktop and tablet views.
 
 **Features:**
+
 - ✅ Sortable columns
 - ✅ Mobile dropdown menu
 - ✅ Desktop action buttons
@@ -46,11 +47,13 @@ ResponsivePortfolioTable (Adaptive Wrapper)
 - ✅ Uses `useDropdownManager` hook
 
 **When to Use:**
+
 - Simple portfolio lists without pagination
 - When you need basic sorting functionality
 - Smaller datasets (< 50 portfolios)
 
 **Props:**
+
 ```typescript
 interface PortfolioTableProps {
   portfolios: PortfolioWithMetrics[];
@@ -64,6 +67,7 @@ interface PortfolioTableProps {
 ```
 
 **Example Usage:**
+
 ```tsx
 <PortfolioTable
   portfolios={portfolios}
@@ -85,6 +89,7 @@ interface PortfolioTableProps {
 **Purpose:** Advanced table with pagination, virtual scrolling, and performance optimizations.
 
 **Features:**
+
 - ✅ All PortfolioTable features
 - ✅ **Pagination** (optional)
 - ✅ **Virtual scrolling** (optional)
@@ -94,12 +99,14 @@ interface PortfolioTableProps {
 - ✅ Performance optimized for large datasets
 
 **When to Use:**
+
 - Large datasets (50+ portfolios)
 - When you need pagination
 - When you need virtual scrolling for performance
 - Production dashboards with many portfolios
 
 **Props:**
+
 ```typescript
 interface EnhancedPortfolioTableProps {
   portfolios: PortfolioWithMetrics[];
@@ -109,15 +116,16 @@ interface EnhancedPortfolioTableProps {
   onViewDividends: (portfolioId: string) => void;
   sortField?: SortField;
   sortDirection?: SortDirection;
-  enablePagination?: boolean;          // Default: false
-  enableVirtualScrolling?: boolean;    // Default: false
-  initialPageSize?: number;            // Default: 25
-  virtualScrollHeight?: number;        // Default: 600
+  enablePagination?: boolean; // Default: false
+  enableVirtualScrolling?: boolean; // Default: false
+  initialPageSize?: number; // Default: 25
+  virtualScrollHeight?: number; // Default: 600
   className?: string;
 }
 ```
 
 **Example Usage:**
+
 ```tsx
 <EnhancedPortfolioTable
   portfolios={portfolios}
@@ -140,6 +148,7 @@ interface EnhancedPortfolioTableProps {
 **Purpose:** Mobile-optimized card layout for small screens.
 
 **Features:**
+
 - ✅ Card-based layout
 - ✅ Touch-optimized (44px minimum targets)
 - ✅ Compact information display
@@ -147,11 +156,13 @@ interface EnhancedPortfolioTableProps {
 - ✅ Empty state
 
 **When to Use:**
+
 - Mobile devices (< 768px)
 - Touch interfaces
 - **Usually used via `ResponsivePortfolioTable`**
 
 **Props:**
+
 ```typescript
 interface PortfolioTableMobileProps {
   portfolios: PortfolioWithMetrics[];
@@ -162,6 +173,7 @@ interface PortfolioTableMobileProps {
 ```
 
 **Example Usage:**
+
 ```tsx
 <PortfolioTableMobile
   portfolios={portfolios}
@@ -180,6 +192,7 @@ interface PortfolioTableMobileProps {
 **Purpose:** Automatic responsive switching between desktop and mobile views.
 
 **Features:**
+
 - ✅ Automatically detects screen size
 - ✅ Uses `useResponsive()` hook
 - ✅ Switches between:
@@ -190,12 +203,14 @@ interface PortfolioTableMobileProps {
 - ✅ State management for sorting
 
 **When to Use:**
+
 - **RECOMMENDED for most use cases**
 - When you need full responsive support
 - When you want automatic view switching
 - Production pages that need to work on all devices
 
 **Props:**
+
 ```typescript
 interface ResponsivePortfolioTableProps {
   portfolios: PortfolioWithMetrics[];
@@ -214,6 +229,7 @@ interface ResponsivePortfolioTableProps {
 ```
 
 **Example Usage:**
+
 ```tsx
 <ResponsivePortfolioTable
   portfolios={portfolios}
@@ -276,6 +292,7 @@ START
 ## Common Patterns
 
 ### 1. **Simple Dashboard**
+
 ```tsx
 <ResponsivePortfolioTable
   portfolios={portfolios}
@@ -286,6 +303,7 @@ START
 ```
 
 ### 2. **Paginated Portfolio List**
+
 ```tsx
 <ResponsivePortfolioTable
   portfolios={portfolios}
@@ -298,6 +316,7 @@ START
 ```
 
 ### 3. **High-Performance Large Dataset**
+
 ```tsx
 <EnhancedPortfolioTable
   portfolios={portfolios}

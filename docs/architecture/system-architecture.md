@@ -29,6 +29,7 @@ portfolio/
 
 **Framework**: Next.js 15 with App Router
 **Key Features**:
+
 - Auth0 authentication
 - Internationalization (en, es)
 - Real-time portfolio tracking
@@ -36,11 +37,13 @@ portfolio/
 - Responsive design with Tailwind CSS v4
 
 **Tech Stack**:
+
 - TypeScript, React 19, Tailwind CSS
 - React Query for data fetching
 - Jest + React Testing Library
 
 **Key Routes**:
+
 - `/[locale]/dashboard` - Main dashboard with portfolio overview
 - `/[locale]/portfolio/[id]` - Individual portfolio details
 - `/[locale]/dividends` - Dividend tracking and analytics
@@ -52,6 +55,7 @@ portfolio/
 
 **Framework**: NestJS
 **Key Features**:
+
 - RESTful API with OpenAPI/Swagger docs
 - JWT authentication (Auth0)
 - PostgreSQL database with Prisma ORM
@@ -59,11 +63,13 @@ portfolio/
 - Portfolio and position calculations
 
 **Tech Stack**:
+
 - TypeScript, NestJS
 - Prisma ORM
 - Zod validation (via `nestjs-zod`)
 
 **Key Endpoints**:
+
 - `/api/portfolios` - Portfolio CRUD operations
 - `/api/transactions` - Transaction management
 - `/api/positions` - Portfolio positions and metrics
@@ -77,6 +83,7 @@ portfolio/
 **ORM**: Prisma
 
 **Core Models**:
+
 - `User` - Authenticated users
 - `Portfolio` - Investment portfolios
 - `Transaction` - Financial transactions
@@ -106,6 +113,7 @@ sequenceDiagram
 ```
 
 **Implementation**:
+
 - **Frontend**: Auth0 SDK (`@auth0/nextjs-auth0`)
 - **Backend**: JWT validation with Auth0 public keys
 - **Token Management**: Automatic refresh and error handling
@@ -136,29 +144,34 @@ sequenceDiagram
 ## Key Features
 
 ### 1. Multi-Portfolio Management
+
 - Users can create unlimited portfolios
 - Each portfolio tracks multiple stocks
 - Support for multiple currencies
 - Portfolio-level analytics and metrics
 
 ### 2. Transaction Tracking
+
 - Buy, sell, dividend transactions
 - Tax tracking
 - Commission and fee tracking
 - Automatic position calculation
 
 ### 3. Dividend Analytics
+
 - Historical dividend tracking
 - Dividend income visualization
 - Dividend yield calculations
 - Projected dividend income
 
 ### 4. Internationalization
+
 - English and Spanish support
 - Locale-based routing (`/en/*`, `/es/*`)
 - Currency and date formatting
 
 ### 5. Accessibility
+
 - WCAG 2.1 AA compliance
 - Screen reader support
 - Keyboard navigation
@@ -220,18 +233,21 @@ pnpm lint
 ## Performance Optimizations
 
 ### Frontend
+
 - Code splitting with Next.js dynamic imports
 - Image optimization with `next/image`
 - Font optimization with `next/font`
 - Bundle size optimization (Tailwind purging)
 
 ### Backend
+
 - Database query optimization
 - Connection pooling
 - Pagination for large datasets
 - Caching strategies
 
 ### Database
+
 - Indexed foreign keys
 - Unique constraints for data integrity
 - Materialized views for complex queries
@@ -241,18 +257,21 @@ pnpm lint
 ## Security
 
 ### Authentication
+
 - Auth0 for identity management
 - JWT bearer tokens
 - Token rotation and refresh
 - Secure session handling
 
 ### API Security
+
 - Input validation with Zod schemas
 - SQL injection prevention (Prisma ORM)
 - CORS configuration
 - Rate limiting (planned)
 
 ### Data Protection
+
 - Password hashing (bcrypt)
 - Environment variable protection
 - HTTPS enforcement

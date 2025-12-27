@@ -14,7 +14,7 @@ Type-safe, validated environment variables for the monorepo.
 ### In Next.js App (`apps/web`)
 
 ```typescript
-import { webEnv } from '@repo/env';
+import { webEnv } from "@repo/env";
 
 // Fully typed and validated
 console.log(webEnv.NEXT_PUBLIC_API_URL); // string
@@ -25,7 +25,7 @@ console.log(webEnv.DATABASE_URL); // string (valid URL)
 ### In NestJS API (`apps/api`)
 
 ```typescript
-import { apiEnv } from '@repo/env';
+import { apiEnv } from "@repo/env";
 
 // Fully typed and validated
 console.log(apiEnv.DATABASE_URL); // string (valid URL)

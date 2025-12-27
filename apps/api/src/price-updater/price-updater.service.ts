@@ -39,14 +39,16 @@ export class PriceUpdaterService {
     // Fetch quotes individually to handle errors per symbol
     for (const listing of listings) {
       try {
-        const quote = await yahooFinance.quote(listing.tickerSymbol) as {
-          regularMarketPrice?: number;
-          shortName?: string;
-          longName?: string;
-          symbol?: string;
-          dividendYield?: number; // Decimal (e.g., 0.0412 for 4.12%)
-          trailingAnnualDividendYield?: number; // Alternative field
-        } | undefined;
+        const quote = (await yahooFinance.quote(listing.tickerSymbol)) as
+          | {
+              regularMarketPrice?: number;
+              shortName?: string;
+              longName?: string;
+              symbol?: string;
+              dividendYield?: number; // Decimal (e.g., 0.0412 for 4.12%)
+              trailingAnnualDividendYield?: number; // Alternative field
+            }
+          | undefined;
 
         if (!quote) {
           this.logger.warn(`Symbol not found: ${listing.tickerSymbol}`);
@@ -87,7 +89,8 @@ export class PriceUpdaterService {
         }
 
         // Update dividend yield (Yahoo returns as decimal, convert to percentage)
-        const dividendYield = quote.dividendYield ?? quote.trailingAnnualDividendYield;
+        const dividendYield =
+          quote.dividendYield ?? quote.trailingAnnualDividendYield;
         if (dividendYield !== undefined && dividendYield !== null) {
           // Yahoo returns as decimal (0.0412), convert to percentage (4.12)
           updateData.dividendYield = dividendYield * 100;
@@ -109,7 +112,9 @@ export class PriceUpdaterService {
       }
     }
 
-    this.logger.log(`Price update complete: ${successCount} succeeded, ${errorCount} failed.`);
+    this.logger.log(
+      `Price update complete: ${successCount} succeeded, ${errorCount} failed.`,
+    );
   }
 
   /**
@@ -133,18 +138,23 @@ export class PriceUpdaterService {
         let nextAmount: number | null = null;
 
         try {
-          const summary = await yahooFinance.quoteSummary(listing.tickerSymbol, {
-            modules: ['calendarEvents', 'summaryDetail'],
-          }) as {
-            calendarEvents?: {
-              exDividendDate?: Date;
-              dividendDate?: Date;
-            };
-            summaryDetail?: {
-              dividendRate?: number;
-              exDividendDate?: Date;
-            };
-          } | undefined;
+          const summary = (await yahooFinance.quoteSummary(
+            listing.tickerSymbol,
+            {
+              modules: ['calendarEvents', 'summaryDetail'],
+            },
+          )) as
+            | {
+                calendarEvents?: {
+                  exDividendDate?: Date;
+                  dividendDate?: Date;
+                };
+                summaryDetail?: {
+                  dividendRate?: number;
+                  exDividendDate?: Date;
+                };
+              }
+            | undefined;
 
           if (summary?.calendarEvents?.exDividendDate) {
             nextExDate = new Date(summary.calendarEvents.exDividendDate);
@@ -175,9 +185,10 @@ export class PriceUpdaterService {
         // Infer frequency and calculate average amount
         const frequency = this.inferFrequency(historicalDividends);
         const avgAmount = this.calculateAvgAmount(historicalDividends);
-        const lastPaymentDate = historicalDividends.length > 0
-          ? historicalDividends[0].createdAt
-          : null;
+        const lastPaymentDate =
+          historicalDividends.length > 0
+            ? historicalDividends[0].createdAt
+            : null;
 
         // Estimate next payment date if we have frequency but no external data
         let nextPaymentDate: Date | null = null;
@@ -186,7 +197,10 @@ export class PriceUpdaterService {
           nextPaymentDate = new Date(nextExDate);
           nextPaymentDate.setDate(nextPaymentDate.getDate() + 14);
         } else if (lastPaymentDate && frequency && frequency !== 'IRREGULAR') {
-          nextPaymentDate = this.estimateNextPaymentDate(lastPaymentDate, frequency);
+          nextPaymentDate = this.estimateNextPaymentDate(
+            lastPaymentDate,
+            frequency,
+          );
         }
 
         // Upsert DividendInfo record
@@ -219,65 +233,81 @@ export class PriceUpdaterService {
 
         successCount++;
       } catch (error) {
-        this.logger.error(`Failed to update dividend info for ${listing.tickerSymbol}`, error);
+        this.logger.error(
+          `Failed to update dividend info for ${listing.tickerSymbol}`,
+          error,
+        );
         errorCount++;
       }
     }
 
-    this.logger.log(`Dividend info update complete: ${successCount} succeeded, ${errorCount} failed.`);
+    this.logger.log(
+      `Dividend info update complete: ${successCount} succeeded, ${errorCount} failed.`,
+    );
   }
 
   /**
    * Infer dividend frequency from historical payments
    */
-  private inferFrequency(dividends: { createdAt: Date }[]): DividendFrequency | null {
+  private inferFrequency(
+    dividends: { createdAt: Date }[],
+  ): DividendFrequency | null {
     if (dividends.length < 2) {
       return dividends.length === 1 ? 'IRREGULAR' : null;
     }
 
     // Calculate intervals between payments (in days)
     const sortedDividends = [...dividends].sort(
-      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime(),
     );
 
     const intervals: number[] = [];
     for (let i = 1; i < sortedDividends.length; i++) {
       const daysDiff = Math.round(
-        (sortedDividends[i].createdAt.getTime() - sortedDividends[i - 1].createdAt.getTime()) /
-        (1000 * 60 * 60 * 24)
+        (sortedDividends[i].createdAt.getTime() -
+          sortedDividends[i - 1].createdAt.getTime()) /
+          (1000 * 60 * 60 * 24),
       );
       intervals.push(daysDiff);
     }
 
-    const avgInterval = intervals.reduce((sum, i) => sum + i, 0) / intervals.length;
+    const avgInterval =
+      intervals.reduce((sum, i) => sum + i, 0) / intervals.length;
 
-    if (avgInterval < 45) return 'MONTHLY';        // ~30 days
-    if (avgInterval < 120) return 'QUARTERLY';     // ~90 days
-    if (avgInterval < 240) return 'SEMI_ANNUAL';   // ~180 days
-    if (avgInterval < 400) return 'ANNUAL';        // ~365 days
+    if (avgInterval < 45) return 'MONTHLY'; // ~30 days
+    if (avgInterval < 120) return 'QUARTERLY'; // ~90 days
+    if (avgInterval < 240) return 'SEMI_ANNUAL'; // ~180 days
+    if (avgInterval < 400) return 'ANNUAL'; // ~365 days
     return 'IRREGULAR';
   }
 
   /**
    * Calculate average dividend amount per share from history
    */
-  private calculateAvgAmount(dividends: { amount: number; quantity: number }[]): number | null {
+  private calculateAvgAmount(
+    dividends: { amount: number; quantity: number }[],
+  ): number | null {
     if (dividends.length === 0) return null;
 
     // Calculate per-share amounts
     const perShareAmounts = dividends
-      .filter(d => d.quantity > 0)
-      .map(d => Math.abs(d.amount) / d.quantity);
+      .filter((d) => d.quantity > 0)
+      .map((d) => Math.abs(d.amount) / d.quantity);
 
     if (perShareAmounts.length === 0) return null;
 
-    return perShareAmounts.reduce((sum, a) => sum + a, 0) / perShareAmounts.length;
+    return (
+      perShareAmounts.reduce((sum, a) => sum + a, 0) / perShareAmounts.length
+    );
   }
 
   /**
    * Estimate next payment date based on frequency and last payment
    */
-  private estimateNextPaymentDate(lastPayment: Date, frequency: DividendFrequency): Date {
+  private estimateNextPaymentDate(
+    lastPayment: Date,
+    frequency: DividendFrequency,
+  ): Date {
     const next = new Date(lastPayment);
 
     switch (frequency) {
@@ -322,4 +352,3 @@ export class PriceUpdaterService {
     return next;
   }
 }
-

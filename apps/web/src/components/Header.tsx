@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useUser } from '@auth0/nextjs-auth0/client';
-import Link from 'next/link';
-import { useState } from 'react';
-import { UserCircleIcon, ChevronDownIcon, Bars3Icon } from './ui/icons';
+import { useUser } from "@auth0/nextjs-auth0/client";
+import Link from "next/link";
+import { useState } from "react";
+import { UserCircleIcon, ChevronDownIcon, Bars3Icon } from "./ui/icons";
 
 interface HeaderProps {
   onMenuToggle?: () => void;
@@ -25,7 +25,6 @@ export default function Header({ onMenuToggle }: HeaderProps) {
         >
           <Bars3Icon className="h-6 w-6" />
         </button>
-
       </div>
 
       {/* Right section - User menu */}
@@ -44,7 +43,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={user.picture}
-                  alt={user.name || user.email || 'User'}
+                  alt={user.name || user.email || "User"}
                   className="h-8 w-8 rounded-full"
                 />
               ) : (
@@ -64,7 +63,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                   className="fixed inset-0 z-10"
                   onClick={() => setIsUserMenuOpen(false)}
                 />
-                
+
                 {/* Menu */}
                 <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5 z-20">
                   <div className="py-1">
@@ -72,7 +71,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                       <div className="font-medium">{user.name}</div>
                       <div className="text-gray-500">{user.email}</div>
                     </div>
-                    
+
                     <Link
                       href="/profile"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -80,7 +79,7 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                     >
                       Profile
                     </Link>
-                    
+
                     <Link
                       href="/settings"
                       className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -88,12 +87,12 @@ export default function Header({ onMenuToggle }: HeaderProps) {
                     >
                       Settings
                     </Link>
-                    
+
                     <div className="border-t border-gray-100">
                       <button
                         onClick={() => {
                           setIsUserMenuOpen(false);
-                          window.location.href = '/api/auth/logout?federated';
+                          window.location.href = "/api/auth/logout?federated";
                         }}
                         className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                       >

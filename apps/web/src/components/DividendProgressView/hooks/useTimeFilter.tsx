@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { TimePeriod } from '../types/dividend';
+import { useState, useCallback } from "react";
+import { TimePeriod } from "../types/dividend";
 
 export interface UseTimeFilterReturn {
   selectedPeriod: TimePeriod;
@@ -20,14 +20,17 @@ export interface UseTimeFilterOptions {
  * Custom hook for managing time period filter state
  * Provides period selection, validation, and change handling
  */
-export const useTimeFilter = (options: UseTimeFilterOptions = {}): UseTimeFilterReturn => {
+export const useTimeFilter = (
+  options: UseTimeFilterOptions = {},
+): UseTimeFilterReturn => {
   const {
-    defaultPeriod = 'year',
-    availablePeriods = ['month', 'quarter', 'year', 'all'],
+    defaultPeriod = "year",
+    availablePeriods = ["month", "quarter", "year", "all"],
     onPeriodChange,
   } = options;
 
-  const [selectedPeriod, setSelectedPeriodState] = useState<TimePeriod>(defaultPeriod);
+  const [selectedPeriod, setSelectedPeriodState] =
+    useState<TimePeriod>(defaultPeriod);
 
   const setSelectedPeriod = useCallback(
     (period: TimePeriod) => {
@@ -36,14 +39,14 @@ export const useTimeFilter = (options: UseTimeFilterOptions = {}): UseTimeFilter
         onPeriodChange?.(period);
       }
     },
-    [availablePeriods, onPeriodChange]
+    [availablePeriods, onPeriodChange],
   );
 
   const isPeriodAvailable = useCallback(
     (period: TimePeriod): boolean => {
       return availablePeriods.includes(period);
     },
-    [availablePeriods]
+    [availablePeriods],
   );
 
   return {

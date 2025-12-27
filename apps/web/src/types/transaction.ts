@@ -5,8 +5,7 @@
 /**
  * Transaction types supported by the API
  */
-export type TransactionType = 'DIVIDEND' | 'BUY' | 'SELL' | 'TAX' | 'SPLIT';
-
+export type TransactionType = "DIVIDEND" | "BUY" | "SELL" | "TAX" | "SPLIT";
 
 export interface TransactionPayload {
   // Listing information (required)
@@ -27,7 +26,7 @@ export interface TransactionPayload {
   taxPercentage?: number;
   date?: string;
   notes?: string;
-  type: 'BUY' | 'SELL' | 'DIVIDEND' | 'TAX' | 'SPLIT';
+  type: "BUY" | "SELL" | "DIVIDEND" | "TAX" | "SPLIT";
 }
 
 /**

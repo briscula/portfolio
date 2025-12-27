@@ -9,6 +9,7 @@ Welcome to the Portfolio Monorepo documentation. This documentation is organized
 ## 📚 Documentation Structure
 
 ### 🛠️ Setup & Development
+
 - **[SETUP.md](./SETUP.md)** - Development environment setup instructions
 - **[PATTERNS.md](./PATTERNS.md)** - Code patterns and examples (auth, API, validation, database)
 - **[DEPLOYMENT.md](./DEPLOYMENT.md)** - Deployment guide for Vercel (frontend & backend)
@@ -38,6 +39,7 @@ UI component guides and patterns.
 Feature specifications following the **requirements → design → implementation** pattern.
 
 #### Completed Features
+
 - **[Accessibility](./features/accessibility/)** - WCAG 2.1 AA compliance
   - [Requirements](./features/accessibility/requirements.md)
   - [Design](./features/accessibility/design.md)
@@ -54,6 +56,7 @@ Feature specifications following the **requirements → design → implementatio
   - [Tasks](./features/dashboard/tasks.md)
 
 #### In Progress Features
+
 - **[Dividend Progress View](./features/dividend-progress/)** - Visual dividend tracking
   - [Requirements](./features/dividend-progress/requirements.md)
   - [Design](./features/dividend-progress/design.md)
@@ -81,6 +84,7 @@ Performance analysis and optimization reports.
 ## 🔍 Quick Links
 
 ### For Developers
+
 - [AGENTS.md](../AGENTS.md) - Quick reference and rules
 - [PATTERNS.md](./PATTERNS.md) - Code patterns and examples
 - [System Architecture](./architecture/system-architecture.md) - Understand the codebase
@@ -88,10 +92,12 @@ Performance analysis and optimization reports.
 - [SETUP.md](./SETUP.md) - Get started with local development
 
 ### For Product/Business
+
 - [API PRD](./product/API_PRD.md) - Feature roadmap and requirements
 - [Performance Reports](./reports/) - Technical analysis and improvements
 
 ### For Designers
+
 - [Accessibility](./features/accessibility/) - Accessibility standards
 - [Component Guides](./components/) - UI component documentation
 

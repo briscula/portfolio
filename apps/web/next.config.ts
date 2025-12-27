@@ -8,9 +8,9 @@ const nextConfig: NextConfig = {
   turbopack: {
     // Turbopack is now stable, configure it here instead of experimental.turbo
     rules: {
-      '*.svg': {
-        loaders: ['@svgr/webpack'],
-        as: '*.js',
+      "*.svg": {
+        loaders: ["@svgr/webpack"],
+        as: "*.js",
       },
     },
   },

@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
-export type Breakpoint = 'sm' | 'md' | 'lg' | 'xl' | '2xl';
+export type Breakpoint = "sm" | "md" | "lg" | "xl" | "2xl";
 
 interface BreakpointValues {
   sm: number;
   md: number;
   lg: number;
   xl: number;
-  '2xl': number;
+  "2xl": number;
 }
 
 const breakpointValues: BreakpointValues = {
@@ -17,7 +17,7 @@ const breakpointValues: BreakpointValues = {
   md: 768,
   lg: 1024,
   xl: 1280,
-  '2xl': 1536,
+  "2xl": 1536,
 };
 
 /**
@@ -36,10 +36,10 @@ export function useResponsive() {
     updateScreenWidth();
 
     // Add event listener
-    window.addEventListener('resize', updateScreenWidth);
+    window.addEventListener("resize", updateScreenWidth);
 
     // Cleanup
-    return () => window.removeEventListener('resize', updateScreenWidth);
+    return () => window.removeEventListener("resize", updateScreenWidth);
   }, []);
 
   const isAbove = (breakpoint: Breakpoint): boolean => {
@@ -51,7 +51,10 @@ export function useResponsive() {
   };
 
   const isBetween = (min: Breakpoint, max: Breakpoint): boolean => {
-    return screenWidth >= breakpointValues[min] && screenWidth < breakpointValues[max];
+    return (
+      screenWidth >= breakpointValues[min] &&
+      screenWidth < breakpointValues[max]
+    );
   };
 
   return {
@@ -61,7 +64,8 @@ export function useResponsive() {
     isBetween,
     // Convenience properties
     isMobile: screenWidth < breakpointValues.md,
-    isTablet: screenWidth >= breakpointValues.md && screenWidth < breakpointValues.lg,
+    isTablet:
+      screenWidth >= breakpointValues.md && screenWidth < breakpointValues.lg,
     isDesktop: screenWidth >= breakpointValues.lg,
     isSmallScreen: screenWidth < breakpointValues.lg, // Mobile + Tablet
   };
@@ -72,7 +76,7 @@ export function useResponsive() {
  * @param breakpoint The breakpoint to use for mobile detection (default: 'md')
  * @returns boolean indicating if screen is mobile size
  */
-export function useIsMobile(breakpoint: Breakpoint = 'md'): boolean {
+export function useIsMobile(breakpoint: Breakpoint = "md"): boolean {
   const { isBelow } = useResponsive();
   return isBelow(breakpoint);
 }
@@ -84,5 +88,5 @@ export function useIsMobile(breakpoint: Breakpoint = 'md'): boolean {
  */
 export function useMobileLayout(): boolean {
   const { isBelow } = useResponsive();
-  return isBelow('lg');
+  return isBelow("lg");
 }

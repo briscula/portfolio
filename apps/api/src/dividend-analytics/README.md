@@ -5,6 +5,7 @@ This module provides comprehensive dividend analysis functionality for your port
 ## Features
 
 ### 1. Monthly Dividend Overview (Recommended for Visualization)
+
 - **Endpoint**: `GET /dividend-analytics/monthly-overview`
 - **Description**: Get monthly dividend data optimized for charting with months on x-axis and years as separate series
 - **Query Parameters**:
@@ -15,9 +16,23 @@ This module provides comprehensive dividend analysis functionality for your port
 - **Perfect for**: Line charts, bar charts, time series visualization
 
 **Response Example**:
+
 ```json
 {
-  "months": ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+  "months": [
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+  ],
   "years": ["2022", "2023", "2024"],
   "data": [
     {
@@ -32,7 +47,7 @@ This module provides comprehensive dividend analysis functionality for your port
         },
         {
           "year": "2023",
-          "totalDividends": 920.50,
+          "totalDividends": 920.5,
           "dividendCount": 7,
           "companies": ["AAPL", "MSFT", "JNJ"]
         },
@@ -48,23 +63,26 @@ This module provides comprehensive dividend analysis functionality for your port
 }
 ```
 
-**Chart Usage**: 
+**Chart Usage**:
+
 - Use `months` array for x-axis labels
 - Use `years` array for legend/series names
 - Use `data[].yearlyData[].totalDividends` for y-axis values
 - Each year becomes a separate line/series in your chart
 
 ### 2. Company Dividend Summaries
+
 - **Endpoint**: `GET /dividend-analytics/company-summaries`
 - **Description**: Get dividend summaries by company and year, including yield on cost
 - **Key Metrics**:
   - Total dividends received per year per company
   - Number of dividend payments
   - Total cost basis for the company
-  - Yield on cost (dividends / cost basis * 100)
+  - Yield on cost (dividends / cost basis \* 100)
   - Average dividend per payment
 
 **Response Example**:
+
 ```json
 [
   {
@@ -73,28 +91,26 @@ This module provides comprehensive dividend analysis functionality for your port
     "year": 2023,
     "totalDividends": 1250.75,
     "dividendCount": 4,
-    "totalCost": 15000.00,
+    "totalCost": 15000.0,
     "yieldOnCost": 8.33,
     "averageDividendPerPayment": 312.69
   }
 ]
 ```
 
-
-
 ## Usage Examples
 
 ### Get monthly overview data for visualization (2020-2023)
+
 ```
 GET /dividend-analytics/monthly-overview?startYear=2020&endYear=2023
 ```
 
 ### Get company summaries for a specific portfolio
+
 ```
 GET /dividend-analytics/company-summaries?portfolioId=1&startYear=2023
 ```
-
-
 
 ## Data Requirements
 
@@ -107,6 +123,7 @@ For accurate dividend analysis, ensure your transactions include:
 ## Yield on Cost Calculation
 
 The yield on cost is calculated as:
+
 ```
 Yield on Cost = (Total Dividends / Total Cost Basis) × 100
 ```
@@ -119,4 +136,4 @@ All endpoints require authentication using the AuthGuard. Include the Bearer tok
 
 ```
 Authorization: Bearer <your-jwt-token>
-``` 
+```

@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import PortfolioTable, { SortField, SortDirection } from './PortfolioTable';
-import { EnhancedPortfolioTable } from './EnhancedPortfolioTable';
-import PortfolioTableMobile from './PortfolioTableMobile';
-import { PortfolioWithMetrics } from '../lib/portfolio-metrics';
-import { useResponsive } from '../hooks/useResponsive';
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import PortfolioTable, { SortField, SortDirection } from "./PortfolioTable";
+import { EnhancedPortfolioTable } from "./EnhancedPortfolioTable";
+import PortfolioTableMobile from "./PortfolioTableMobile";
+import { PortfolioWithMetrics } from "../lib/portfolio-metrics";
+import { useResponsive } from "../hooks/useResponsive";
 
 export interface ResponsivePortfolioTableProps {
   portfolios: PortfolioWithMetrics[];
@@ -23,7 +23,9 @@ export interface ResponsivePortfolioTableProps {
   initialPageSize?: number;
 }
 
-export const ResponsivePortfolioTable: React.FC<ResponsivePortfolioTableProps> = ({
+export const ResponsivePortfolioTable: React.FC<
+  ResponsivePortfolioTableProps
+> = ({
   portfolios,
   loading,
   onEdit,
@@ -31,23 +33,26 @@ export const ResponsivePortfolioTable: React.FC<ResponsivePortfolioTableProps> =
   sortField: externalSortField,
   sortDirection: externalSortDirection,
   onSort: externalOnSort,
-  initialSortField = 'value',
-  initialSortDirection = 'desc',
+  initialSortField = "value",
+  initialSortDirection = "desc",
   enablePagination = true,
   enableVirtualScrolling = false,
-  initialPageSize = 25
+  initialPageSize = 25,
 }) => {
   const router = useRouter();
   const { isMobile } = useResponsive(); // Get more granular responsive info
-  
+
   // Use external sort state if provided, otherwise use internal state
-  const [internalSortField, setInternalSortField] = useState<SortField>(initialSortField);
-  const [internalSortDirection, setInternalSortDirection] = useState<SortDirection>(initialSortDirection);
-  
+  const [internalSortField, setInternalSortField] =
+    useState<SortField>(initialSortField);
+  const [internalSortDirection, setInternalSortDirection] =
+    useState<SortDirection>(initialSortDirection);
+
   const sortField = externalSortField ?? internalSortField;
   const sortDirection = externalSortDirection ?? internalSortDirection;
-  
-  const [sortedPortfolios, setSortedPortfolios] = useState<PortfolioWithMetrics[]>(portfolios);
+
+  const [sortedPortfolios, setSortedPortfolios] =
+    useState<PortfolioWithMetrics[]>(portfolios);
 
   // Sort portfolios when sort criteria or portfolios change
   useEffect(() => {
@@ -56,31 +61,31 @@ export const ResponsivePortfolioTable: React.FC<ResponsivePortfolioTableProps> =
       let bValue: number | string;
 
       switch (sortField) {
-        case 'name':
+        case "name":
           aValue = a.name.toLowerCase();
           bValue = b.name.toLowerCase();
           break;
-        case 'currency':
+        case "currency":
           aValue = a.currencyCode;
           bValue = b.currencyCode;
           break;
-        case 'value':
+        case "value":
           aValue = a.metrics.totalValue;
           bValue = b.metrics.totalValue;
           break;
-        case 'gain':
+        case "gain":
           aValue = a.metrics.unrealizedGainPercent;
           bValue = b.metrics.unrealizedGainPercent;
           break;
-        case 'yield':
+        case "yield":
           aValue = a.metrics.dividendYield;
           bValue = b.metrics.dividendYield;
           break;
-        case 'positions':
+        case "positions":
           aValue = a.metrics.positionCount;
           bValue = b.metrics.positionCount;
           break;
-        case 'updated':
+        case "updated":
           aValue = a.metrics.lastUpdated.getTime();
           bValue = b.metrics.lastUpdated.getTime();
           break;
@@ -88,14 +93,14 @@ export const ResponsivePortfolioTable: React.FC<ResponsivePortfolioTableProps> =
           return 0;
       }
 
-      if (typeof aValue === 'string' && typeof bValue === 'string') {
-        return sortDirection === 'asc' 
+      if (typeof aValue === "string" && typeof bValue === "string") {
+        return sortDirection === "asc"
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue);
       }
 
-      if (typeof aValue === 'number' && typeof bValue === 'number') {
-        return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
+      if (typeof aValue === "number" && typeof bValue === "number") {
+        return sortDirection === "asc" ? aValue - bValue : bValue - aValue;
       }
 
       return 0;

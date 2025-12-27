@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import Header from './Header';
-import Sidebar from './Sidebar';
+import { useState } from "react";
+import Header from "./Header";
+import Sidebar from "./Sidebar";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -31,9 +31,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto">
-          <div className="px-4 py-6 sm:px-6 lg:px-8">
-            {children}
-          </div>
+          <div className="px-4 py-6 sm:px-6 lg:px-8">{children}</div>
         </main>
       </div>
     </div>

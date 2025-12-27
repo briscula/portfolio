@@ -1,6 +1,6 @@
-import React from 'react';
-import { Button, type ButtonProps } from './Button';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { Button, type ButtonProps } from "./Button";
+import { cn } from "@/lib/utils";
 
 export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
@@ -31,7 +31,7 @@ export interface EmptyStateProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Button variant
    */
-  actionVariant?: ButtonProps['variant'];
+  actionVariant?: ButtonProps["variant"];
 
   /**
    * Custom action component (overrides actionLabel/onAction)
@@ -57,27 +57,32 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
   (
     {
       className,
-      icon = '📊',
+      icon = "📊",
       title,
       description,
       actionLabel,
       onAction,
-      actionVariant = 'primary',
+      actionVariant = "primary",
       action,
       ...props
     },
-    ref
+    ref,
   ) => {
-    const defaultIcon = typeof icon === 'string' ? (
-      <span className="text-3xl" aria-hidden="true">{icon}</span>
-    ) : icon;
+    const defaultIcon =
+      typeof icon === "string" ? (
+        <span className="text-3xl" aria-hidden="true">
+          {icon}
+        </span>
+      ) : (
+        icon
+      );
 
     return (
       <div
         ref={ref}
         className={cn(
-          'flex flex-col items-center justify-center py-12 px-4 text-center',
-          className
+          "flex flex-col items-center justify-center py-12 px-4 text-center",
+          className,
         )}
         role="status"
         aria-live="polite"
@@ -126,7 +131,7 @@ export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(
         ) : null}
       </div>
     );
-  }
+  },
 );
 
-EmptyState.displayName = 'EmptyState';
+EmptyState.displayName = "EmptyState";

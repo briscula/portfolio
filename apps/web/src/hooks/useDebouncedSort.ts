@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { SortField, SortDirection } from '../components/PortfolioTable';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { SortField, SortDirection } from "../components/PortfolioTable";
 
 export interface UseDebouncedSortOptions {
   initialSortField?: SortField;
@@ -22,18 +22,23 @@ export interface UseDebouncedSortReturn {
  * when users rapidly change sort criteria
  */
 export function useDebouncedSort({
-  initialSortField = 'name',
-  initialSortDirection = 'asc',
-  debounceMs = 300
+  initialSortField = "name",
+  initialSortDirection = "asc",
+  debounceMs = 300,
 }: UseDebouncedSortOptions = {}): UseDebouncedSortReturn {
   // Current applied sort state
   const [sortField, setSortField] = useState<SortField>(initialSortField);
-  const [sortDirection, setSortDirection] = useState<SortDirection>(initialSortDirection);
-  
+  const [sortDirection, setSortDirection] =
+    useState<SortDirection>(initialSortDirection);
+
   // Pending sort state (what user has selected but not yet applied)
-  const [pendingSortField, setPendingSortField] = useState<SortField | undefined>();
-  const [pendingSortDirection, setPendingSortDirection] = useState<SortDirection | undefined>();
-  
+  const [pendingSortField, setPendingSortField] = useState<
+    SortField | undefined
+  >();
+  const [pendingSortDirection, setPendingSortDirection] = useState<
+    SortDirection | undefined
+  >();
+
   // Debouncing state
   const [isDebouncing, setIsDebouncing] = useState(false);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -42,7 +47,7 @@ export function useDebouncedSort({
   useEffect(() => {
     if (pendingSortField !== undefined && pendingSortDirection !== undefined) {
       setIsDebouncing(true);
-      
+
       // Clear existing timeout
       if (debounceTimeoutRef.current) {
         clearTimeout(debounceTimeoutRef.current);
@@ -67,24 +72,30 @@ export function useDebouncedSort({
   }, [pendingSortField, pendingSortDirection, debounceMs]);
 
   // Handle sort change with debouncing
-  const handleSort = useCallback((field: SortField, direction: SortDirection) => {
-    setPendingSortField(field);
-    setPendingSortDirection(direction);
-  }, []);
+  const handleSort = useCallback(
+    (field: SortField, direction: SortDirection) => {
+      setPendingSortField(field);
+      setPendingSortDirection(direction);
+    },
+    [],
+  );
 
   // Apply sort immediately without debouncing (useful for initial load or user-triggered refresh)
-  const applySortImmediately = useCallback((field: SortField, direction: SortDirection) => {
-    // Clear any pending debounced changes
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-    
-    setSortField(field);
-    setSortDirection(direction);
-    setPendingSortField(undefined);
-    setPendingSortDirection(undefined);
-    setIsDebouncing(false);
-  }, []);
+  const applySortImmediately = useCallback(
+    (field: SortField, direction: SortDirection) => {
+      // Clear any pending debounced changes
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+
+      setSortField(field);
+      setSortDirection(direction);
+      setPendingSortField(undefined);
+      setPendingSortDirection(undefined);
+      setIsDebouncing(false);
+    },
+    [],
+  );
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -102,6 +113,6 @@ export function useDebouncedSort({
     pendingSortDirection,
     isDebouncing,
     handleSort,
-    applySortImmediately
+    applySortImmediately,
   };
 }

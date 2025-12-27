@@ -1,6 +1,6 @@
 module.exports = {
-  extends: ['next/core-web-vitals', './base.js'],
+  extends: ["next/core-web-vitals", "./base.js"],
   rules: {
-    '@next/next/no-html-link-for-pages': 'off',
+    "@next/next/no-html-link-for-pages": "off",
   },
 };

@@ -1,5 +1,5 @@
 // Shared Zod validation schemas
-import { z } from 'zod';
+import { z } from "zod";
 
 // Example validators
 export const emailSchema = z.string().email();

@@ -29,18 +29,22 @@ const DEFAULT_RETRY_OPTIONS: RetryOptions = {
   jitter: true,
   shouldRetry: (error: Error, attempt: number) => {
     // Don't retry authentication errors
-    if (error.message.includes('Authentication required') || 
-        error.message.includes('Access denied')) {
+    if (
+      error.message.includes("Authentication required") ||
+      error.message.includes("Access denied")
+    ) {
       return false;
     }
-    
+
     // Don't retry client errors (4xx) except for 429 (rate limiting)
-    if (error.message.includes('400') || 
-        error.message.includes('404') || 
-        error.message.includes('403')) {
+    if (
+      error.message.includes("400") ||
+      error.message.includes("404") ||
+      error.message.includes("403")
+    ) {
       return false;
     }
-    
+
     // Retry network errors and server errors (5xx)
     return attempt < 3;
   },
@@ -50,16 +54,17 @@ const DEFAULT_RETRY_OPTIONS: RetryOptions = {
  * Calculate delay for next retry attempt with exponential backoff and optional jitter
  */
 function calculateDelay(attempt: number, options: RetryOptions): number {
-  const exponentialDelay = options.baseDelay * Math.pow(options.backoffMultiplier, attempt - 1);
+  const exponentialDelay =
+    options.baseDelay * Math.pow(options.backoffMultiplier, attempt - 1);
   const delay = Math.min(exponentialDelay, options.maxDelay);
-  
+
   if (options.jitter) {
     // Add random jitter (±25% of the delay)
     const jitterRange = delay * 0.25;
     const jitter = (Math.random() - 0.5) * 2 * jitterRange;
     return Math.max(0, delay + jitter);
   }
-  
+
   return delay;
 }
 
@@ -67,50 +72,50 @@ function calculateDelay(attempt: number, options: RetryOptions): number {
  * Sleep for specified number of milliseconds
  */
 function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 /**
  * Retry a function with exponential backoff
- * 
+ *
  * @param fn - Function to retry
  * @param options - Retry configuration options
  * @returns Promise that resolves with the function result or rejects with the last error
  */
 export async function withRetry<T>(
   fn: () => Promise<T>,
-  options: Partial<RetryOptions> = {}
+  options: Partial<RetryOptions> = {},
 ): Promise<T> {
   const config = { ...DEFAULT_RETRY_OPTIONS, ...options };
-  let lastError: Error = new Error('No error occurred'); // Initialize with default
-  
+  let lastError: Error = new Error("No error occurred"); // Initialize with default
+
   for (let attempt = 1; attempt <= config.maxAttempts; attempt++) {
     try {
       return await fn();
     } catch (error) {
       lastError = error instanceof Error ? error : new Error(String(error));
-      
+
       // Check if we should retry this error
       if (!config.shouldRetry || !config.shouldRetry(lastError, attempt)) {
         throw lastError;
       }
-      
+
       // Don't delay after the last attempt
       if (attempt === config.maxAttempts) {
         break;
       }
-      
+
       // Call retry callback if provided
       if (config.onRetry) {
         config.onRetry(lastError, attempt);
       }
-      
+
       // Calculate and wait for delay
       const delay = calculateDelay(attempt, config);
       await sleep(delay);
     }
   }
-  
+
   // All retry attempts failed
   throw lastError;
 }
@@ -120,7 +125,7 @@ export async function withRetry<T>(
  */
 export function createRetryWrapper(options: Partial<RetryOptions> = {}) {
   return function retryWrapper<T extends unknown[], R>(
-    fn: (...args: T) => Promise<R>
+    fn: (...args: T) => Promise<R>,
   ) {
     return async (...args: T): Promise<R> => {
       return withRetry(() => fn(...args), options);
@@ -140,7 +145,7 @@ export const retryConfigs = {
     backoffMultiplier: 2,
     jitter: true,
   } as Partial<RetryOptions>,
-  
+
   /** Configuration for critical operations */
   critical: {
     maxAttempts: 5,
@@ -149,7 +154,7 @@ export const retryConfigs = {
     backoffMultiplier: 1.5,
     jitter: true,
   } as Partial<RetryOptions>,
-  
+
   /** Configuration for background operations */
   background: {
     maxAttempts: 2,
@@ -167,40 +172,43 @@ export function useRetryState() {
   const [isRetrying, setIsRetrying] = React.useState(false);
   const [retryCount, setRetryCount] = React.useState(0);
   const [lastError, setLastError] = React.useState<Error | null>(null);
-  
-  const retry = React.useCallback(async <T>(
-    fn: () => Promise<T>,
-    options: Partial<RetryOptions> = {}
-  ): Promise<T> => {
-    setIsRetrying(true);
-    setLastError(null);
-    
-    try {
-      const result = await withRetry(fn, {
-        ...options,
-        onRetry: (error, attempt) => {
-          setRetryCount(attempt);
-          options.onRetry?.(error, attempt);
-        },
-      });
-      
-      setRetryCount(0);
-      return result;
-    } catch (error) {
-      const err = error instanceof Error ? error : new Error(String(error));
-      setLastError(err);
-      throw err;
-    } finally {
-      setIsRetrying(false);
-    }
-  }, []);
-  
+
+  const retry = React.useCallback(
+    async <T>(
+      fn: () => Promise<T>,
+      options: Partial<RetryOptions> = {},
+    ): Promise<T> => {
+      setIsRetrying(true);
+      setLastError(null);
+
+      try {
+        const result = await withRetry(fn, {
+          ...options,
+          onRetry: (error, attempt) => {
+            setRetryCount(attempt);
+            options.onRetry?.(error, attempt);
+          },
+        });
+
+        setRetryCount(0);
+        return result;
+      } catch (error) {
+        const err = error instanceof Error ? error : new Error(String(error));
+        setLastError(err);
+        throw err;
+      } finally {
+        setIsRetrying(false);
+      }
+    },
+    [],
+  );
+
   const reset = React.useCallback(() => {
     setIsRetrying(false);
     setRetryCount(0);
     setLastError(null);
   }, []);
-  
+
   return {
     isRetrying,
     retryCount,
@@ -211,4 +219,4 @@ export function useRetryState() {
 }
 
 // Import React for the hook
-import React from 'react';
+import React from "react";

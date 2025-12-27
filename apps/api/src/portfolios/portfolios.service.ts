@@ -60,7 +60,10 @@ export class PortfoliosService {
     };
   }
 
-  async create(createPortfolioDto: CreatePortfolioDto, userId: string): Promise<Portfolio> {
+  async create(
+    createPortfolioDto: CreatePortfolioDto,
+    userId: string,
+  ): Promise<Portfolio> {
     const { name, description } = createPortfolioDto;
 
     return this.prisma.portfolio.create({

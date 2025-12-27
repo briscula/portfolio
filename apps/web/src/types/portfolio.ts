@@ -57,7 +57,6 @@ export interface PortfolioSummary {
   monthlyDividends: number;
 }
 
-
 /**
  * Shape of the summary data returned from the API's /portfolios/:id/summary endpoint
  */

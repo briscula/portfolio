@@ -1,16 +1,16 @@
-import React from 'react';
-import { render, screen } from '@testing-library/react';
-import '@testing-library/jest-dom';
+import React from "react";
+import { render, screen } from "@testing-library/react";
+import "@testing-library/jest-dom";
 
 // Create mock functions before mocking modules
 const mockRedirect = jest.fn();
 const mockUseUser = jest.fn();
 
-jest.mock('@auth0/nextjs-auth0/client', () => ({
+jest.mock("@auth0/nextjs-auth0/client", () => ({
   useUser: mockUseUser,
 }));
 
-jest.mock('@/hooks/useTransactions', () => ({
+jest.mock("@/hooks/useTransactions", () => ({
   useTransactions: () => ({
     activities: [],
     loading: false,
@@ -18,7 +18,7 @@ jest.mock('@/hooks/useTransactions', () => ({
   }),
 }));
 
-jest.mock('@/hooks/usePortfolio', () => ({
+jest.mock("@/hooks/usePortfolio", () => ({
   usePortfolios: () => ({
     portfolios: [],
     loading: false,
@@ -27,7 +27,7 @@ jest.mock('@/hooks/usePortfolio', () => ({
   }),
 }));
 
-jest.mock('@/lib/apiClient', () => ({
+jest.mock("@/lib/apiClient", () => ({
   useApiClient: () => ({
     apiClient: {
       createPortfolio: jest.fn(),
@@ -36,9 +36,9 @@ jest.mock('@/lib/apiClient', () => ({
   }),
 }));
 
-jest.mock('next/navigation', () => ({
+jest.mock("next/navigation", () => ({
   redirect: mockRedirect,
-  usePathname: jest.fn(() => '/en/dashboard'),
+  usePathname: jest.fn(() => "/en/dashboard"),
   useRouter: jest.fn(() => ({
     push: jest.fn(),
     replace: jest.fn(),
@@ -49,18 +49,18 @@ jest.mock('next/navigation', () => ({
   })),
 }));
 
-import DashboardPage from '../page';
+import DashboardPage from "../page";
 
-describe('DashboardPage', () => {
+describe("DashboardPage", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders the dashboard for an authenticated user', () => {
+  it("renders the dashboard for an authenticated user", () => {
     mockUseUser.mockReturnValue({
       user: {
-        name: 'Test User',
-        email: 'test@example.com',
+        name: "Test User",
+        email: "test@example.com",
       },
       isLoading: false,
       error: undefined,
@@ -68,11 +68,13 @@ describe('DashboardPage', () => {
     });
 
     render(<DashboardPage />);
-    expect(screen.getByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
-    expect(screen.getByText('Welcome back, Test User')).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: "Dashboard" }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Welcome back, Test User")).toBeInTheDocument();
   });
 
-  it('redirects to login when user is not authenticated', () => {
+  it("redirects to login when user is not authenticated", () => {
     mockUseUser.mockReturnValue({
       user: undefined,
       isLoading: false,
@@ -82,10 +84,10 @@ describe('DashboardPage', () => {
 
     // Mock redirect to throw an error (mimics Next.js behavior)
     mockRedirect.mockImplementation(() => {
-      throw new Error('NEXT_REDIRECT');
+      throw new Error("NEXT_REDIRECT");
     });
 
-    expect(() => render(<DashboardPage />)).toThrow('NEXT_REDIRECT');
-    expect(mockRedirect).toHaveBeenCalledWith('/api/auth/login');
+    expect(() => render(<DashboardPage />)).toThrow("NEXT_REDIRECT");
+    expect(mockRedirect).toHaveBeenCalledWith("/api/auth/login");
   });
 });

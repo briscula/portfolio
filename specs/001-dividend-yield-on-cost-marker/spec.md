@@ -6,7 +6,7 @@
 **Input**: User description: "we need to modify the 'Dividend Yield Comparison' widget. ideally, I would like a vertical bar to reflect the total dividends in the last 12 months.. and the marker to identify the amount it should have been as if the dividen would have been calculated with yeld on cost. Example, if stock X got 80€ during the last year reflecting the 3.5% yield.... then I would like a marker indicating how much I would have got if yield % was on cost."
 **Clarification**: "the Y axis should be the dividend yeld... and the marker should be the yield on cost. for dividend yield... I probably need to an api.. but we will leave it out of the scope how we retrieve that for the moment. but marker will show yield on cost.. this we can calculate"
 
-## User Scenarios & Testing *(mandatory)*
+## User Scenarios & Testing _(mandatory)_
 
 ### User Story 1 - Compare Current Yield vs. Yield on Cost (Priority: P1)
 
@@ -32,7 +32,7 @@ As a dividend-focused investor, I want the "Dividend Yield Comparison" widget to
 - **What happens if the cost basis for a holding is zero or not available?** The 'Yield on Cost' marker cannot be calculated and must not be displayed.
 - **What happens if a stock's yield is negative or zero?** The widget should correctly display the bar at the zero line.
 
-## Requirements *(mandatory)*
+## Requirements _(mandatory)_
 
 ### Functional Requirements
 
@@ -48,7 +48,7 @@ As a dividend-focused investor, I want the "Dividend Yield Comparison" widget to
 - **Holding**: Represents a user's investment in a specific stock. Key attributes for this feature include `total_cost_basis` and `shares_count`.
 - **StockData**: Represents market data for a stock. The key attribute for this feature is `current_dividend_yield_percentage`.
 
-## Success Criteria *(mandatory)*
+## Success Criteria _(mandatory)_
 
 ### Measurable Outcomes
 

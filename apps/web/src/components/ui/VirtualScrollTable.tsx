@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { useState, useRef, useCallback, useMemo } from 'react';
-import { cn } from '@/lib/utils';
+import React, { useState, useRef, useCallback, useMemo } from "react";
+import { cn } from "@/lib/utils";
 
 export interface VirtualScrollItem {
   id: string;
@@ -12,7 +12,11 @@ export interface VirtualScrollTableProps<T extends VirtualScrollItem> {
   items: T[];
   itemHeight: number;
   containerHeight: number;
-  renderItem: (item: T, index: number, style: React.CSSProperties) => React.ReactNode;
+  renderItem: (
+    item: T,
+    index: number,
+    style: React.CSSProperties,
+  ) => React.ReactNode;
   renderHeader?: () => React.ReactNode;
   overscan?: number;
   className?: string;
@@ -37,17 +41,20 @@ export function VirtualScrollTable<T extends VirtualScrollItem>({
   onScroll,
   loading = false,
   loadingComponent,
-  emptyComponent
+  emptyComponent,
 }: VirtualScrollTableProps<T>) {
   const [scrollTop, setScrollTop] = useState(0);
   const scrollElementRef = useRef<HTMLDivElement>(null);
 
   // Calculate visible range
   const visibleRange = useMemo(() => {
-    const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
+    const startIndex = Math.max(
+      0,
+      Math.floor(scrollTop / itemHeight) - overscan,
+    );
     const endIndex = Math.min(
       items.length - 1,
-      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan
+      Math.ceil((scrollTop + containerHeight) / itemHeight) + overscan,
     );
     return { startIndex, endIndex };
   }, [scrollTop, itemHeight, containerHeight, items.length, overscan]);
@@ -59,32 +66,41 @@ export function VirtualScrollTable<T extends VirtualScrollItem>({
   }, [items, visibleRange.startIndex, visibleRange.endIndex]);
 
   // Handle scroll events
-  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
-    const newScrollTop = event.currentTarget.scrollTop;
-    setScrollTop(newScrollTop);
-    onScroll?.(newScrollTop);
-  }, [onScroll]);
+  const handleScroll = useCallback(
+    (event: React.UIEvent<HTMLDivElement>) => {
+      const newScrollTop = event.currentTarget.scrollTop;
+      setScrollTop(newScrollTop);
+      onScroll?.(newScrollTop);
+    },
+    [onScroll],
+  );
 
   // Scroll to specific item
-  const scrollToItem = useCallback((index: number, align: 'start' | 'center' | 'end' = 'start') => {
-    if (!scrollElementRef.current) return;
+  const scrollToItem = useCallback(
+    (index: number, align: "start" | "center" | "end" = "start") => {
+      if (!scrollElementRef.current) return;
 
-    let scrollTop: number;
-    switch (align) {
-      case 'start':
-        scrollTop = index * itemHeight;
-        break;
-      case 'center':
-        scrollTop = index * itemHeight - containerHeight / 2 + itemHeight / 2;
-        break;
-      case 'end':
-        scrollTop = index * itemHeight - containerHeight + itemHeight;
-        break;
-    }
+      let scrollTop: number;
+      switch (align) {
+        case "start":
+          scrollTop = index * itemHeight;
+          break;
+        case "center":
+          scrollTop = index * itemHeight - containerHeight / 2 + itemHeight / 2;
+          break;
+        case "end":
+          scrollTop = index * itemHeight - containerHeight + itemHeight;
+          break;
+      }
 
-    scrollTop = Math.max(0, Math.min(scrollTop, totalHeight - containerHeight));
-    scrollElementRef.current.scrollTop = scrollTop;
-  }, [itemHeight, containerHeight, totalHeight]);
+      scrollTop = Math.max(
+        0,
+        Math.min(scrollTop, totalHeight - containerHeight),
+      );
+      scrollElementRef.current.scrollTop = scrollTop;
+    },
+    [itemHeight, containerHeight, totalHeight],
+  );
 
   // Scroll to top
   const scrollToTop = useCallback(() => {
@@ -95,7 +111,10 @@ export function VirtualScrollTable<T extends VirtualScrollItem>({
   // Scroll to bottom
   const scrollToBottom = useCallback(() => {
     if (!scrollElementRef.current) return;
-    scrollElementRef.current.scrollTop = Math.max(0, totalHeight - containerHeight);
+    scrollElementRef.current.scrollTop = Math.max(
+      0,
+      totalHeight - containerHeight,
+    );
   }, [totalHeight, containerHeight]);
   // Note: Scroll methods can be accessed via scrollElementRef.current
   // scrollToItem, scrollToTop, scrollToBottom are available as functions
@@ -103,7 +122,10 @@ export function VirtualScrollTable<T extends VirtualScrollItem>({
   // Show loading state
   if (loading && loadingComponent) {
     return (
-      <div className={cn('relative', className)} style={{ height: containerHeight }}>
+      <div
+        className={cn("relative", className)}
+        style={{ height: containerHeight }}
+      >
         {loadingComponent}
       </div>
     );
@@ -112,14 +134,17 @@ export function VirtualScrollTable<T extends VirtualScrollItem>({
   // Show empty state
   if (!loading && items.length === 0 && emptyComponent) {
     return (
-      <div className={cn('relative', className)} style={{ height: containerHeight }}>
+      <div
+        className={cn("relative", className)}
+        style={{ height: containerHeight }}
+      >
         {emptyComponent}
       </div>
     );
   }
 
   return (
-    <div className={cn('relative overflow-hidden', className)}>
+    <div className={cn("relative overflow-hidden", className)}>
       {/* Header */}
       {renderHeader && (
         <div className="sticky top-0 z-10 bg-white border-b border-gray-200">
@@ -137,12 +162,12 @@ export function VirtualScrollTable<T extends VirtualScrollItem>({
         aria-rowcount={items.length}
       >
         {/* Total height spacer */}
-        <div style={{ height: totalHeight, position: 'relative' }}>
+        <div style={{ height: totalHeight, position: "relative" }}>
           {/* Visible items */}
           {visibleItems.map((item, index) => {
             const actualIndex = visibleRange.startIndex + index;
             const style: React.CSSProperties = {
-              position: 'absolute',
+              position: "absolute",
               top: actualIndex * itemHeight,
               left: 0,
               right: 0,

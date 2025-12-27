@@ -15,11 +15,11 @@ This app uses two authentication layers:
 
 ```typescript
 // For user info (name, email, profile)
-import { useUser } from '@auth0/nextjs-auth0/client';
+import { useUser } from "@auth0/nextjs-auth0/client";
 const { user, isLoading } = useUser();
 
 // For API calls (access token)
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from "@/contexts/AuthContext";
 const { accessToken } = useAuth();
 ```
 
@@ -52,7 +52,7 @@ export default async function Page() {
 
 ```typescript
 // Use the hook-based client
-import { useApiClient } from '@/lib/apiClient';
+import { useApiClient } from "@/lib/apiClient";
 
 export default function ClientComponent() {
   const { apiClient, isAuthenticated } = useApiClient();
@@ -73,7 +73,7 @@ Always use the `@repo/env` package for type-safe, validated environment variable
 
 ```typescript
 // ✅ Correct (type-safe, validated at build time)
-import { webEnv } from '@repo/env';
+import { webEnv } from "@repo/env";
 const apiUrl = webEnv.NEXT_PUBLIC_API_URL;
 
 // ❌ Avoid (unsafe, no validation)
@@ -92,13 +92,13 @@ DTOs use Zod schemas wrapped with `createZodDto()`:
 
 ```typescript
 // apps/api/src/portfolios/dto/create-portfolio.dto.ts
-import { z } from 'zod';
-import { createZodDto } from 'nestjs-zod';
+import { z } from "zod";
+import { createZodDto } from "nestjs-zod";
 
 const CreatePortfolioSchema = z.object({
   name: z.string().min(1).max(255),
   description: z.string().optional(),
-  currencyCode: z.string().default('USD'),
+  currencyCode: z.string().default("USD"),
 });
 
 export class CreatePortfolioDto extends createZodDto(CreatePortfolioSchema) {}
@@ -117,7 +117,7 @@ export class CreatePortfolioDto extends createZodDto(CreatePortfolioSchema) {}
 ### Prisma Usage
 
 ```typescript
-import { PrismaService } from '../prisma/prisma.service';
+import { PrismaService } from "../prisma/prisma.service";
 
 @Injectable()
 export class PortfoliosService {

@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import React, { Component, ErrorInfo, ReactNode } from 'react';
-import { Button } from './ui/Button';
+import React, { Component, ErrorInfo, ReactNode } from "react";
+import { Button } from "./ui/Button";
 
 interface Props {
   children: ReactNode;
@@ -40,8 +40,8 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     // Log error details
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    
+    console.error("ErrorBoundary caught an error:", error, errorInfo);
+
     // Update state with error info
     this.setState({
       error,
@@ -71,12 +71,12 @@ export class ErrorBoundary extends Component<Props, State> {
       };
 
       // For now, just log to console
-      console.error('Error Report:', errorReport);
+      console.error("Error Report:", errorReport);
 
       // TODO: Send to error monitoring service
       // Example: Sentry.captureException(error, { contexts: { react: errorInfo } });
     } catch (reportingError) {
-      console.error('Failed to report error:', reportingError);
+      console.error("Failed to report error:", reportingError);
     }
   };
 
@@ -131,10 +131,11 @@ export class ErrorBoundary extends Component<Props, State> {
 
               <div className="mb-6">
                 <p className="text-sm text-gray-600 mb-3">
-                  We encountered an unexpected error. This has been reported to our team.
+                  We encountered an unexpected error. This has been reported to
+                  our team.
                 </p>
-                
-                {process.env.NODE_ENV === 'development' && this.state.error && (
+
+                {process.env.NODE_ENV === "development" && this.state.error && (
                   <details className="mt-4">
                     <summary className="text-sm font-medium text-gray-700 cursor-pointer hover:text-gray-900">
                       Error Details (Development)
@@ -142,7 +143,7 @@ export class ErrorBoundary extends Component<Props, State> {
                     <div className="mt-2 p-3 bg-gray-50 rounded-md">
                       <pre className="text-xs text-gray-800 whitespace-pre-wrap break-words">
                         {this.state.error.message}
-                        {'\n\n'}
+                        {"\n\n"}
                         {this.state.error.stack}
                       </pre>
                     </div>
@@ -182,7 +183,7 @@ export class ErrorBoundary extends Component<Props, State> {
 export function withErrorBoundary<P extends object>(
   Component: React.ComponentType<P>,
   fallback?: ReactNode,
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
+  onError?: (error: Error, errorInfo: ErrorInfo) => void,
 ) {
   const WrappedComponent = (props: P) => (
     <ErrorBoundary fallback={fallback} onError={onError}>
@@ -191,6 +192,6 @@ export function withErrorBoundary<P extends object>(
   );
 
   WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
-  
+
   return WrappedComponent;
 }

@@ -1,15 +1,19 @@
-import React from 'react';
-import { Card, CardHeader, CardTitle, CardContent } from './Card';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { Card, CardHeader, CardTitle, CardContent } from "./Card";
+import { cn } from "@/lib/utils";
 
 export interface ActivityItem {
   id: string;
-  type: 'dividend_received' | 'stock_added' | 'stock_removed' | 'dividend_announced';
+  type:
+    | "dividend_received"
+    | "stock_added"
+    | "stock_removed"
+    | "dividend_announced";
   title: string;
   description: string;
   amount?: string;
   date: Date;
-  status?: 'completed' | 'pending' | 'cancelled';
+  status?: "completed" | "pending" | "cancelled";
 }
 
 export interface ActivityListProps {
@@ -17,27 +21,27 @@ export interface ActivityListProps {
    * List of activity items to display
    */
   activities: ActivityItem[];
-  
+
   /**
    * Title for the activity section
    */
   title?: string;
-  
+
   /**
    * Maximum number of activities to show
    */
   maxItems?: number;
-  
+
   /**
    * Whether to show the "View All" link
    */
   showViewAll?: boolean;
-  
+
   /**
    * Callback for "View All" click
    */
   onViewAll?: () => void;
-  
+
   /**
    * Additional className
    */
@@ -46,7 +50,7 @@ export interface ActivityListProps {
 
 /**
  * ActivityList component for displaying recent portfolio activities
- * 
+ *
  * @example
  * ```tsx
  * <ActivityList
@@ -60,43 +64,43 @@ export interface ActivityListProps {
  */
 export const ActivityList: React.FC<ActivityListProps> = ({
   activities,
-  title = 'Recent Activity',
+  title = "Recent Activity",
   maxItems,
   showViewAll = false,
   onViewAll,
   className,
 }) => {
-  const displayedActivities = maxItems 
+  const displayedActivities = maxItems
     ? activities.slice(0, maxItems)
     : activities;
 
-  const getActivityIcon = (type: ActivityItem['type']) => {
+  const getActivityIcon = (type: ActivityItem["type"]) => {
     switch (type) {
-      case 'dividend_received':
-        return '💰';
-      case 'stock_added':
-        return '📈';
-      case 'stock_removed':
-        return '📉';
-      case 'dividend_announced':
-        return '📢';
+      case "dividend_received":
+        return "💰";
+      case "stock_added":
+        return "📈";
+      case "stock_removed":
+        return "📉";
+      case "dividend_announced":
+        return "📢";
       default:
-        return '📊';
+        return "📊";
     }
   };
 
-  const getActivityColor = (type: ActivityItem['type']) => {
+  const getActivityColor = (type: ActivityItem["type"]) => {
     switch (type) {
-      case 'dividend_received':
-        return 'bg-green-500';
-      case 'stock_added':
-        return 'bg-blue-500';
-      case 'stock_removed':
-        return 'bg-red-500';
-      case 'dividend_announced':
-        return 'bg-purple-500';
+      case "dividend_received":
+        return "bg-green-500";
+      case "stock_added":
+        return "bg-blue-500";
+      case "stock_removed":
+        return "bg-red-500";
+      case "dividend_announced":
+        return "bg-purple-500";
       default:
-        return 'bg-gray-500';
+        return "bg-gray-500";
     }
   };
 
@@ -104,21 +108,21 @@ export const ActivityList: React.FC<ActivityListProps> = ({
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffInDays === 0) {
-      return 'Today';
+      return "Today";
     } else if (diffInDays === 1) {
-      return 'Yesterday';
+      return "Yesterday";
     } else if (diffInDays < 7) {
       return `${diffInDays} days ago`;
     } else if (diffInDays < 30) {
       const weeks = Math.floor(diffInDays / 7);
-      return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+      return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
       });
     }
   };
@@ -170,33 +174,33 @@ interface ActivityItemProps {
 }
 
 const ActivityItem: React.FC<ActivityItemProps> = ({ activity }) => {
-  const getActivityIcon = (type: ActivityItem['type']) => {
+  const getActivityIcon = (type: ActivityItem["type"]) => {
     switch (type) {
-      case 'dividend_received':
-        return '💰';
-      case 'stock_added':
-        return '📈';
-      case 'stock_removed':
-        return '📉';
-      case 'dividend_announced':
-        return '📢';
+      case "dividend_received":
+        return "💰";
+      case "stock_added":
+        return "📈";
+      case "stock_removed":
+        return "📉";
+      case "dividend_announced":
+        return "📢";
       default:
-        return '📊';
+        return "📊";
     }
   };
 
-  const getActivityColor = (type: ActivityItem['type']) => {
+  const getActivityColor = (type: ActivityItem["type"]) => {
     switch (type) {
-      case 'dividend_received':
-        return 'bg-green-500';
-      case 'stock_added':
-        return 'bg-blue-500';
-      case 'stock_removed':
-        return 'bg-red-500';
-      case 'dividend_announced':
-        return 'bg-purple-500';
+      case "dividend_received":
+        return "bg-green-500";
+      case "stock_added":
+        return "bg-blue-500";
+      case "stock_removed":
+        return "bg-red-500";
+      case "dividend_announced":
+        return "bg-purple-500";
       default:
-        return 'bg-gray-500';
+        return "bg-gray-500";
     }
   };
 
@@ -204,21 +208,21 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ activity }) => {
     const now = new Date();
     const diffInMs = now.getTime() - date.getTime();
     const diffInDays = Math.floor(diffInMs / (1000 * 60 * 60 * 24));
-    
+
     if (diffInDays === 0) {
-      return 'Today';
+      return "Today";
     } else if (diffInDays === 1) {
-      return 'Yesterday';
+      return "Yesterday";
     } else if (diffInDays < 7) {
       return `${diffInDays} days ago`;
     } else if (diffInDays < 30) {
       const weeks = Math.floor(diffInDays / 7);
-      return weeks === 1 ? '1 week ago' : `${weeks} weeks ago`;
+      return weeks === 1 ? "1 week ago" : `${weeks} weeks ago`;
     } else {
-      return date.toLocaleDateString('en-US', { 
-        month: 'short', 
-        day: 'numeric',
-        year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+      return date.toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined,
       });
     }
   };
@@ -228,12 +232,14 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ activity }) => {
       <div className="flex items-center min-w-0 flex-1">
         {/* Activity indicator */}
         <div className="flex-shrink-0">
-          <div className={cn(
-            'w-2 h-2 rounded-full',
-            getActivityColor(activity.type)
-          )} />
+          <div
+            className={cn(
+              "w-2 h-2 rounded-full",
+              getActivityColor(activity.type),
+            )}
+          />
         </div>
-        
+
         {/* Activity content */}
         <div className="ml-3 min-w-0 flex-1">
           <div className="flex items-center justify-between">
@@ -253,7 +259,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ activity }) => {
           </div>
         </div>
       </div>
-      
+
       {/* Date */}
       <div className="flex-shrink-0 ml-4">
         <span className="text-sm text-gray-500">
@@ -277,7 +283,8 @@ const EmptyActivityState: React.FC = () => {
         No recent activity
       </h3>
       <p className="text-sm text-gray-600">
-        Your portfolio activity will appear here once you start making transactions.
+        Your portfolio activity will appear here once you start making
+        transactions.
       </p>
     </div>
   );

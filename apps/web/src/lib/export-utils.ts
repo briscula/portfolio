@@ -1,4 +1,4 @@
-import { PortfolioWithMetrics } from './portfolio-metrics';
+import { PortfolioWithMetrics } from "./portfolio-metrics";
 
 export interface ExportColumn {
   key: string;
@@ -16,56 +16,61 @@ export interface ExportOptions {
 // Default columns for portfolio export
 export const DEFAULT_PORTFOLIO_COLUMNS: ExportColumn[] = [
   {
-    key: 'name',
-    label: 'Portfolio Name',
-    getValue: (portfolio) => portfolio.name
+    key: "name",
+    label: "Portfolio Name",
+    getValue: (portfolio) => portfolio.name,
   },
   {
-    key: 'currency',
-    label: 'Currency',
-    getValue: (portfolio) => portfolio.currencyCode
+    key: "currency",
+    label: "Currency",
+    getValue: (portfolio) => portfolio.currencyCode,
   },
   {
-    key: 'totalValue',
-    label: 'Total Value',
+    key: "totalValue",
+    label: "Total Value",
     getValue: (portfolio) => portfolio.metrics.totalValue,
-    format: (value) => typeof value === 'number' ? value.toFixed(2) : value.toString()
+    format: (value) =>
+      typeof value === "number" ? value.toFixed(2) : value.toString(),
   },
   {
-    key: 'totalCost',
-    label: 'Total Cost',
+    key: "totalCost",
+    label: "Total Cost",
     getValue: (portfolio) => portfolio.metrics.totalCost,
-    format: (value) => typeof value === 'number' ? value.toFixed(2) : value.toString()
+    format: (value) =>
+      typeof value === "number" ? value.toFixed(2) : value.toString(),
   },
   {
-    key: 'unrealizedGain',
-    label: 'Unrealized Gain/Loss',
+    key: "unrealizedGain",
+    label: "Unrealized Gain/Loss",
     getValue: (portfolio) => portfolio.metrics.unrealizedGain,
-    format: (value) => typeof value === 'number' ? value.toFixed(2) : value.toString()
+    format: (value) =>
+      typeof value === "number" ? value.toFixed(2) : value.toString(),
   },
   {
-    key: 'unrealizedGainPercent',
-    label: 'Unrealized Gain/Loss %',
+    key: "unrealizedGainPercent",
+    label: "Unrealized Gain/Loss %",
     getValue: (portfolio) => portfolio.metrics.unrealizedGainPercent,
-    format: (value) => typeof value === 'number' ? `${value.toFixed(2)}%` : value.toString()
+    format: (value) =>
+      typeof value === "number" ? `${value.toFixed(2)}%` : value.toString(),
   },
   {
-    key: 'dividendYield',
-    label: 'Dividend Yield',
+    key: "dividendYield",
+    label: "Dividend Yield",
     getValue: (portfolio) => portfolio.metrics.dividendYield,
-    format: (value) => typeof value === 'number' ? `${value.toFixed(2)}%` : value.toString()
+    format: (value) =>
+      typeof value === "number" ? `${value.toFixed(2)}%` : value.toString(),
   },
   {
-    key: 'positionCount',
-    label: 'Positions',
-    getValue: (portfolio) => portfolio.metrics.positionCount
+    key: "positionCount",
+    label: "Positions",
+    getValue: (portfolio) => portfolio.metrics.positionCount,
   },
   {
-    key: 'lastUpdated',
-    label: 'Last Updated',
+    key: "lastUpdated",
+    label: "Last Updated",
     getValue: (portfolio) => portfolio.metrics.lastUpdated.toISOString(),
-    format: (value) => new Date(value).toLocaleDateString()
-  }
+    format: (value) => new Date(value).toLocaleDateString(),
+  },
 ];
 
 /**
@@ -73,16 +78,16 @@ export const DEFAULT_PORTFOLIO_COLUMNS: ExportColumn[] = [
  */
 export function exportToCSV(
   portfolios: PortfolioWithMetrics[],
-  options: ExportOptions = {}
+  options: ExportOptions = {},
 ): void {
   const {
-    filename = `portfolios-${new Date().toISOString().split('T')[0]}.csv`,
+    filename = `portfolios-${new Date().toISOString().split("T")[0]}.csv`,
     columns = DEFAULT_PORTFOLIO_COLUMNS,
-    includeHeaders = true
+    includeHeaders = true,
   } = options;
 
   const csvContent = generateCSVContent(portfolios, columns, includeHeaders);
-  downloadFile(csvContent, filename, 'text/csv');
+  downloadFile(csvContent, filename, "text/csv");
 }
 
 /**
@@ -91,18 +96,16 @@ export function exportToCSV(
  */
 export function exportToPDF(
   portfolios: PortfolioWithMetrics[],
-  options: ExportOptions = {}
+  options: ExportOptions = {},
 ): void {
-  const {
-    columns = DEFAULT_PORTFOLIO_COLUMNS
-  } = options;
+  const { columns = DEFAULT_PORTFOLIO_COLUMNS } = options;
 
   // For now, we'll create a simple HTML table and let the browser handle PDF generation
   // In a production app, you'd want to use a proper PDF library like jsPDF or Puppeteer
   const htmlContent = generateHTMLTable(portfolios, columns);
-  
+
   // Create a new window with the content for printing/PDF
-  const printWindow = window.open('', '_blank');
+  const printWindow = window.open("", "_blank");
   if (printWindow) {
     printWindow.document.write(`
       <!DOCTYPE html>
@@ -129,7 +132,7 @@ export function exportToPDF(
       </html>
     `);
     printWindow.document.close();
-    
+
     // Trigger print dialog
     setTimeout(() => {
       printWindow.print();
@@ -143,27 +146,29 @@ export function exportToPDF(
 function generateCSVContent(
   portfolios: PortfolioWithMetrics[],
   columns: ExportColumn[],
-  includeHeaders: boolean
+  includeHeaders: boolean,
 ): string {
   const rows: string[] = [];
 
   // Add headers if requested
   if (includeHeaders) {
-    const headers = columns.map(col => escapeCSVValue(col.label));
-    rows.push(headers.join(','));
+    const headers = columns.map((col) => escapeCSVValue(col.label));
+    rows.push(headers.join(","));
   }
 
   // Add data rows
-  portfolios.forEach(portfolio => {
-    const values = columns.map(col => {
+  portfolios.forEach((portfolio) => {
+    const values = columns.map((col) => {
       const rawValue = col.getValue(portfolio);
-      const formattedValue = col.format ? col.format(rawValue) : rawValue.toString();
+      const formattedValue = col.format
+        ? col.format(rawValue)
+        : rawValue.toString();
       return escapeCSVValue(formattedValue);
     });
-    rows.push(values.join(','));
+    rows.push(values.join(","));
   });
 
-  return rows.join('\n');
+  return rows.join("\n");
 }
 
 /**
@@ -171,18 +176,26 @@ function generateCSVContent(
  */
 function generateHTMLTable(
   portfolios: PortfolioWithMetrics[],
-  columns: ExportColumn[]
+  columns: ExportColumn[],
 ): string {
-  const headerRow = columns.map(col => `<th>${escapeHTML(col.label)}</th>`).join('');
-  
-  const dataRows = portfolios.map(portfolio => {
-    const cells = columns.map(col => {
-      const rawValue = col.getValue(portfolio);
-      const formattedValue = col.format ? col.format(rawValue) : rawValue.toString();
-      return `<td>${escapeHTML(formattedValue)}</td>`;
-    }).join('');
-    return `<tr>${cells}</tr>`;
-  }).join('');
+  const headerRow = columns
+    .map((col) => `<th>${escapeHTML(col.label)}</th>`)
+    .join("");
+
+  const dataRows = portfolios
+    .map((portfolio) => {
+      const cells = columns
+        .map((col) => {
+          const rawValue = col.getValue(portfolio);
+          const formattedValue = col.format
+            ? col.format(rawValue)
+            : rawValue.toString();
+          return `<td>${escapeHTML(formattedValue)}</td>`;
+        })
+        .join("");
+      return `<tr>${cells}</tr>`;
+    })
+    .join("");
 
   return `
     <table>
@@ -202,12 +215,16 @@ function generateHTMLTable(
 function escapeCSVValue(value: string): string {
   // Convert to string if not already
   const stringValue = value.toString();
-  
+
   // If the value contains comma, quote, or newline, wrap in quotes and escape internal quotes
-  if (stringValue.includes(',') || stringValue.includes('"') || stringValue.includes('\n')) {
+  if (
+    stringValue.includes(",") ||
+    stringValue.includes('"') ||
+    stringValue.includes("\n")
+  ) {
     return `"${stringValue.replace(/"/g, '""')}"`;
   }
-  
+
   return stringValue;
 }
 
@@ -215,7 +232,7 @@ function escapeCSVValue(value: string): string {
  * Escape HTML special characters
  */
 function escapeHTML(value: string): string {
-  const div = document.createElement('div');
+  const div = document.createElement("div");
   div.textContent = value;
   return div.innerHTML;
 }
@@ -223,19 +240,23 @@ function escapeHTML(value: string): string {
 /**
  * Download file with given content
  */
-function downloadFile(content: string, filename: string, mimeType: string): void {
+function downloadFile(
+  content: string,
+  filename: string,
+  mimeType: string,
+): void {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
-  
-  const link = document.createElement('a');
+
+  const link = document.createElement("a");
   link.href = url;
   link.download = filename;
-  link.style.display = 'none';
-  
+  link.style.display = "none";
+
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  
+
   // Clean up the URL object
   URL.revokeObjectURL(url);
 }
@@ -245,30 +266,33 @@ function downloadFile(content: string, filename: string, mimeType: string): void
  */
 export function filterPortfolios(
   portfolios: PortfolioWithMetrics[],
-  searchQuery: string
+  searchQuery: string,
 ): PortfolioWithMetrics[] {
   if (!searchQuery || !searchQuery.trim()) {
     return portfolios;
   }
 
   const query = searchQuery.toLowerCase().trim();
-  
-  return portfolios.filter(portfolio => {
+
+  return portfolios.filter((portfolio) => {
     // Search in portfolio name
     if (portfolio.name.toLowerCase().includes(query)) {
       return true;
     }
-    
+
     // Search in currency code
     if (portfolio.currencyCode.toLowerCase().includes(query)) {
       return true;
     }
-    
+
     // Search in description if available
-    if (portfolio.description && portfolio.description.toLowerCase().includes(query)) {
+    if (
+      portfolio.description &&
+      portfolio.description.toLowerCase().includes(query)
+    ) {
       return true;
     }
-    
+
     return false;
   });
 }
@@ -276,6 +300,9 @@ export function filterPortfolios(
 /**
  * Get filtered columns based on visibility settings
  */
-export function getVisibleColumns(columns: ExportColumn[], visibleColumnKeys: string[]): ExportColumn[] {
-  return columns.filter(col => visibleColumnKeys.includes(col.key));
+export function getVisibleColumns(
+  columns: ExportColumn[],
+  visibleColumnKeys: string[],
+): ExportColumn[] {
+  return columns.filter((col) => visibleColumnKeys.includes(col.key));
 }

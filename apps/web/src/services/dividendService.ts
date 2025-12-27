@@ -1,4 +1,4 @@
-import { ApiClient } from '@/lib/apiClient';
+import { ApiClient } from "@/lib/apiClient";
 
 export interface DividendApiResponse {
   months: string[];
@@ -36,8 +36,34 @@ export interface YearRange {
 
 export class DividendService {
   private readonly MONTH_NAMES: Record<string, string[]> = {
-    en: ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'],
-    es: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic']
+    en: [
+      "jan",
+      "feb",
+      "mar",
+      "apr",
+      "may",
+      "jun",
+      "jul",
+      "aug",
+      "sep",
+      "oct",
+      "nov",
+      "dec",
+    ],
+    es: [
+      "ene",
+      "feb",
+      "mar",
+      "abr",
+      "may",
+      "jun",
+      "jul",
+      "ago",
+      "sep",
+      "oct",
+      "nov",
+      "dic",
+    ],
   };
 
   constructor(private apiClient: ApiClient) {}
@@ -47,20 +73,23 @@ export class DividendService {
     portfolioId: string,
     startYear: number,
     endYear: number,
-    stockSymbol?: string
+    stockSymbol?: string,
   ): Promise<DividendApiResponse> {
     // Fetch data from API
     const response = await this.apiClient.getDividendMonthlyOverview(
       portfolioId,
       startYear,
-      endYear
+      endYear,
     );
 
     let filteredResponse = response as DividendApiResponse;
 
     // Apply stock symbol filter if provided
     if (stockSymbol) {
-      filteredResponse = this.filterByStockSymbol(filteredResponse, stockSymbol);
+      filteredResponse = this.filterByStockSymbol(
+        filteredResponse,
+        stockSymbol,
+      );
     }
 
     return filteredResponse;
@@ -71,27 +100,30 @@ export class DividendService {
     const currentYear = new Date().getFullYear();
     return {
       startYear: currentYear - 4,
-      endYear: currentYear
+      endYear: currentYear,
     };
   }
   calculateYearRange(yearsBack: number): YearRange {
     const currentYear = new Date().getFullYear();
     return {
       startYear: currentYear - yearsBack,
-      endYear: currentYear
+      endYear: currentYear,
     };
   }
 
   // Data Transformation
-  transformToChartFormat(apiResponse: DividendApiResponse, locale: string): ChartDataPoint[] {
-    return apiResponse.data.map(monthData => {
+  transformToChartFormat(
+    apiResponse: DividendApiResponse,
+    locale: string,
+  ): ChartDataPoint[] {
+    return apiResponse.data.map((monthData) => {
       const monthNumber = parseInt(monthData.month);
       const chartPoint: ChartDataPoint = {
-        month: this.getMonthName(monthNumber, locale)
+        month: this.getMonthName(monthNumber, locale),
       };
 
       // Add data for each year in this month
-      monthData.yearlyData.forEach(yearData => {
+      monthData.yearlyData.forEach((yearData) => {
         chartPoint[yearData.year] = yearData.totalDividends;
       });
 
@@ -99,7 +131,7 @@ export class DividendService {
       return this.fillMissingYears(chartPoint, apiResponse.years);
     });
   }
-  getMonthName(monthNumber: number, locale: string = 'en'): string {
+  getMonthName(monthNumber: number, locale: string = "en"): string {
     const names = this.MONTH_NAMES[locale] || this.MONTH_NAMES.en;
 
     // Validate month number (1-12)
@@ -109,10 +141,13 @@ export class DividendService {
 
     return names[monthNumber - 1];
   }
-  fillMissingYears(chartPoint: ChartDataPoint, years: string[]): ChartDataPoint {
+  fillMissingYears(
+    chartPoint: ChartDataPoint,
+    years: string[],
+  ): ChartDataPoint {
     const filled = { ...chartPoint };
 
-    years.forEach(year => {
+    years.forEach((year) => {
       if (!(year in filled)) {
         filled[year] = 0;
       }
@@ -125,38 +160,41 @@ export class DividendService {
   calculateDividendSummary(apiResponse: DividendApiResponse): DividendSummary {
     // Calculate total dividends across all months and years
     let totalDividends = 0;
-    let highestMonth = { month: '', amount: 0, year: '' };
-    let lowestMonth = { month: '', amount: Infinity, year: '' };
+    let highestMonth = { month: "", amount: 0, year: "" };
+    let lowestMonth = { month: "", amount: Infinity, year: "" };
 
     const dividendsByYear: Record<string, number> = {};
 
     // Initialize yearly totals
-    apiResponse.years.forEach(year => {
+    apiResponse.years.forEach((year) => {
       dividendsByYear[year] = 0;
     });
 
     // Process each month
-    apiResponse.data.forEach(monthData => {
+    apiResponse.data.forEach((monthData) => {
       const monthTotal = this.calculateMonthlyTotal(monthData);
       totalDividends += monthTotal;
 
       // Find highest and lowest months
-      monthData.yearlyData.forEach(yearData => {
+      monthData.yearlyData.forEach((yearData) => {
         dividendsByYear[yearData.year] += yearData.totalDividends;
 
         if (yearData.totalDividends > highestMonth.amount) {
           highestMonth = {
             month: monthData.monthName,
             amount: yearData.totalDividends,
-            year: yearData.year
+            year: yearData.year,
           };
         }
 
-        if (yearData.totalDividends > 0 && yearData.totalDividends < lowestMonth.amount) {
+        if (
+          yearData.totalDividends > 0 &&
+          yearData.totalDividends < lowestMonth.amount
+        ) {
           lowestMonth = {
             month: monthData.monthName,
             amount: yearData.totalDividends,
-            year: yearData.year
+            year: yearData.year,
           };
         }
       });
@@ -172,24 +210,26 @@ export class DividendService {
     return {
       totalDividends,
       averageMonthly,
-      highestMonth: lowestMonth.amount === Infinity
-        ? { month: '', amount: 0, year: '' }
-        : highestMonth,
-      lowestMonth: lowestMonth.amount === Infinity
-        ? { month: '', amount: 0, year: '' }
-        : lowestMonth,
+      highestMonth:
+        lowestMonth.amount === Infinity
+          ? { month: "", amount: 0, year: "" }
+          : highestMonth,
+      lowestMonth:
+        lowestMonth.amount === Infinity
+          ? { month: "", amount: 0, year: "" }
+          : lowestMonth,
       yearOverYearGrowth,
-      dividendsByYear
+      dividendsByYear,
     };
   }
-  calculateMonthlyTotal(monthData: DividendApiResponse['data'][0]): number {
+  calculateMonthlyTotal(monthData: DividendApiResponse["data"][0]): number {
     return monthData.yearlyData.reduce((sum, yearData) => {
       return sum + yearData.totalDividends;
     }, 0);
   }
   calculateYearlyTotal(apiResponse: DividendApiResponse, year: string): number {
     return apiResponse.data.reduce((sum, monthData) => {
-      const yearData = monthData.yearlyData.find(y => y.year === year);
+      const yearData = monthData.yearlyData.find((y) => y.year === year);
       return sum + (yearData?.totalDividends || 0);
     }, 0);
   }
@@ -213,21 +253,25 @@ export class DividendService {
   }
 
   // Filtering Operations
-  filterByYearRange(apiResponse: DividendApiResponse, startYear: number, endYear: number): DividendApiResponse {
+  filterByYearRange(
+    apiResponse: DividendApiResponse,
+    startYear: number,
+    endYear: number,
+  ): DividendApiResponse {
     // Filter yearly data within each month
     const filteredData = apiResponse.data
-      .map(monthData => ({
+      .map((monthData) => ({
         ...monthData,
-        yearlyData: monthData.yearlyData.filter(yearData => {
+        yearlyData: monthData.yearlyData.filter((yearData) => {
           const year = parseInt(yearData.year);
           return year >= startYear && year <= endYear;
-        })
+        }),
       }))
       // Remove months that have no data after filtering
-      .filter(monthData => monthData.yearlyData.length > 0);
+      .filter((monthData) => monthData.yearlyData.length > 0);
 
     // Filter the years array
-    const filteredYears = apiResponse.years.filter(year => {
+    const filteredYears = apiResponse.years.filter((year) => {
       const y = parseInt(year);
       return y >= startYear && y <= endYear;
     });
@@ -235,26 +279,29 @@ export class DividendService {
     return {
       ...apiResponse,
       data: filteredData,
-      years: filteredYears
+      years: filteredYears,
     };
   }
-  filterByStockSymbol(apiResponse: DividendApiResponse, stockSymbol: string): DividendApiResponse {
+  filterByStockSymbol(
+    apiResponse: DividendApiResponse,
+    stockSymbol: string,
+  ): DividendApiResponse {
     const filteredData = apiResponse.data
-      .map(monthData => ({
+      .map((monthData) => ({
         ...monthData,
         yearlyData: monthData.yearlyData
-          .filter(yearData => yearData.companies.includes(stockSymbol))
-          .map(yearData => ({
+          .filter((yearData) => yearData.companies.includes(stockSymbol))
+          .map((yearData) => ({
             ...yearData,
-            companies: [stockSymbol] // Only include the filtered symbol
-          }))
+            companies: [stockSymbol], // Only include the filtered symbol
+          })),
       }))
       // Remove months that have no data after filtering
-      .filter(monthData => monthData.yearlyData.length > 0);
+      .filter((monthData) => monthData.yearlyData.length > 0);
 
     return {
       ...apiResponse,
-      data: filteredData
+      data: filteredData,
     };
   }
 }

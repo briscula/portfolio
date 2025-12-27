@@ -1,17 +1,21 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext } from 'react';
-import { useErrorHandler, ErrorHandlerConfig, ErrorHandlerContextType } from '../hooks/useErrorHandler';
+import React, { createContext, useContext } from "react";
+import {
+  useErrorHandler,
+  ErrorHandlerConfig,
+  ErrorHandlerContextType,
+} from "../hooks/useErrorHandler";
 
 const ErrorHandlerContext = createContext<ErrorHandlerContextType | null>(null);
 
 /**
  * Provider component for error handler context
  */
-export function ErrorHandlerProvider({ 
-  children, 
-  config 
-}: { 
+export function ErrorHandlerProvider({
+  children,
+  config,
+}: {
   children: React.ReactNode;
   config?: Partial<ErrorHandlerConfig>;
 }) {
@@ -38,7 +42,9 @@ export function ErrorHandlerProvider({
 export function useGlobalErrorHandler() {
   const context = useContext(ErrorHandlerContext);
   if (!context) {
-    throw new Error('useGlobalErrorHandler must be used within ErrorHandlerProvider');
+    throw new Error(
+      "useGlobalErrorHandler must be used within ErrorHandlerProvider",
+    );
   }
   return context;
 }

@@ -1,18 +1,25 @@
-'use client';
+"use client";
 
-import React, { useMemo, memo } from 'react';
-import { EmptyState } from './ui';
-import { Pagination } from './ui/Pagination';
-import { VirtualScrollTable, VirtualScrollItem } from './ui/VirtualScrollTable';
-import { OptimizedPortfolioRow } from './OptimizedPortfolioRow';
-import { PortfolioWithMetrics } from '../lib/portfolio-metrics';
-import { usePagination } from '../hooks/usePagination';
-import { useDebouncedSort } from '../hooks/useDebouncedSort';
-import { cn } from '../lib/utils';
-import { ChevronUpIcon, ChevronDownIcon } from './ui/icons';
+import React, { useMemo, memo } from "react";
+import { EmptyState } from "./ui";
+import { Pagination } from "./ui/Pagination";
+import { VirtualScrollTable, VirtualScrollItem } from "./ui/VirtualScrollTable";
+import { OptimizedPortfolioRow } from "./OptimizedPortfolioRow";
+import { PortfolioWithMetrics } from "../lib/portfolio-metrics";
+import { usePagination } from "../hooks/usePagination";
+import { useDebouncedSort } from "../hooks/useDebouncedSort";
+import { cn } from "../lib/utils";
+import { ChevronUpIcon, ChevronDownIcon } from "./ui/icons";
 
-export type SortField = 'name' | 'currency' | 'value' | 'gain' | 'yield' | 'positions' | 'updated';
-export type SortDirection = 'asc' | 'desc';
+export type SortField =
+  | "name"
+  | "currency"
+  | "value"
+  | "gain"
+  | "yield"
+  | "positions"
+  | "updated";
+export type SortDirection = "asc" | "desc";
 
 export interface EnhancedPortfolioTableProps {
   portfolios: PortfolioWithMetrics[];
@@ -41,98 +48,108 @@ interface SortableHeaderProps {
   className?: string;
 }
 
-const SortableHeader = memo<SortableHeaderProps>(({
-  field,
-  currentField,
-  currentDirection,
-  pendingField,
-  pendingDirection,
-  isDebouncing,
-  onSort,
-  children,
-  className
-}) => {
-  const isActive = currentField === field;
-  const isPending = pendingField === field;
-  const displayDirection = isPending ? pendingDirection : currentDirection;
-  
-  const nextDirection: SortDirection = 
-    isActive && displayDirection === 'desc' ? 'asc' : 'desc';
+const SortableHeader = memo<SortableHeaderProps>(
+  ({
+    field,
+    currentField,
+    currentDirection,
+    pendingField,
+    pendingDirection,
+    isDebouncing,
+    onSort,
+    children,
+    className,
+  }) => {
+    const isActive = currentField === field;
+    const isPending = pendingField === field;
+    const displayDirection = isPending ? pendingDirection : currentDirection;
 
-  const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' || event.key === ' ') {
-      event.preventDefault();
-      onSort(field, nextDirection);
-    }
-  };
+    const nextDirection: SortDirection =
+      isActive && displayDirection === "desc" ? "asc" : "desc";
 
-  // Create accessible sort description
-  const getSortDescription = () => {
-    if (!isActive && !isPending) {
-      return `Sort by ${children}`;
-    }
-    const direction = displayDirection === 'asc' ? 'ascending' : 'descending';
-    const status = isPending ? 'pending sort' : 'sorted';
-    return `${status} by ${children} in ${direction} order. Click to sort in ${nextDirection === 'asc' ? 'ascending' : 'descending'} order.`;
-  };
+    const handleKeyDown = (event: React.KeyboardEvent) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        onSort(field, nextDirection);
+      }
+    };
 
-  return (
-    <button
-      onClick={() => onSort(field, nextDirection)}
-      onKeyDown={handleKeyDown}
-      className={cn(
-        'flex items-center space-x-1 text-left font-medium text-gray-900 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm transition-colors touch-manipulation min-h-[44px] py-2',
-        (isActive || isPending) && 'text-blue-600',
-        isPending && isDebouncing && 'opacity-75',
-        className
-      )}
-      aria-label={getSortDescription()}
-      aria-pressed={isActive}
-      aria-describedby={isPending && isDebouncing ? `${field}-sort-status` : undefined}
-      tabIndex={0}
-      role="button"
-    >
-      <span>{children}</span>
-      <div className="flex flex-col" aria-hidden="true">
-        <ChevronUpIcon 
-          className={cn(
-            'h-3 w-3 transition-colors',
-            (isActive || isPending) && displayDirection === 'asc' 
-              ? 'text-blue-600' 
-              : 'text-gray-400'
-          )} 
-        />
-        <ChevronDownIcon 
-          className={cn(
-            'h-3 w-3 -mt-1 transition-colors',
-            (isActive || isPending) && displayDirection === 'desc' 
-              ? 'text-blue-600' 
-              : 'text-gray-400'
-          )} 
-        />
-      </div>
-      {isPending && isDebouncing && (
-        <>
-          <div className="ml-1 w-2 h-2 bg-blue-600 rounded-full animate-pulse" aria-hidden="true" />
-          <span 
-            id={`${field}-sort-status`}
-            className="sr-only"
-            aria-live="polite"
-          >
-            Sorting by {children}...
-          </span>
-        </>
-      )}
-    </button>
-  );
-});
+    // Create accessible sort description
+    const getSortDescription = () => {
+      if (!isActive && !isPending) {
+        return `Sort by ${children}`;
+      }
+      const direction = displayDirection === "asc" ? "ascending" : "descending";
+      const status = isPending ? "pending sort" : "sorted";
+      return `${status} by ${children} in ${direction} order. Click to sort in ${nextDirection === "asc" ? "ascending" : "descending"} order.`;
+    };
 
-SortableHeader.displayName = 'SortableHeader';
+    return (
+      <button
+        onClick={() => onSort(field, nextDirection)}
+        onKeyDown={handleKeyDown}
+        className={cn(
+          "flex items-center space-x-1 text-left font-medium text-gray-900 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm transition-colors touch-manipulation min-h-[44px] py-2",
+          (isActive || isPending) && "text-blue-600",
+          isPending && isDebouncing && "opacity-75",
+          className,
+        )}
+        aria-label={getSortDescription()}
+        aria-pressed={isActive}
+        aria-describedby={
+          isPending && isDebouncing ? `${field}-sort-status` : undefined
+        }
+        tabIndex={0}
+        role="button"
+      >
+        <span>{children}</span>
+        <div className="flex flex-col" aria-hidden="true">
+          <ChevronUpIcon
+            className={cn(
+              "h-3 w-3 transition-colors",
+              (isActive || isPending) && displayDirection === "asc"
+                ? "text-blue-600"
+                : "text-gray-400",
+            )}
+          />
+          <ChevronDownIcon
+            className={cn(
+              "h-3 w-3 -mt-1 transition-colors",
+              (isActive || isPending) && displayDirection === "desc"
+                ? "text-blue-600"
+                : "text-gray-400",
+            )}
+          />
+        </div>
+        {isPending && isDebouncing && (
+          <>
+            <div
+              className="ml-1 w-2 h-2 bg-blue-600 rounded-full animate-pulse"
+              aria-hidden="true"
+            />
+            <span
+              id={`${field}-sort-status`}
+              className="sr-only"
+              aria-live="polite"
+            >
+              Sorting by {children}...
+            </span>
+          </>
+        )}
+      </button>
+    );
+  },
+);
+
+SortableHeader.displayName = "SortableHeader";
 
 const SkeletonRow = memo(() => (
   <tr className="animate-pulse" role="row" aria-label="Loading portfolio data">
     <td className="px-6 py-4 whitespace-nowrap" role="gridcell">
-      <div className="h-4 bg-gray-200 rounded w-32 mb-2" aria-hidden="true"></div>
+      <div
+        className="h-4 bg-gray-200 rounded w-32 mb-2"
+        aria-hidden="true"
+      ></div>
       <div className="h-3 bg-gray-200 rounded w-24" aria-hidden="true"></div>
     </td>
     <td className="px-6 py-4 whitespace-nowrap">
@@ -160,7 +177,7 @@ const SkeletonRow = memo(() => (
   </tr>
 ));
 
-SkeletonRow.displayName = 'SkeletonRow';
+SkeletonRow.displayName = "SkeletonRow";
 
 export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
   portfolios,
@@ -174,7 +191,7 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
   enableVirtualScrolling = false,
   initialPageSize = 25,
   virtualScrollHeight = 600,
-  className
+  className,
 }) => {
   // Debounced sorting
   const {
@@ -183,11 +200,11 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
     pendingSortField,
     pendingSortDirection,
     isDebouncing,
-    handleSort: handleDebouncedSort
+    handleSort: handleDebouncedSort,
   } = useDebouncedSort({
-    initialSortField: externalSortField || 'name',
-    initialSortDirection: externalSortDirection || 'asc',
-    debounceMs: 300
+    initialSortField: externalSortField || "name",
+    initialSortDirection: externalSortDirection || "asc",
+    debounceMs: 300,
   });
 
   // Use external sort if provided, otherwise use internal debounced sort
@@ -201,31 +218,31 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
       let bValue: string | number;
 
       switch (currentSortField) {
-        case 'name':
+        case "name":
           aValue = a.name.toLowerCase();
           bValue = b.name.toLowerCase();
           break;
-        case 'currency':
+        case "currency":
           aValue = a.currencyCode;
           bValue = b.currencyCode;
           break;
-        case 'value':
+        case "value":
           aValue = a.metrics.totalValue;
           bValue = b.metrics.totalValue;
           break;
-        case 'gain':
+        case "gain":
           aValue = a.metrics.unrealizedGain;
           bValue = b.metrics.unrealizedGain;
           break;
-        case 'yield':
+        case "yield":
           aValue = a.metrics.dividendYield;
           bValue = b.metrics.dividendYield;
           break;
-        case 'positions':
+        case "positions":
           aValue = a.metrics.positionCount;
           bValue = b.metrics.positionCount;
           break;
-        case 'updated':
+        case "updated":
           aValue = new Date(a.metrics.lastUpdated).getTime();
           bValue = new Date(b.metrics.lastUpdated).getTime();
           break;
@@ -233,8 +250,8 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
           return 0;
       }
 
-      if (aValue < bValue) return currentSortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return currentSortDirection === 'asc' ? 1 : -1;
+      if (aValue < bValue) return currentSortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return currentSortDirection === "asc" ? 1 : -1;
       return 0;
     });
   }, [portfolios, currentSortField, currentSortDirection]);
@@ -242,7 +259,7 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
   // Pagination
   const pagination = usePagination<PortfolioWithMetrics>({
     initialPageSize,
-    totalItems: sortedPortfolios.length
+    totalItems: sortedPortfolios.length,
   });
 
   // Get data to display (paginated or all)
@@ -263,26 +280,34 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
   };
 
   // Memoize handlers to prevent unnecessary re-renders
-  const memoizedOnEdit = React.useCallback((portfolio: PortfolioWithMetrics) => {
-    onEdit(portfolio);
-  }, [onEdit]);
+  const memoizedOnEdit = React.useCallback(
+    (portfolio: PortfolioWithMetrics) => {
+      onEdit(portfolio);
+    },
+    [onEdit],
+  );
 
-  const memoizedOnViewDividends = React.useCallback((portfolioId: string) => {
-    onViewDividends(portfolioId);
-  }, [onViewDividends]);
+  const memoizedOnViewDividends = React.useCallback(
+    (portfolioId: string) => {
+      onViewDividends(portfolioId);
+    },
+    [onViewDividends],
+  );
 
   // Table header component
   const renderTableHeader = () => (
     <thead className="bg-gray-50" role="rowgroup">
       <tr role="row">
-        <th 
+        <th
           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           role="columnheader"
           scope="col"
           aria-sort={
-            currentSortField === 'name' 
-              ? currentSortDirection === 'asc' ? 'ascending' : 'descending'
-              : 'none'
+            currentSortField === "name"
+              ? currentSortDirection === "asc"
+                ? "ascending"
+                : "descending"
+              : "none"
           }
         >
           <SortableHeader
@@ -297,14 +322,16 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
             Portfolio
           </SortableHeader>
         </th>
-        <th 
+        <th
           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           role="columnheader"
           scope="col"
           aria-sort={
-            currentSortField === 'currency' 
-              ? currentSortDirection === 'asc' ? 'ascending' : 'descending'
-              : 'none'
+            currentSortField === "currency"
+              ? currentSortDirection === "asc"
+                ? "ascending"
+                : "descending"
+              : "none"
           }
         >
           <SortableHeader
@@ -319,14 +346,16 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
             Currency
           </SortableHeader>
         </th>
-        <th 
+        <th
           className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           role="columnheader"
           scope="col"
           aria-sort={
-            currentSortField === 'value' 
-              ? currentSortDirection === 'asc' ? 'ascending' : 'descending'
-              : 'none'
+            currentSortField === "value"
+              ? currentSortDirection === "asc"
+                ? "ascending"
+                : "descending"
+              : "none"
           }
         >
           <SortableHeader
@@ -341,14 +370,16 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
             Total Value
           </SortableHeader>
         </th>
-        <th 
+        <th
           className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           role="columnheader"
           scope="col"
           aria-sort={
-            currentSortField === 'gain' 
-              ? currentSortDirection === 'asc' ? 'ascending' : 'descending'
-              : 'none'
+            currentSortField === "gain"
+              ? currentSortDirection === "asc"
+                ? "ascending"
+                : "descending"
+              : "none"
           }
         >
           <SortableHeader
@@ -363,14 +394,16 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
             Gain/Loss
           </SortableHeader>
         </th>
-        <th 
+        <th
           className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           role="columnheader"
           scope="col"
           aria-sort={
-            currentSortField === 'yield' 
-              ? currentSortDirection === 'asc' ? 'ascending' : 'descending'
-              : 'none'
+            currentSortField === "yield"
+              ? currentSortDirection === "asc"
+                ? "ascending"
+                : "descending"
+              : "none"
           }
         >
           <SortableHeader
@@ -385,14 +418,16 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
             Dividend Yield
           </SortableHeader>
         </th>
-        <th 
+        <th
           className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           role="columnheader"
           scope="col"
           aria-sort={
-            currentSortField === 'positions' 
-              ? currentSortDirection === 'asc' ? 'ascending' : 'descending'
-              : 'none'
+            currentSortField === "positions"
+              ? currentSortDirection === "asc"
+                ? "ascending"
+                : "descending"
+              : "none"
           }
         >
           <SortableHeader
@@ -407,14 +442,16 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
             Positions
           </SortableHeader>
         </th>
-        <th 
+        <th
           className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
           role="columnheader"
           scope="col"
           aria-sort={
-            currentSortField === 'updated' 
-              ? currentSortDirection === 'asc' ? 'ascending' : 'descending'
-              : 'none'
+            currentSortField === "updated"
+              ? currentSortDirection === "asc"
+                ? "ascending"
+                : "descending"
+              : "none"
           }
         >
           <SortableHeader
@@ -429,7 +466,7 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
             Last Updated
           </SortableHeader>
         </th>
-        <th 
+        <th
           className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
           role="columnheader"
           scope="col"
@@ -453,7 +490,11 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
 
   // Virtual scrolling implementation
   if (enableVirtualScrolling && !loading) {
-    const renderVirtualItem = (item: VirtualScrollItem, index: number, style: React.CSSProperties) => {
+    const renderVirtualItem = (
+      item: VirtualScrollItem,
+      index: number,
+      style: React.CSSProperties,
+    ) => {
       const portfolio = item as unknown as PortfolioWithMetrics;
       return (
         <OptimizedPortfolioRow
@@ -468,9 +509,18 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
     };
 
     return (
-      <div className={cn('bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden', className)}>
+      <div
+        className={cn(
+          "bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden",
+          className,
+        )}
+      >
         <VirtualScrollTable
-          items={sortedPortfolios as (PortfolioWithMetrics & { [key: string]: unknown })[]}
+          items={
+            sortedPortfolios as (PortfolioWithMetrics & {
+              [key: string]: unknown;
+            })[]
+          }
           itemHeight={73} // Approximate height of a portfolio row
           containerHeight={virtualScrollHeight}
           renderItem={renderVirtualItem}
@@ -495,10 +545,10 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
 
   // Regular table implementation
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
         <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-          <table 
+          <table
             className="min-w-full divide-y divide-gray-200"
             role="grid"
             aria-label={`Portfolio table with ${portfolios.length} portfolios. Use arrow keys to navigate and Enter to activate sort buttons.`}
@@ -506,27 +556,28 @@ export const EnhancedPortfolioTable: React.FC<EnhancedPortfolioTableProps> = ({
             aria-colcount={8}
           >
             {renderTableHeader()}
-            <tbody className="bg-white divide-y divide-gray-200" role="rowgroup">
-              {loading ? (
-                // Show skeleton rows while loading
-                Array.from({ length: Math.min(5, initialPageSize) }).map((_, index) => (
-                  <SkeletonRow key={index} />
-                ))
-              ) : (
-                // Show actual portfolio data
-                displayedPortfolios.map((item, index) => {
-                  const portfolio = item as PortfolioWithMetrics;
-                  return (
-                    <OptimizedPortfolioRow
-                      key={portfolio.id}
-                      portfolio={portfolio}
-                      onEdit={memoizedOnEdit}
-                      onViewDividends={memoizedOnViewDividends}
-                      index={index}
-                    />
-                  );
-                })
-              )}
+            <tbody
+              className="bg-white divide-y divide-gray-200"
+              role="rowgroup"
+            >
+              {loading
+                ? // Show skeleton rows while loading
+                  Array.from({ length: Math.min(5, initialPageSize) }).map(
+                    (_, index) => <SkeletonRow key={index} />,
+                  )
+                : // Show actual portfolio data
+                  displayedPortfolios.map((item, index) => {
+                    const portfolio = item as PortfolioWithMetrics;
+                    return (
+                      <OptimizedPortfolioRow
+                        key={portfolio.id}
+                        portfolio={portfolio}
+                        onEdit={memoizedOnEdit}
+                        onViewDividends={memoizedOnViewDividends}
+                        index={index}
+                      />
+                    );
+                  })}
             </tbody>
           </table>
         </div>

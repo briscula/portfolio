@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
 // Dynamically import LanguageSwitcher with no SSR to prevent hydration issues
-const LanguageSwitcher = dynamic(() => import('./LanguageSwitcher'), {
+const LanguageSwitcher = dynamic(() => import("./LanguageSwitcher"), {
   ssr: false,
   loading: () => (
     <div className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700">

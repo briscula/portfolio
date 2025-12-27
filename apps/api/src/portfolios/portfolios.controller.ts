@@ -87,7 +87,9 @@ export class PortfoliosController {
   }
 
   @Get(':id/summary')
-  @ApiOkResponse({ description: 'Returns portfolio summary with aggregated metrics' })
+  @ApiOkResponse({
+    description: 'Returns portfolio summary with aggregated metrics',
+  })
   @ApiOperation({
     summary: 'Get portfolio summary',
     description:
@@ -275,7 +277,8 @@ export class PortfoliosController {
     name: 'period',
     required: false,
     type: String,
-    description: 'Period for calculation: last12Months or allTime (default: last12Months)',
+    description:
+      'Period for calculation: last12Months or allTime (default: last12Months)',
   })
   async getPortfolioDividendSummary(
     @Param('id') portfolioId: string,

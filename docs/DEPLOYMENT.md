@@ -5,6 +5,7 @@ Instructions for deploying the Portfolio Monorepo to Vercel.
 ## Overview
 
 This monorepo deploys **two separate apps** to Vercel:
+
 - **Backend API** (`apps/api`) → Separate Vercel project
 - **Frontend Web** (`apps/web`) → Separate Vercel project
 
@@ -29,13 +30,13 @@ Both apps deploy from the same monorepo repository but build independently.
 
 Configure the following:
 
-| Setting | Value |
-|---------|-------|
-| **Framework Preset** | Other |
-| **Root Directory** | `apps/api` |
-| **Build Command** | `cd ../.. && pnpm install && pnpm run build --filter=@repo/api` |
-| **Output Directory** | `dist` |
-| **Install Command** | `cd ../.. && pnpm install` |
+| Setting              | Value                                                           |
+| -------------------- | --------------------------------------------------------------- |
+| **Framework Preset** | Other                                                           |
+| **Root Directory**   | `apps/api`                                                      |
+| **Build Command**    | `cd ../.. && pnpm install && pnpm run build --filter=@repo/api` |
+| **Output Directory** | `dist`                                                          |
+| **Install Command**  | `cd ../.. && pnpm install`                                      |
 
 #### Via vercel.json (Alternative)
 
@@ -82,12 +83,14 @@ FMP_API_KEY=your_fmp_api_key
 ```
 
 **⚠️ Important**:
+
 - Mark sensitive variables as "Sensitive" in Vercel
 - Use different values for Production, Preview, and Development environments
 
 ### Build Command Explanation
 
 The build command does the following:
+
 1. `cd ../..` - Navigate to monorepo root
 2. `pnpm install` - Install all dependencies (including workspace packages)
 3. `pnpm run build --filter=@repo/api` - Build only the backend app
@@ -110,6 +113,7 @@ vercel --prod
    - **Ignored Build Step**: Configure to only build when `apps/api/**` or `packages/**` changes
 
 Create `apps/api/.vercelignore`:
+
 ```
 # Ignore changes outside of API and packages
 apps/web/**
@@ -131,13 +135,13 @@ docs/**
 
 Configure the following:
 
-| Setting | Value |
-|---------|-------|
-| **Framework Preset** | Next.js |
-| **Root Directory** | `apps/web` |
-| **Build Command** | `cd ../.. && pnpm install && pnpm run build --filter=@repo/web` |
-| **Output Directory** | `.next` |
-| **Install Command** | `cd ../.. && pnpm install` |
+| Setting              | Value                                                           |
+| -------------------- | --------------------------------------------------------------- |
+| **Framework Preset** | Next.js                                                         |
+| **Root Directory**   | `apps/web`                                                      |
+| **Build Command**    | `cd ../.. && pnpm install && pnpm run build --filter=@repo/web` |
+| **Output Directory** | `.next`                                                         |
+| **Install Command**  | `cd ../.. && pnpm install`                                      |
 
 #### Via vercel.json (Alternative)
 
@@ -192,6 +196,7 @@ vercel --prod
    - **Ignored Build Step**: Configure to only build when `apps/web/**` or `packages/**` changes
 
 Create `apps/web/.vercelignore`:
+
 ```
 # Ignore changes outside of web and packages
 apps/api/**
@@ -206,6 +211,7 @@ docs/**
 ### Option 1: Automatic Migrations (Not Recommended)
 
 Add to backend build command:
+
 ```bash
 cd ../.. && pnpm install && pnpm --filter @repo/database db:migrate deploy && pnpm run build --filter=@repo/api
 ```
@@ -215,6 +221,7 @@ cd ../.. && pnpm install && pnpm --filter @repo/database db:migrate deploy && pn
 ### Option 2: Manual Migrations (Recommended)
 
 1. Run migrations manually before deployment:
+
    ```bash
    # From local machine with access to production DB
    DATABASE_URL="your-production-db-url" pnpm --filter @repo/database db:migrate deploy
@@ -234,7 +241,7 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to migrate'
+        description: "Environment to migrate"
         required: true
         type: choice
         options:
@@ -256,7 +263,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install
@@ -276,10 +283,12 @@ Vercel automatically caches `node_modules` and build outputs. Turborepo adds add
 ### Build Times
 
 Typical build times:
+
 - **Backend**: 2-3 minutes
 - **Frontend**: 3-5 minutes
 
 To reduce build time:
+
 1. Use Turborepo remote caching
 2. Optimize dependencies
 3. Use Vercel's preview deployments for testing
@@ -313,11 +322,13 @@ Both apps support preview deployments for pull requests:
 ### Viewing Logs
 
 **Backend Logs**:
+
 ```bash
 vercel logs <backend-deployment-url>
 ```
 
 **Frontend Logs**:
+
 ```bash
 vercel logs <frontend-deployment-url>
 ```
@@ -325,6 +336,7 @@ vercel logs <frontend-deployment-url>
 ### Error Tracking
 
 Consider integrating:
+
 - Sentry for error tracking
 - LogRocket for session replay
 - Datadog for infrastructure monitoring
@@ -338,6 +350,7 @@ Consider integrating:
 3. Click "..." → **Promote to Production**
 
 Or via CLI:
+
 ```bash
 vercel rollback
 ```
@@ -350,11 +363,11 @@ Add a health endpoint in your NestJS app:
 
 ```typescript
 // apps/api/src/health/health.controller.ts
-@Controller('health')
+@Controller("health")
 export class HealthController {
   @Get()
   check() {
-    return { status: 'ok', timestamp: new Date().toISOString() };
+    return { status: "ok", timestamp: new Date().toISOString() };
   }
 }
 ```
@@ -374,6 +387,7 @@ Next.js automatically provides health checks at `/_next/health`
 ### Build Fails: "Prisma Client not generated"
 
 **Solution**: Add to build command:
+
 ```bash
 cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && pnpm run build --filter=@repo/api
 ```
@@ -381,6 +395,7 @@ cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && pnpm run
 ### Environment Variables Not Working
 
 **Solution**:
+
 1. Check they're set in correct environment (Production/Preview/Development)
 2. Redeploy after adding variables
 3. For `NEXT_PUBLIC_*` vars, rebuild is required
@@ -388,6 +403,7 @@ cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && pnpm run
 ### CORS Errors
 
 **Solution**:
+
 1. Check `ALLOWED_ORIGINS` in backend env vars
 2. Ensure frontend domain is whitelisted
 3. Verify Auth0 callback URLs
@@ -395,6 +411,7 @@ cd ../.. && pnpm install && pnpm --filter @repo/database db:generate && pnpm run
 ### Database Connection Issues
 
 **Solution**:
+
 1. Verify `DATABASE_URL` is correct
 2. Check database accepts connections from Vercel IPs
 3. Ensure SSL is properly configured
@@ -428,7 +445,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: 18
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: Install dependencies
         run: pnpm install
@@ -494,6 +511,7 @@ After deployment:
 ## Support
 
 For deployment issues:
+
 - Check [Vercel Documentation](https://vercel.com/docs)
 - Review [Turborepo Deployment Docs](https://turbo.build/repo/docs/handbook/deploying-with-docker)
 - Check project logs in Vercel Dashboard

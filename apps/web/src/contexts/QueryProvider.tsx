@@ -1,9 +1,14 @@
-'use client';
+"use client";
 
-import React from 'react';
-import { QueryClient, QueryClientProvider, MutationCache, QueryCache } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { useRouter } from 'next/navigation';
+import React from "react";
+import {
+  QueryClient,
+  QueryClientProvider,
+  MutationCache,
+  QueryCache,
+} from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { useRouter } from "next/navigation";
 
 interface QueryProviderProps {
   children: React.ReactNode;
@@ -19,12 +24,12 @@ export function QueryProvider({ children }: QueryProviderProps) {
   const handleAuthError = React.useCallback(() => {
     // Prevent multiple simultaneous redirects
     if (isRedirecting) {
-      console.log('🚫 Redirect already in progress, skipping');
+      console.log("🚫 Redirect already in progress, skipping");
       return;
     }
 
     isRedirecting = true;
-    console.warn('🔒 Session expired - redirecting to login');
+    console.warn("🔒 Session expired - redirecting to login");
 
     // Clear any existing timer
     if (redirectTimer) {
@@ -37,7 +42,7 @@ export function QueryProvider({ children }: QueryProviderProps) {
       redirectTimer = null;
     }, 3000);
 
-    router.push('/api/auth/login');
+    router.push("/api/auth/login");
   }, [router]);
 
   const [queryClient] = React.useState(
@@ -58,27 +63,31 @@ export function QueryProvider({ children }: QueryProviderProps) {
         },
         queryCache: new QueryCache({
           onError: (error: any) => {
-            if (error?.message?.includes('Authentication required') ||
-                error?.message?.includes('401') ||
-                error?.message?.includes('Authentication expired') ||
-                error?.message?.includes('prisma') ||
-                error?.message?.includes('database')) {
+            if (
+              error?.message?.includes("Authentication required") ||
+              error?.message?.includes("401") ||
+              error?.message?.includes("Authentication expired") ||
+              error?.message?.includes("prisma") ||
+              error?.message?.includes("database")
+            ) {
               handleAuthError();
             }
           },
         }),
         mutationCache: new MutationCache({
           onError: (error: any) => {
-            if (error?.message?.includes('Authentication required') ||
-                error?.message?.includes('401') ||
-                error?.message?.includes('Authentication expired') ||
-                error?.message?.includes('prisma') ||
-                error?.message?.includes('database')) {
+            if (
+              error?.message?.includes("Authentication required") ||
+              error?.message?.includes("401") ||
+              error?.message?.includes("Authentication expired") ||
+              error?.message?.includes("prisma") ||
+              error?.message?.includes("database")
+            ) {
               handleAuthError();
             }
           },
         }),
-      })
+      }),
   );
 
   return (

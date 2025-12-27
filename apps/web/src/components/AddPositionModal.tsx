@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Button, Input, Form, FormField, FormActions } from './ui';
+import { useState } from "react";
+import { Button, Input, Form, FormField, FormActions } from "./ui";
 
 interface Stock {
   symbol: string;
@@ -21,11 +21,16 @@ interface AddPositionModalProps {
   portfolioId?: string; // Make optional since it's not used in the component
 }
 
-export default function AddPositionModal({ isOpen, onClose, onSubmit, portfolioId }: AddPositionModalProps) {
+export default function AddPositionModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  portfolioId,
+}: AddPositionModalProps) {
   const [selectedStock, setSelectedStock] = useState<Stock | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [shares, setShares] = useState('');
-  const [averagePrice, setAveragePrice] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [shares, setShares] = useState("");
+  const [averagePrice, setAveragePrice] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Stock[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,25 +43,26 @@ export default function AddPositionModal({ isOpen, onClose, onSubmit, portfolioI
     }
 
     setIsSearching(true);
-    
+
     // Mock data - replace with real API call
     const mockStocks: Stock[] = [
-      { symbol: 'AAPL', name: 'Apple Inc', exchange: 'NASDAQ' },
-      { symbol: 'MSFT', name: 'Microsoft Corporation', exchange: 'NASDAQ' },
-      { symbol: 'GOOGL', name: 'Alphabet Inc', exchange: 'NASDAQ' },
-      { symbol: 'AMZN', name: 'Amazon.com Inc', exchange: 'NASDAQ' },
-      { symbol: 'TSLA', name: 'Tesla Inc', exchange: 'NASDAQ' },
-      { symbol: 'META', name: 'Meta Platforms Inc', exchange: 'NASDAQ' },
-      { symbol: 'NVDA', name: 'NVIDIA Corporation', exchange: 'NASDAQ' },
-      { symbol: 'JPM', name: 'JPMorgan Chase & Co', exchange: 'NYSE' },
-      { symbol: 'JNJ', name: 'Johnson & Johnson', exchange: 'NYSE' },
-      { symbol: 'V', name: 'Visa Inc', exchange: 'NYSE' },
+      { symbol: "AAPL", name: "Apple Inc", exchange: "NASDAQ" },
+      { symbol: "MSFT", name: "Microsoft Corporation", exchange: "NASDAQ" },
+      { symbol: "GOOGL", name: "Alphabet Inc", exchange: "NASDAQ" },
+      { symbol: "AMZN", name: "Amazon.com Inc", exchange: "NASDAQ" },
+      { symbol: "TSLA", name: "Tesla Inc", exchange: "NASDAQ" },
+      { symbol: "META", name: "Meta Platforms Inc", exchange: "NASDAQ" },
+      { symbol: "NVDA", name: "NVIDIA Corporation", exchange: "NASDAQ" },
+      { symbol: "JPM", name: "JPMorgan Chase & Co", exchange: "NYSE" },
+      { symbol: "JNJ", name: "Johnson & Johnson", exchange: "NYSE" },
+      { symbol: "V", name: "Visa Inc", exchange: "NYSE" },
     ];
 
     // Filter based on query
-    const filtered = mockStocks.filter(stock => 
-      stock.symbol.toLowerCase().includes(query.toLowerCase()) ||
-      stock.name.toLowerCase().includes(query.toLowerCase())
+    const filtered = mockStocks.filter(
+      (stock) =>
+        stock.symbol.toLowerCase().includes(query.toLowerCase()) ||
+        stock.name.toLowerCase().includes(query.toLowerCase()),
     );
 
     setTimeout(() => {
@@ -78,18 +84,18 @@ export default function AddPositionModal({ isOpen, onClose, onSubmit, portfolioI
 
   const handleRemoveStock = () => {
     setSelectedStock(null);
-    setSearchQuery('');
+    setSearchQuery("");
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!selectedStock || !shares || !averagePrice) {
       return;
     }
 
     setIsSubmitting(true);
-    
+
     try {
       await onSubmit({
         stockSymbol: selectedStock.symbol,
@@ -97,15 +103,15 @@ export default function AddPositionModal({ isOpen, onClose, onSubmit, portfolioI
         shares: parseFloat(shares),
         averagePrice: parseFloat(averagePrice),
       });
-      
+
       // Reset form
       setSelectedStock(null);
-      setSearchQuery('');
-      setShares('');
-      setAveragePrice('');
+      setSearchQuery("");
+      setShares("");
+      setAveragePrice("");
       onClose();
     } catch (error) {
-      console.error('Error adding position:', error);
+      console.error("Error adding position:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -118,7 +124,9 @@ export default function AddPositionModal({ isOpen, onClose, onSubmit, portfolioI
       <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
         <div className="p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">Fill holdings</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Fill holdings
+            </h2>
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-gray-600 text-xl font-semibold"
@@ -139,7 +147,7 @@ export default function AddPositionModal({ isOpen, onClose, onSubmit, portfolioI
                     placeholder="Search for a stock..."
                     className="w-full"
                   />
-                  
+
                   {selectedStock && (
                     <div className="absolute right-2 top-1/2 transform -translate-y-1/2">
                       <button
@@ -168,8 +176,12 @@ export default function AddPositionModal({ isOpen, onClose, onSubmit, portfolioI
                             </span>
                           </div>
                           <div>
-                            <div className="font-medium text-gray-900">{stock.symbol}</div>
-                            <div className="text-sm text-gray-600">{stock.name}</div>
+                            <div className="font-medium text-gray-900">
+                              {stock.symbol}
+                            </div>
+                            <div className="text-sm text-gray-600">
+                              {stock.name}
+                            </div>
                           </div>
                         </button>
                       ))}
@@ -191,8 +203,12 @@ export default function AddPositionModal({ isOpen, onClose, onSubmit, portfolioI
                       </span>
                     </div>
                     <div>
-                      <div className="font-medium text-gray-900">{selectedStock.symbol}</div>
-                      <div className="text-sm text-gray-600">{selectedStock.name}</div>
+                      <div className="font-medium text-gray-900">
+                        {selectedStock.symbol}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {selectedStock.name}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -242,10 +258,12 @@ export default function AddPositionModal({ isOpen, onClose, onSubmit, portfolioI
               </Button>
               <Button
                 type="submit"
-                disabled={!selectedStock || !shares || !averagePrice || isSubmitting}
+                disabled={
+                  !selectedStock || !shares || !averagePrice || isSubmitting
+                }
                 className="bg-blue-600 hover:bg-blue-700"
               >
-                {isSubmitting ? 'Adding...' : 'Add holdings'}
+                {isSubmitting ? "Adding..." : "Add holdings"}
               </Button>
             </FormActions>
           </Form>

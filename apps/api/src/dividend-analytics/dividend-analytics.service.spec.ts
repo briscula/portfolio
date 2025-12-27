@@ -47,7 +47,9 @@ describe('DividendAnalyticsService', () => {
 
       const emptyMonths = Array.from({ length: 11 }, (_, i) => ({
         month: String(i + 1).padStart(2, '0'),
-        monthName: new Date(2000, i, 1).toLocaleString('en-US', { month: 'long' }),
+        monthName: new Date(2000, i, 1).toLocaleString('en-US', {
+          month: 'long',
+        }),
         yearlyData: [
           {
             year: '2023',

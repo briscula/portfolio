@@ -3,7 +3,7 @@ import type {
   PortfolioMetrics,
   PortfolioWithMetrics,
   DashboardSummary,
-} from '@/types';
+} from "@/types";
 
 // Re-export types for backward compatibility
 export type { PortfolioMetrics, PortfolioWithMetrics, DashboardSummary };
@@ -29,7 +29,9 @@ export function convertToUSD(amount: number, fromCurrency: string): number {
 /**
  * Calculate portfolio metrics from positions
  */
-export function calculatePortfolioMetrics(positions: Position[]): PortfolioMetrics {
+export function calculatePortfolioMetrics(
+  positions: Position[],
+): PortfolioMetrics {
   if (positions.length === 0) {
     return {
       totalValue: 0,
@@ -43,16 +45,26 @@ export function calculatePortfolioMetrics(positions: Position[]): PortfolioMetri
   }
 
   // Calculate totals
-  const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalCost || 0), 0));
-  const totalDividends = positions.reduce((sum, pos) => sum + (pos.totalDividends || 0), 0);
-  const totalValue = positions.reduce((sum, pos) => sum + (pos.marketValue || pos.totalCost || 0), 0);
+  const totalCost = Math.abs(
+    positions.reduce((sum, pos) => sum + Math.abs(pos.totalCost || 0), 0),
+  );
+  const totalDividends = positions.reduce(
+    (sum, pos) => sum + (pos.totalDividends || 0),
+    0,
+  );
+  const totalValue = positions.reduce(
+    (sum, pos) => sum + (pos.marketValue || pos.totalCost || 0),
+    0,
+  );
 
   const unrealizedGain = totalValue - totalCost;
-  const unrealizedGainPercent = totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
-  
+  const unrealizedGainPercent =
+    totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
+
   // Calculate dividend yield (annual dividends / current value)
-  const dividendYield = totalValue > 0 ? (totalDividends / totalValue) * 100 : 0;
-  
+  const dividendYield =
+    totalValue > 0 ? (totalDividends / totalValue) * 100 : 0;
+
   // Find most recent transaction date
   const lastUpdated = positions.reduce((latest, pos) => {
     const posDate = new Date(pos.lastTransactionDate);
@@ -74,7 +86,7 @@ export function calculatePortfolioMetrics(positions: Position[]): PortfolioMetri
  * Calculate dashboard summary from multiple portfolios
  */
 export function calculateDashboardSummary(
-  portfoliosWithMetrics: PortfolioWithMetrics[]
+  portfoliosWithMetrics: PortfolioWithMetrics[],
 ): DashboardSummary {
   if (portfoliosWithMetrics.length === 0) {
     return {
@@ -92,12 +104,18 @@ export function calculateDashboardSummary(
   let totalCostUSD = 0;
   let totalDividendsUSD = 0;
 
-  portfoliosWithMetrics.forEach(portfolio => {
-    const valueUSD = convertToUSD(portfolio.metrics.totalValue, portfolio.currencyCode);
-    const costUSD = convertToUSD(portfolio.metrics.totalCost, portfolio.currencyCode);
+  portfoliosWithMetrics.forEach((portfolio) => {
+    const valueUSD = convertToUSD(
+      portfolio.metrics.totalValue,
+      portfolio.currencyCode,
+    );
+    const costUSD = convertToUSD(
+      portfolio.metrics.totalCost,
+      portfolio.currencyCode,
+    );
     const dividendsUSD = convertToUSD(
       (portfolio.metrics.dividendYield / 100) * portfolio.metrics.totalValue,
-      portfolio.currencyCode
+      portfolio.currencyCode,
     );
 
     totalValueUSD += valueUSD;
@@ -106,8 +124,10 @@ export function calculateDashboardSummary(
   });
 
   const totalGain = totalValueUSD - totalCostUSD;
-  const totalGainPercent = totalCostUSD > 0 ? (totalGain / totalCostUSD) * 100 : 0;
-  const overallDividendYield = totalValueUSD > 0 ? (totalDividendsUSD / totalValueUSD) * 100 : 0;
+  const totalGainPercent =
+    totalCostUSD > 0 ? (totalGain / totalCostUSD) * 100 : 0;
+  const overallDividendYield =
+    totalValueUSD > 0 ? (totalDividendsUSD / totalValueUSD) * 100 : 0;
 
   return {
     totalValue: totalValueUSD,
@@ -124,14 +144,14 @@ export function calculateDashboardSummary(
  */
 export function formatCurrency(amount: number, currencyCode: string): string {
   const symbols: Record<string, string> = {
-    USD: '$',
-    EUR: '€',
-    GBP: '£',
-    CAD: 'C$',
+    USD: "$",
+    EUR: "€",
+    GBP: "£",
+    CAD: "C$",
   };
 
   const symbol = symbols[currencyCode] || currencyCode;
-  return `${symbol}${Math.abs(amount).toLocaleString('en-US', {
+  return `${symbol}${Math.abs(amount).toLocaleString("en-US", {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   })}`;
@@ -142,11 +162,11 @@ export function formatCurrency(amount: number, currencyCode: string): string {
  */
 export function formatPercentage(percentage: number): {
   text: string;
-  color: 'green' | 'red' | 'gray';
+  color: "green" | "red" | "gray";
 } {
-  const sign = percentage > 0 ? '+' : '';
-  const color = percentage > 0 ? 'green' : percentage < 0 ? 'red' : 'gray';
-  
+  const sign = percentage > 0 ? "+" : "";
+  const color = percentage > 0 ? "green" : percentage < 0 ? "red" : "gray";
+
   return {
     text: `${sign}${percentage.toFixed(1)}%`,
     color,
@@ -158,31 +178,31 @@ export function formatPercentage(percentage: number): {
  */
 export function sortPortfolios(
   portfolios: PortfolioWithMetrics[],
-  sortBy: 'name' | 'value' | 'gain' | 'yield' | 'updated',
-  direction: 'asc' | 'desc' = 'desc'
+  sortBy: "name" | "value" | "gain" | "yield" | "updated",
+  direction: "asc" | "desc" = "desc",
 ): PortfolioWithMetrics[] {
   const sorted = [...portfolios].sort((a, b) => {
     let aValue: number | string;
     let bValue: number | string;
 
     switch (sortBy) {
-      case 'name':
+      case "name":
         aValue = a.name.toLowerCase();
         bValue = b.name.toLowerCase();
         break;
-      case 'value':
+      case "value":
         aValue = a.metrics.totalValue;
         bValue = b.metrics.totalValue;
         break;
-      case 'gain':
+      case "gain":
         aValue = a.metrics.unrealizedGainPercent;
         bValue = b.metrics.unrealizedGainPercent;
         break;
-      case 'yield':
+      case "yield":
         aValue = a.metrics.dividendYield;
         bValue = b.metrics.dividendYield;
         break;
-      case 'updated':
+      case "updated":
         aValue = a.metrics.lastUpdated.getTime();
         bValue = b.metrics.lastUpdated.getTime();
         break;
@@ -190,14 +210,14 @@ export function sortPortfolios(
         return 0;
     }
 
-    if (typeof aValue === 'string' && typeof bValue === 'string') {
-      return direction === 'asc' 
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      return direction === "asc"
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue);
     }
 
-    if (typeof aValue === 'number' && typeof bValue === 'number') {
-      return direction === 'asc' ? aValue - bValue : bValue - aValue;
+    if (typeof aValue === "number" && typeof bValue === "number") {
+      return direction === "asc" ? aValue - bValue : bValue - aValue;
     }
 
     return 0;

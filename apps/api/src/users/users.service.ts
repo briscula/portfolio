@@ -81,7 +81,11 @@ export class UsersService {
   }
 
   // Create new user with email/password
-  async create(userData: { name: string; email: string; password: string }): Promise<User> {
+  async create(userData: {
+    name: string;
+    email: string;
+    password: string;
+  }): Promise<User> {
     // Check if user already exists
     const existingUser = await this.findByEmail(userData.email);
     if (existingUser) {

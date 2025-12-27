@@ -1,7 +1,7 @@
-import React from 'react';
-import { MetricCard, MetricCardsGrid } from './MetricCard';
-import { DollarSignIcon, PercentIcon, TrendingUpIcon } from './icons';
-import { DashboardSummary, formatCurrency } from '@/lib/portfolio-metrics';
+import React from "react";
+import { MetricCard, MetricCardsGrid } from "./MetricCard";
+import { DollarSignIcon, PercentIcon, TrendingUpIcon } from "./icons";
+import { DashboardSummary, formatCurrency } from "@/lib/portfolio-metrics";
 
 export interface SummaryCardsProps {
   summary: DashboardSummary;
@@ -26,21 +26,34 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   // Loading state
   if (loading) {
     return (
-      <div className={className} role="region" aria-label="Portfolio summary metrics loading">
+      <div
+        className={className}
+        role="region"
+        aria-label="Portfolio summary metrics loading"
+      >
         <MetricCardsGrid>
           {[1, 2, 3].map((i) => (
-            <div 
-              key={i} 
+            <div
+              key={i}
               className="bg-white rounded-lg border border-gray-200 p-6"
               role="status"
               aria-label={`Loading metric card ${i}`}
             >
               <div className="animate-pulse">
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-gray-200 rounded-lg" aria-hidden="true"></div>
+                  <div
+                    className="w-10 h-10 bg-gray-200 rounded-lg"
+                    aria-hidden="true"
+                  ></div>
                   <div className="ml-4 flex-1">
-                    <div className="h-4 bg-gray-200 rounded w-1/2 mb-2" aria-hidden="true"></div>
-                    <div className="h-8 bg-gray-200 rounded w-3/4" aria-hidden="true"></div>
+                    <div
+                      className="h-4 bg-gray-200 rounded w-1/2 mb-2"
+                      aria-hidden="true"
+                    ></div>
+                    <div
+                      className="h-8 bg-gray-200 rounded w-3/4"
+                      aria-hidden="true"
+                    ></div>
                   </div>
                 </div>
               </div>
@@ -55,8 +68,12 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   // Error state
   if (error) {
     return (
-      <div className={className} role="region" aria-label="Portfolio summary error">
-        <div 
+      <div
+        className={className}
+        role="region"
+        aria-label="Portfolio summary error"
+      >
+        <div
           className="bg-red-50 border border-red-200 rounded-md p-4"
           role="alert"
           aria-live="assertive"
@@ -66,7 +83,7 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
               <p className="text-red-800 font-medium" id="summary-error-title">
                 Error loading portfolio summary
               </p>
-              <p 
+              <p
                 className="text-red-600 text-sm mt-1"
                 aria-describedby="summary-error-title"
               >
@@ -89,11 +106,15 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
   }
 
   // Format values for display
-  const totalValueFormatted = formatCurrency(summary.totalValue, 'USD');
-  const totalGainFormatted = formatCurrency(Math.abs(summary.totalGain), 'USD');
+  const totalValueFormatted = formatCurrency(summary.totalValue, "USD");
+  const totalGainFormatted = formatCurrency(Math.abs(summary.totalGain), "USD");
 
   return (
-    <div className={className} role="region" aria-label="Portfolio summary metrics">
+    <div
+      className={className}
+      role="region"
+      aria-label="Portfolio summary metrics"
+    >
       <MetricCardsGrid>
         {/* Total Portfolio Value */}
         <MetricCard
@@ -103,32 +124,32 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
             summary.totalGainPercent !== 0
               ? {
                   value: Math.abs(summary.totalGainPercent),
-                  type: summary.totalGainPercent >= 0 ? 'increase' : 'decrease',
-                  period: 'total return',
+                  type: summary.totalGainPercent >= 0 ? "increase" : "decrease",
+                  period: "total return",
                 }
               : undefined
           }
           icon={DollarSignIcon}
           iconColor="green"
-          aria-label={`Total portfolio value: ${totalValueFormatted}${summary.totalGainPercent !== 0 ? `, ${Math.abs(summary.totalGainPercent).toFixed(1)}% ${summary.totalGainPercent >= 0 ? 'increase' : 'decrease'} total return` : ''}`}
+          aria-label={`Total portfolio value: ${totalValueFormatted}${summary.totalGainPercent !== 0 ? `, ${Math.abs(summary.totalGainPercent).toFixed(1)}% ${summary.totalGainPercent >= 0 ? "increase" : "decrease"} total return` : ""}`}
         />
 
         {/* Total Unrealized Gain/Loss */}
         <MetricCard
           title="Unrealized Gain/Loss"
-          value={`${summary.totalGain >= 0 ? '+' : '-'}${totalGainFormatted}`}
+          value={`${summary.totalGain >= 0 ? "+" : "-"}${totalGainFormatted}`}
           change={
             summary.totalGainPercent !== 0
               ? {
                   value: Math.abs(summary.totalGainPercent),
-                  type: summary.totalGain >= 0 ? 'increase' : 'decrease',
-                  period: 'total return',
+                  type: summary.totalGain >= 0 ? "increase" : "decrease",
+                  period: "total return",
                 }
               : undefined
           }
           icon={TrendingUpIcon}
-          iconColor={summary.totalGain >= 0 ? 'green' : 'red'}
-          aria-label={`Unrealized ${summary.totalGain >= 0 ? 'gain' : 'loss'}: ${summary.totalGain >= 0 ? '+' : '-'}${totalGainFormatted}${summary.totalGainPercent !== 0 ? `, ${Math.abs(summary.totalGainPercent).toFixed(1)}% ${summary.totalGain >= 0 ? 'increase' : 'decrease'} total return` : ''}`}
+          iconColor={summary.totalGain >= 0 ? "green" : "red"}
+          aria-label={`Unrealized ${summary.totalGain >= 0 ? "gain" : "loss"}: ${summary.totalGain >= 0 ? "+" : "-"}${totalGainFormatted}${summary.totalGainPercent !== 0 ? `, ${Math.abs(summary.totalGainPercent).toFixed(1)}% ${summary.totalGain >= 0 ? "increase" : "decrease"} total return` : ""}`}
         />
 
         {/* Overall Dividend Yield */}
@@ -139,14 +160,14 @@ export const SummaryCards: React.FC<SummaryCardsProps> = ({
             summary.portfolioCount > 1
               ? {
                   value: summary.portfolioCount,
-                  type: 'increase',
+                  type: "increase",
                   period: `across ${summary.portfolioCount} portfolios`,
                 }
               : undefined
           }
           icon={PercentIcon}
           iconColor="blue"
-          aria-label={`Overall dividend yield: ${summary.overallDividendYield.toFixed(1)}%${summary.portfolioCount > 1 ? ` across ${summary.portfolioCount} portfolios` : ''}`}
+          aria-label={`Overall dividend yield: ${summary.overallDividendYield.toFixed(1)}%${summary.portfolioCount > 1 ? ` across ${summary.portfolioCount} portfolios` : ""}`}
         />
       </MetricCardsGrid>
     </div>
@@ -182,10 +203,10 @@ export const SummaryCardsSection: React.FC<SummaryCardsSectionProps> = ({
           {showPortfolioCount && !loading && !error && (
             <p className="text-sm text-gray-600 mt-1">
               {summary.portfolioCount === 0
-                ? 'No portfolios found'
+                ? "No portfolios found"
                 : summary.portfolioCount === 1
-                ? '1 portfolio'
-                : `${summary.portfolioCount} portfolios`}
+                  ? "1 portfolio"
+                  : `${summary.portfolioCount} portfolios`}
             </p>
           )}
           {lastRefresh && !loading && !error && (

@@ -1,8 +1,8 @@
 {
-    "version": 2,
-    "buildCommand": "cd ../.. && pnpm run build --filter=@repo/web",
-    "installCommand": "cd ../.. && pnpm install",
-    "framework": "nextjs",
-    "outputDirectory": ".next",
-    "ignoreCommand": "npx turbo-ignore"
+  "version": 2,
+  "buildCommand": "cd ../.. && pnpm run build --filter=@repo/web",
+  "installCommand": "cd ../.. && pnpm install",
+  "framework": "nextjs",
+  "outputDirectory": ".next",
+  "ignoreCommand": "npx turbo-ignore"
 }

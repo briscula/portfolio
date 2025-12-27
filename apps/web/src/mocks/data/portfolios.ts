@@ -25,8 +25,8 @@ export const mockPortfolios: Portfolio[] = [
     currency: {
       code: "USD",
       name: "US Dollar",
-      symbol: "$"
-    }
+      symbol: "$",
+    },
   },
   {
     id: "2",
@@ -39,8 +39,8 @@ export const mockPortfolios: Portfolio[] = [
     currency: {
       code: "USD",
       name: "US Dollar",
-      symbol: "$"
-    }
+      symbol: "$",
+    },
   },
   {
     id: "3",
@@ -53,14 +53,14 @@ export const mockPortfolios: Portfolio[] = [
     currency: {
       code: "USD",
       name: "US Dollar",
-      symbol: "$"
-    }
-  }
+      symbol: "$",
+    },
+  },
 ];
 
 export const mockPortfolioSummary = {
-  totalValue: 24500.00,
+  totalValue: 24500.0,
   totalChange: 5.2,
   dividendYield: 4.2,
-  monthlyDividends: 85.50
+  monthlyDividends: 85.5,
 };

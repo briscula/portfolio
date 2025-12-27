@@ -36,6 +36,7 @@ openssl rand -hex 32
 ```
 
 Update `.env.local`:
+
 ```env
 AUTH0_SECRET='your-generated-secret'
 AUTH0_BASE_URL='http://localhost:4000'

@@ -10,15 +10,15 @@ This table stores the most recent price for a given financial listing. It is pop
 
 ### Schema
 
-| Column | Type | Constraints | Description |
-|---|---|---|---|
-| `id` | `String` | `@id @default(cuid())` | Unique identifier for the price record. |
-| `listingIsin` | `String` | | The ISIN of the listing. Part of a compound foreign key. |
-| `listingExchangeCode` | `String` | | The exchange code of the listing. Part of a compound foreign key. |
-| `price` | `Decimal` | | The most recently fetched price of the listing. |
-| `currencyCode` | `String` | | The currency of the price. |
-| `lastUpdated` | `DateTime` | `@updatedAt` | Timestamp of when the record was last updated. |
-| `listing` | `Listing` | `relation(...)` | Foreign key relationship to the `Listing` table. |
+| Column                | Type       | Constraints            | Description                                                       |
+| --------------------- | ---------- | ---------------------- | ----------------------------------------------------------------- |
+| `id`                  | `String`   | `@id @default(cuid())` | Unique identifier for the price record.                           |
+| `listingIsin`         | `String`   |                        | The ISIN of the listing. Part of a compound foreign key.          |
+| `listingExchangeCode` | `String`   |                        | The exchange code of the listing. Part of a compound foreign key. |
+| `price`               | `Decimal`  |                        | The most recently fetched price of the listing.                   |
+| `currencyCode`        | `String`   |                        | The currency of the price.                                        |
+| `lastUpdated`         | `DateTime` | `@updatedAt`           | Timestamp of when the record was last updated.                    |
+| `listing`             | `Listing`  | `relation(...)`        | Foreign key relationship to the `Listing` table.                  |
 
 ### Prisma Schema Definition
 

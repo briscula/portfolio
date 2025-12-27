@@ -29,6 +29,7 @@
 ### I. Type Safety & Validation First
 
 All data crossing boundaries MUST be validated using Zod schemas. This applies to:
+
 - API request/response payloads via DTOs in `apps/api/src/*/dto/`
 - Environment variables via `@repo/env` package (NEVER use `process.env` directly)
 - Database inputs/outputs via Prisma types
@@ -39,6 +40,7 @@ All data crossing boundaries MUST be validated using Zod schemas. This applies t
 ### II. Test-First Development
 
 Tests MUST be written before implementation for all non-trivial features:
+
 - Write failing test → Get approval → Implement → Test passes
 - Red-Green-Refactor cycle strictly enforced
 - Contract tests for API endpoints
@@ -49,6 +51,7 @@ Tests MUST be written before implementation for all non-trivial features:
 ### III. Monorepo Hygiene
 
 The Turborepo structure MUST be maintained with clear boundaries:
+
 - `apps/web`: Next.js 15 frontend ONLY
 - `apps/api`: NestJS backend ONLY
 - `packages/*`: Shared code with explicit exports
@@ -60,6 +63,7 @@ The Turborepo structure MUST be maintained with clear boundaries:
 ### IV. Security & Authentication
 
 All protected resources MUST use the dual authentication system:
+
 - Auth0 for user session management (`@auth0/nextjs-auth0`)
 - JWT validation for API access (`UnifiedAuthGuard`)
 - Credentials (`.env`, API keys, tokens) MUST NEVER be committed
@@ -70,6 +74,7 @@ All protected resources MUST use the dual authentication system:
 ### V. Simplicity & YAGNI
 
 Every addition MUST justify its complexity:
+
 - Start with the simplest solution that works
 - No speculative features or "future-proofing" abstractions
 - Prefer 3 similar lines over a premature abstraction
@@ -81,20 +86,21 @@ Every addition MUST justify its complexity:
 
 **Mandated Stack** (deviations require documented justification):
 
-| Layer | Technology | Version |
-|-------|------------|---------|
-| Frontend Framework | Next.js (App Router) | 15.x |
-| Frontend Styling | Tailwind CSS | 4.x |
-| Backend Framework | NestJS | Latest |
-| ORM | Prisma | Latest |
-| Database | PostgreSQL | 14+ |
-| Validation | Zod (`nestjs-zod`) | Latest |
-| Auth Provider | Auth0 | Current |
-| State Management | React Query | v5 |
-| Package Manager | pnpm | 8+ |
-| Build System | Turborepo | Latest |
+| Layer              | Technology           | Version |
+| ------------------ | -------------------- | ------- |
+| Frontend Framework | Next.js (App Router) | 15.x    |
+| Frontend Styling   | Tailwind CSS         | 4.x     |
+| Backend Framework  | NestJS               | Latest  |
+| ORM                | Prisma               | Latest  |
+| Database           | PostgreSQL           | 14+     |
+| Validation         | Zod (`nestjs-zod`)   | Latest  |
+| Auth Provider      | Auth0                | Current |
+| State Management   | React Query          | v5      |
+| Package Manager    | pnpm                 | 8+      |
+| Build System       | Turborepo            | Latest  |
 
 **Prohibited Patterns**:
+
 - `process.env.*` without `@repo/env` wrapper
 - `class-validator` (replaced by Zod)
 - Direct database queries outside Prisma

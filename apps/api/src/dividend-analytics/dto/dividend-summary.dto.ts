@@ -3,7 +3,7 @@ import { ApiProperty } from '@nestjs/swagger';
 export class DividendSummaryDto {
   @ApiProperty({
     description: 'Total dividends received in the specified period',
-    example: 5000.00,
+    example: 5000.0,
   })
   totalDividends: number;
 

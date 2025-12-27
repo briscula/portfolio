@@ -1,11 +1,15 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { Button } from './ui';
-import { PortfolioWithMetrics, formatCurrency, formatPercentage } from '../lib/portfolio-metrics';
-import { cn } from '../lib/utils';
-import { EyeIcon, PencilIcon } from './ui/icons';
+import React from "react";
+import Link from "next/link";
+import { Button } from "./ui";
+import {
+  PortfolioWithMetrics,
+  formatCurrency,
+  formatPercentage,
+} from "../lib/portfolio-metrics";
+import { cn } from "../lib/utils";
+import { EyeIcon, PencilIcon } from "./ui/icons";
 
 export interface PortfolioTableMobileProps {
   portfolios: PortfolioWithMetrics[];
@@ -23,12 +27,14 @@ interface PortfolioCardProps {
 const PortfolioCard: React.FC<PortfolioCardProps> = ({
   portfolio,
   onEdit,
-  onViewDividends
+  onViewDividends,
 }) => {
-  const gainFormatted = formatPercentage(portfolio.metrics.unrealizedGainPercent);
+  const gainFormatted = formatPercentage(
+    portfolio.metrics.unrealizedGainPercent,
+  );
 
   return (
-    <article 
+    <article
       className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all duration-200 active:scale-[0.98] touch-manipulation"
       role="article"
       aria-labelledby={`portfolio-${portfolio.id}-name`}
@@ -46,7 +52,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
             {portfolio.name}
           </Link>
           {portfolio.description && (
-            <p 
+            <p
               className="text-sm text-gray-500 mt-2 line-clamp-2 leading-relaxed"
               id={`portfolio-${portfolio.id}-description`}
             >
@@ -62,60 +68,83 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
       </div>
 
       {/* Primary Metrics - Larger on mobile */}
-      <div className="grid grid-cols-1 gap-4 mb-5" role="group" aria-label="Portfolio metrics">
-        <div 
+      <div
+        className="grid grid-cols-1 gap-4 mb-5"
+        role="group"
+        aria-label="Portfolio metrics"
+      >
+        <div
           className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-100"
           role="region"
           aria-labelledby={`portfolio-card-${portfolio.id}-total-value`}
         >
-          <p 
+          <p
             className="text-sm font-medium text-blue-700 mb-2"
             id={`portfolio-card-${portfolio.id}-total-value`}
           >
             Total Value
           </p>
-          <p 
+          <p
             className="text-3xl font-bold text-gray-900"
             aria-describedby={`portfolio-${portfolio.id}-total-value`}
           >
-            {formatCurrency(portfolio.metrics.totalValue, portfolio.currencyCode)}
+            {formatCurrency(
+              portfolio.metrics.totalValue,
+              portfolio.currencyCode,
+            )}
           </p>
         </div>
-        <div 
+        <div
           className={cn(
-            'rounded-xl p-4 border',
-            gainFormatted.color === 'green' 
-              ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-100' 
-              : gainFormatted.color === 'red'
-              ? 'bg-gradient-to-r from-red-50 to-rose-50 border-red-100'
-              : 'bg-gradient-to-r from-gray-50 to-slate-50 border-gray-100'
+            "rounded-xl p-4 border",
+            gainFormatted.color === "green"
+              ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-100"
+              : gainFormatted.color === "red"
+                ? "bg-gradient-to-r from-red-50 to-rose-50 border-red-100"
+                : "bg-gradient-to-r from-gray-50 to-slate-50 border-gray-100",
           )}
           role="region"
           aria-labelledby={`portfolio-card-${portfolio.id}-gain-loss`}
         >
-          <p 
+          <p
             className={cn(
-              'text-sm font-medium mb-2',
-              gainFormatted.color === 'green' ? 'text-green-700' :
-              gainFormatted.color === 'red' ? 'text-red-700' : 'text-gray-700'
+              "text-sm font-medium mb-2",
+              gainFormatted.color === "green"
+                ? "text-green-700"
+                : gainFormatted.color === "red"
+                  ? "text-red-700"
+                  : "text-gray-700",
             )}
             id={`portfolio-card-${portfolio.id}-gain-loss`}
           >
             Unrealized Gain/Loss
           </p>
           <div className="flex items-baseline space-x-2">
-            <p className={cn(
-              'text-2xl font-bold',
-              gainFormatted.color === 'green' ? 'text-green-600' :
-              gainFormatted.color === 'red' ? 'text-red-600' : 'text-gray-600'
-            )}>
-              {formatCurrency(portfolio.metrics.unrealizedGain, portfolio.currencyCode)}
+            <p
+              className={cn(
+                "text-2xl font-bold",
+                gainFormatted.color === "green"
+                  ? "text-green-600"
+                  : gainFormatted.color === "red"
+                    ? "text-red-600"
+                    : "text-gray-600",
+              )}
+            >
+              {formatCurrency(
+                portfolio.metrics.unrealizedGain,
+                portfolio.currencyCode,
+              )}
             </p>
-            <p className={cn(
-              'text-lg font-semibold',
-              gainFormatted.color === 'green' ? 'text-green-600' :
-              gainFormatted.color === 'red' ? 'text-red-600' : 'text-gray-600'
-            )}>
+            <p
+              className={cn(
+                "text-lg font-semibold",
+                gainFormatted.color === "green"
+                  ? "text-green-600"
+                  : gainFormatted.color === "red"
+                    ? "text-red-600"
+                    : "text-gray-600",
+              )}
+            >
               {gainFormatted.text}
             </p>
           </div>
@@ -125,15 +154,24 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
       {/* Secondary Metrics */}
       <div className="grid grid-cols-3 gap-3 mb-5">
         <div className="text-center bg-gray-50 rounded-lg p-3 border border-gray-100">
-          <p className="text-lg font-bold text-gray-900">{portfolio.metrics.positionCount}</p>
+          <p className="text-lg font-bold text-gray-900">
+            {portfolio.metrics.positionCount}
+          </p>
           <p className="text-xs text-gray-600 font-medium mt-1">Positions</p>
         </div>
         <div className="text-center bg-gray-50 rounded-lg p-3 border border-gray-100">
-          <p className="text-lg font-bold text-gray-900">{portfolio.metrics.dividendYield.toFixed(1)}%</p>
+          <p className="text-lg font-bold text-gray-900">
+            {portfolio.metrics.dividendYield.toFixed(1)}%
+          </p>
           <p className="text-xs text-gray-600 font-medium mt-1">Yield</p>
         </div>
         <div className="text-center bg-gray-50 rounded-lg p-3 border border-gray-100">
-          <p className="text-sm font-bold text-gray-900">{portfolio.metrics.lastUpdated.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+          <p className="text-sm font-bold text-gray-900">
+            {portfolio.metrics.lastUpdated.toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
+          </p>
           <p className="text-xs text-gray-600 font-medium mt-1">Updated</p>
         </div>
       </div>
@@ -166,7 +204,7 @@ const PortfolioCard: React.FC<PortfolioCardProps> = ({
 };
 
 const SkeletonCard: React.FC = () => (
-  <div 
+  <div
     className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm animate-pulse"
     role="status"
     aria-label="Loading portfolio card"
@@ -174,11 +212,17 @@ const SkeletonCard: React.FC = () => (
     {/* Header */}
     <div className="flex items-start justify-between mb-5">
       <div className="flex-1">
-        <div className="h-6 bg-gray-200 rounded w-40 mb-3" aria-hidden="true"></div>
+        <div
+          className="h-6 bg-gray-200 rounded w-40 mb-3"
+          aria-hidden="true"
+        ></div>
         <div className="h-4 bg-gray-200 rounded w-32" aria-hidden="true"></div>
       </div>
       <div className="ml-4">
-        <div className="h-8 bg-gray-200 rounded-full w-16" aria-hidden="true"></div>
+        <div
+          className="h-8 bg-gray-200 rounded-full w-16"
+          aria-hidden="true"
+        ></div>
       </div>
     </div>
     <span className="sr-only">Loading portfolio information...</span>
@@ -201,7 +245,10 @@ const SkeletonCard: React.FC = () => (
     {/* Secondary Metrics */}
     <div className="grid grid-cols-3 gap-3 mb-5">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="text-center bg-gray-50 rounded-lg p-3 border border-gray-100">
+        <div
+          key={i}
+          className="text-center bg-gray-50 rounded-lg p-3 border border-gray-100"
+        >
           <div className="h-5 bg-gray-200 rounded w-8 mx-auto mb-2"></div>
           <div className="h-3 bg-gray-200 rounded w-12 mx-auto"></div>
         </div>
@@ -216,7 +263,9 @@ const SkeletonCard: React.FC = () => (
   </div>
 );
 
-const EmptyState: React.FC<{ onAddPortfolio?: () => void }> = ({ onAddPortfolio }) => (
+const EmptyState: React.FC<{ onAddPortfolio?: () => void }> = ({
+  onAddPortfolio,
+}) => (
   <div className="text-center py-12">
     <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center mb-4">
       <span className="text-3xl">📊</span>
@@ -239,7 +288,7 @@ export const PortfolioTableMobile: React.FC<PortfolioTableMobileProps> = ({
   portfolios,
   loading,
   onEdit,
-  onViewDividends
+  onViewDividends,
 }) => {
   // Show empty state when not loading and no portfolios
   if (!loading && portfolios.length === 0) {
@@ -248,22 +297,20 @@ export const PortfolioTableMobile: React.FC<PortfolioTableMobileProps> = ({
 
   return (
     <div className="space-y-4">
-      {loading ? (
-        // Show skeleton cards while loading
-        Array.from({ length: 3 }).map((_, index) => (
-          <SkeletonCard key={index} />
-        ))
-      ) : (
-        // Show actual portfolio cards
-        portfolios.map((portfolio) => (
-          <PortfolioCard
-            key={portfolio.id}
-            portfolio={portfolio}
-            onEdit={onEdit}
-            onViewDividends={onViewDividends}
-          />
-        ))
-      )}
+      {loading
+        ? // Show skeleton cards while loading
+          Array.from({ length: 3 }).map((_, index) => (
+            <SkeletonCard key={index} />
+          ))
+        : // Show actual portfolio cards
+          portfolios.map((portfolio) => (
+            <PortfolioCard
+              key={portfolio.id}
+              portfolio={portfolio}
+              onEdit={onEdit}
+              onViewDividends={onViewDividends}
+            />
+          ))}
     </div>
   );
 };

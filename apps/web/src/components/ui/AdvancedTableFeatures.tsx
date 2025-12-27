@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Button, IconButton } from './Button';
-import { SearchInput } from './Input';
-import { cn } from '@/lib/utils';
-import { DownloadIcon, EyeIcon } from './icons';
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { Button, IconButton } from "./Button";
+import { SearchInput } from "./Input";
+import { cn } from "@/lib/utils";
+import { DownloadIcon, EyeIcon } from "./icons";
 
 export interface TableColumn {
   key: string;
@@ -17,7 +17,7 @@ export interface BulkAction {
   id: string;
   label: string;
   icon?: React.ReactNode;
-  variant?: 'primary' | 'secondary' | 'danger';
+  variant?: "primary" | "secondary" | "danger";
   disabled?: boolean;
 }
 
@@ -33,22 +33,22 @@ export interface AdvancedTableFeaturesProps {
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
-  
+
   // Column visibility
   columns: TableColumn[];
   onColumnVisibilityChange: (columns: TableColumn[]) => void;
-  
+
   // Bulk actions
   selectedItems: string[];
   onSelectionChange: (selectedIds: string[]) => void;
   bulkActions?: BulkAction[];
   onBulkAction?: (actionId: string, selectedIds: string[]) => void;
   totalItems: number;
-  
+
   // Export functionality
   exportFormats?: ExportFormat[];
   onExport?: (format: ExportFormat, selectedIds?: string[]) => void;
-  
+
   // UI customization
   className?: string;
   showSearch?: boolean;
@@ -59,17 +59,17 @@ export interface AdvancedTableFeaturesProps {
 
 const DEFAULT_EXPORT_FORMATS: ExportFormat[] = [
   {
-    id: 'csv',
-    label: 'CSV',
-    extension: 'csv',
-    mimeType: 'text/csv'
+    id: "csv",
+    label: "CSV",
+    extension: "csv",
+    mimeType: "text/csv",
   },
   {
-    id: 'pdf',
-    label: 'PDF',
-    extension: 'pdf',
-    mimeType: 'application/pdf'
-  }
+    id: "pdf",
+    label: "PDF",
+    extension: "pdf",
+    mimeType: "application/pdf",
+  },
 ];
 
 export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
@@ -89,7 +89,7 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
   showSearch = true,
   showColumnVisibility = true,
   showBulkActions = true,
-  showExport = true
+  showExport = true,
 }) => {
   const [showColumnMenu, setShowColumnMenu] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
@@ -97,7 +97,7 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         setShowColumnMenu(false);
         setShowExportMenu(false);
         setShowBulkMenu(false);
@@ -105,16 +105,17 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
     };
 
     if (showColumnMenu || showExportMenu || showBulkMenu) {
-      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener("keydown", handleKeyDown);
     }
     return () => {
-      document.removeEventListener('keydown', handleKeyDown);
+      document.removeEventListener("keydown", handleKeyDown);
     };
   }, [showColumnMenu, showExportMenu, showBulkMenu]);
 
   // Calculate selection state
   const isAllSelected = selectedItems.length === totalItems && totalItems > 0;
-  const isPartiallySelected = selectedItems.length > 0 && selectedItems.length < totalItems;
+  const isPartiallySelected =
+    selectedItems.length > 0 && selectedItems.length < totalItems;
 
   // Handle select all/none
   const handleSelectAll = useCallback(() => {
@@ -128,38 +129,55 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
   }, [isAllSelected, onSelectionChange]);
 
   // Handle column visibility toggle
-  const handleColumnToggle = useCallback((columnKey: string) => {
-    const updatedColumns = columns.map(col => 
-      col.key === columnKey ? { ...col, visible: !col.visible } : col
-    );
-    onColumnVisibilityChange(updatedColumns);
-  }, [columns, onColumnVisibilityChange]);
+  const handleColumnToggle = useCallback(
+    (columnKey: string) => {
+      const updatedColumns = columns.map((col) =>
+        col.key === columnKey ? { ...col, visible: !col.visible } : col,
+      );
+      onColumnVisibilityChange(updatedColumns);
+    },
+    [columns, onColumnVisibilityChange],
+  );
 
   // Handle bulk action
-  const handleBulkAction = useCallback((actionId: string) => {
-    if (onBulkAction && selectedItems.length > 0) {
-      onBulkAction(actionId, selectedItems);
-    }
-    setShowBulkMenu(false);
-  }, [onBulkAction, selectedItems]);
+  const handleBulkAction = useCallback(
+    (actionId: string) => {
+      if (onBulkAction && selectedItems.length > 0) {
+        onBulkAction(actionId, selectedItems);
+      }
+      setShowBulkMenu(false);
+    },
+    [onBulkAction, selectedItems],
+  );
 
   // Handle export
-  const handleExport = useCallback((format: ExportFormat, exportSelected: boolean = false) => {
-    if (onExport) {
-      const idsToExport = exportSelected && selectedItems.length > 0 ? selectedItems : undefined;
-      onExport(format, idsToExport);
-    }
-    setShowExportMenu(false);
-  }, [onExport, selectedItems]);
+  const handleExport = useCallback(
+    (format: ExportFormat, exportSelected: boolean = false) => {
+      if (onExport) {
+        const idsToExport =
+          exportSelected && selectedItems.length > 0
+            ? selectedItems
+            : undefined;
+        onExport(format, idsToExport);
+      }
+      setShowExportMenu(false);
+    },
+    [onExport, selectedItems],
+  );
 
   // Memoize visible columns count
-  const visibleColumnsCount = useMemo(() => 
-    columns.filter(col => col.visible).length, 
-    [columns]
+  const visibleColumnsCount = useMemo(
+    () => columns.filter((col) => col.visible).length,
+    [columns],
   );
 
   return (
-    <div className={cn('flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between', className)}>
+    <div
+      className={cn(
+        "flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between",
+        className,
+      )}
+    >
       {/* Left side - Search and selection info */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center flex-1">
         {/* Search */}
@@ -180,7 +198,7 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
             <span className="text-sm text-gray-600">
               {selectedItems.length} of {totalItems} selected
             </span>
-            
+
             {bulkActions.length > 0 && (
               <div className="relative">
                 <Button
@@ -191,7 +209,7 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
                 >
                   Actions ({bulkActions.length})
                 </Button>
-                
+
                 {showBulkMenu && (
                   <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                     <div className="py-1">
@@ -201,9 +219,11 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
                           onClick={() => handleBulkAction(action.id)}
                           disabled={action.disabled}
                           className={cn(
-                            'w-full px-4 py-2 text-left text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2',
-                            action.variant === 'danger' && 'text-red-600 hover:bg-red-50',
-                            action.variant === 'primary' && 'text-blue-600 hover:bg-blue-50'
+                            "w-full px-4 py-2 text-left text-sm hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2",
+                            action.variant === "danger" &&
+                              "text-red-600 hover:bg-red-50",
+                            action.variant === "primary" &&
+                              "text-blue-600 hover:bg-blue-50",
                           )}
                         >
                           {action.icon}
@@ -215,7 +235,7 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
                 )}
               </div>
             )}
-            
+
             <Button
               variant="ghost"
               size="sm"
@@ -259,7 +279,7 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
               title="Column visibility"
               icon={<EyeIcon className="h-4 w-4" />}
             />
-            
+
             {showColumnMenu && (
               <div className="absolute top-full right-0 mt-1 w-56 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                 <div className="p-3">
@@ -279,12 +299,14 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
                           disabled={column.required}
                           className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                         />
-                        <span className={cn(
-                          column.required && 'text-gray-500',
-                          !column.visible && 'line-through'
-                        )}>
+                        <span
+                          className={cn(
+                            column.required && "text-gray-500",
+                            !column.visible && "line-through",
+                          )}
+                        >
                           {column.label}
-                          {column.required && ' (required)'}
+                          {column.required && " (required)"}
                         </span>
                       </label>
                     ))}
@@ -306,7 +328,7 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
               title="Export data"
               icon={<DownloadIcon className="h-4 w-4" />}
             />
-            
+
             {showExportMenu && (
               <div className="absolute top-full right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                 <div className="py-1">
@@ -327,7 +349,9 @@ export const AdvancedTableFeatures: React.FC<AdvancedTableFeaturesProps> = ({
                           className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between text-blue-600"
                         >
                           <span>Selected as {format.label}</span>
-                          <span className="text-xs">({selectedItems.length})</span>
+                          <span className="text-xs">
+                            ({selectedItems.length})
+                          </span>
                         </button>
                       )}
                     </div>

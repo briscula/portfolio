@@ -10,18 +10,18 @@ import {
 // Yahoo Finance exchange suffixes
 // See: https://help.yahoo.com/kb/SLN2310.html
 const EXCHANGE_SUFFIXES: Record<string, string> = {
-  XLON: '.L',    // London Stock Exchange
-  XAMS: '.AS',   // Euronext Amsterdam
-  XPAR: '.PA',   // Euronext Paris
-  XETR: '.DE',   // Deutsche Börse XETRA
-  XMAD: '.MC',   // Bolsa de Madrid
-  XMIL: '.MI',   // Borsa Italiana (Milan)
-  XHKG: '.HK',   // Hong Kong Stock Exchange
-  XTSE: '.TO',   // Toronto Stock Exchange
-  XASX: '.AX',   // Australian Securities Exchange
+  XLON: '.L', // London Stock Exchange
+  XAMS: '.AS', // Euronext Amsterdam
+  XPAR: '.PA', // Euronext Paris
+  XETR: '.DE', // Deutsche Börse XETRA
+  XMAD: '.MC', // Bolsa de Madrid
+  XMIL: '.MI', // Borsa Italiana (Milan)
+  XHKG: '.HK', // Hong Kong Stock Exchange
+  XTSE: '.TO', // Toronto Stock Exchange
+  XASX: '.AX', // Australian Securities Exchange
   // US exchanges don't need suffixes
-  XNYS: '',      // NYSE
-  XNAS: '',      // NASDAQ
+  XNYS: '', // NYSE
+  XNAS: '', // NASDAQ
 };
 
 @Injectable()
@@ -49,8 +49,8 @@ export class YahooFinanceProvider implements PriceProvider {
 
     try {
       // TODO: Improve typing when library's types are better understood
-      const results = await this.yahoo.quote(yahooSymbols) as any[];
-      const quotes: Quote[] = results.map(result => {
+      const results = (await this.yahoo.quote(yahooSymbols)) as any[];
+      const quotes: Quote[] = results.map((result) => {
         // Map back to original symbol (without suffix)
         const originalSymbol = symbolMap.get(result.symbol) || result.symbol;
         return {
@@ -59,7 +59,7 @@ export class YahooFinanceProvider implements PriceProvider {
           currency: result.currency || 'USD',
         };
       });
-      return quotes.filter(q => q.price != null); // Filter out any quotes that failed to fetch a price
+      return quotes.filter((q) => q.price != null); // Filter out any quotes that failed to fetch a price
     } catch (error) {
       this.logger.error('Failed to fetch quotes from Yahoo Finance', error);
       return [];

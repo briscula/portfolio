@@ -1,69 +1,97 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
-import { redirect, useParams } from 'next/navigation';
-import Link from 'next/link';
-import AppLayout from '@/components/AppLayout';
+import { useState, useEffect, useCallback } from "react";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { redirect, useParams } from "next/navigation";
+import Link from "next/link";
+import AppLayout from "@/components/AppLayout";
 
 // Force dynamic rendering - uses localStorage and Auth0
-export const dynamic = 'force-dynamic';
-import { Portfolio, Position, PaginationInfo } from '@/hooks/usePortfolio';
-import { useApiClient } from '@/lib/apiClient';
-import { Card, CardHeader, CardTitle, CardContent, MetricCard, MetricCardsGrid, DollarSignIcon, TrendingUpIcon, TrendingDownIcon, Button } from '@/components/ui';
-import DividendChart from '@/components/DividendChart';
-import { ChevronUpIcon, ChevronDownIcon, RefreshIcon } from '@/components/ui/icons';
+export const dynamic = "force-dynamic";
+import { Portfolio, Position, PaginationInfo } from "@/hooks/usePortfolio";
+import { useApiClient } from "@/lib/apiClient";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  MetricCard,
+  MetricCardsGrid,
+  DollarSignIcon,
+  TrendingUpIcon,
+  TrendingDownIcon,
+  Button,
+} from "@/components/ui";
+import DividendChart from "@/components/DividendChart";
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+  RefreshIcon,
+} from "@/components/ui/icons";
 
 // Sortable table header component
-const SortableHeader = ({ 
-  field, 
-  children, 
-  currentSortBy, 
-  currentSortOrder, 
-  onSort, 
-  className = "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+const SortableHeader = ({
+  field,
+  children,
+  currentSortBy,
+  currentSortOrder,
+  onSort,
+  className = "px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider",
 }: {
   field: string;
   children: React.ReactNode;
   currentSortBy: string;
-  currentSortOrder: 'asc' | 'desc';
+  currentSortOrder: "asc" | "desc";
   onSort: (field: string) => void;
   className?: string;
 }) => (
-  <th 
+  <th
     className={`${className} cursor-pointer hover:bg-gray-100 select-none`}
     onClick={() => onSort(field)}
   >
     <div className="flex items-center space-x-1">
       <span>{children}</span>
-      {currentSortBy === field && (
-        currentSortOrder === 'desc' ? 
-          <ChevronDownIcon className="h-4 w-4" /> : 
+      {currentSortBy === field &&
+        (currentSortOrder === "desc" ? (
+          <ChevronDownIcon className="h-4 w-4" />
+        ) : (
           <ChevronUpIcon className="h-4 w-4" />
-      )}
+        ))}
     </div>
   </th>
 );
 
 // Gain/Loss component for styling
-const GainLossDisplay = ({ value, percent }: { value: number; percent: number }) => {
+const GainLossDisplay = ({
+  value,
+  percent,
+}: {
+  value: number;
+  percent: number;
+}) => {
   const isPositive = value >= 0;
-  const textColor = isPositive ? 'text-green-600' : 'text-red-600';
-  const bgColor = isPositive ? 'bg-green-50' : 'bg-red-50';
-  const sign = isPositive ? '+' : '';
+  const textColor = isPositive ? "text-green-600" : "text-red-600";
+  const bgColor = isPositive ? "bg-green-50" : "bg-red-50";
+  const sign = isPositive ? "+" : "";
 
   return (
     <div className={`flex flex-col items-end ${textColor}`}>
-      <span className="font-medium">{sign}{new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)}</span>
-      <span className={`text-xs font-mono px-1 py-0.5 rounded ${bgColor}`}>{sign}{percent.toFixed(2)}%</span>
+      <span className="font-medium">
+        {sign}
+        {new Intl.NumberFormat("en-US", {
+          style: "currency",
+          currency: "USD",
+        }).format(value)}
+      </span>
+      <span className={`text-xs font-mono px-1 py-0.5 rounded ${bgColor}`}>
+        {sign}
+        {percent.toFixed(2)}%
+      </span>
     </div>
   );
 };
 
-
-import AddPositionModal from '@/components/AddPositionModal';
-
-
+import AddPositionModal from "@/components/AddPositionModal";
 
 export default function PortfolioDetailPage() {
   const { user, isLoading } = useUser();
@@ -72,10 +100,17 @@ export default function PortfolioDetailPage() {
   const [isAddPositionModalOpen, setIsAddPositionModalOpen] = useState(false);
 
   // Use a single API client instance to avoid multiple token fetches
-  const { apiClient, isLoading: authLoading, isAuthenticated, error: authError } = useApiClient();
+  const {
+    apiClient,
+    isLoading: authLoading,
+    isAuthenticated,
+    error: authError,
+  } = useApiClient();
 
   // Manage data fetching state manually to control API calls
-  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(
+    null,
+  );
   const [positions, setPositions] = useState<Position[]>([]);
   const [pagination, setPagination] = useState<PaginationInfo | null>(null);
   const [portfolioLoading, setPortfolioLoading] = useState(true);
@@ -84,8 +119,8 @@ export default function PortfolioDetailPage() {
   const [positionsError, setPositionsError] = useState<string | null>(null);
 
   // Sorting and pagination state
-  const [sortBy, setSortBy] = useState('marketValue');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [sortBy, setSortBy] = useState("marketValue");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
   const [pageSize, setPageSize] = useState(25);
 
   // Syncing state
@@ -119,9 +154,11 @@ export default function PortfolioDetailPage() {
       setSelectedPortfolio(response as Portfolio);
 
       // Store the last viewed portfolio in localStorage
-      localStorage.setItem('lastViewedPortfolioId', portfolioId);
+      localStorage.setItem("lastViewedPortfolioId", portfolioId);
     } catch (err) {
-      setPortfolioError(err instanceof Error ? err.message : 'Failed to fetch portfolio');
+      setPortfolioError(
+        err instanceof Error ? err.message : "Failed to fetch portfolio",
+      );
     } finally {
       setPortfolioLoading(false);
     }
@@ -139,41 +176,64 @@ export default function PortfolioDetailPage() {
       const summary = await apiClient.getPortfolioSummary(portfolioId);
       setPortfolioSummary(summary as typeof portfolioSummary);
     } catch (err) {
-      console.error('Failed to fetch portfolio summary:', err);
+      console.error("Failed to fetch portfolio summary:", err);
     } finally {
       setSummaryLoading(false);
     }
   }, [isAuthenticated, authError, apiClient, portfolioId]);
 
   // Fetch positions data
-  const fetchPositions = useCallback(async (page: number = 1, currentSortBy: string = sortBy, currentSortOrder: string = sortOrder, limit: number = pageSize) => {
-    if (!isAuthenticated || authError) {
-      setPositionsLoading(false);
-      if (authError) {
-        setPositionsError(authError);
+  const fetchPositions = useCallback(
+    async (
+      page: number = 1,
+      currentSortBy: string = sortBy,
+      currentSortOrder: string = sortOrder,
+      limit: number = pageSize,
+    ) => {
+      if (!isAuthenticated || authError) {
+        setPositionsLoading(false);
+        if (authError) {
+          setPositionsError(authError);
+        }
+        return;
       }
-      return;
-    }
 
-    try {
-      setPositionsLoading(true);
-      setPositionsError(null);
-      const response = await apiClient.getPositions(portfolioId, page, limit, currentSortBy, currentSortOrder) as { data: Position[]; meta: PaginationInfo };
-      
-      if (response && response.data && Array.isArray(response.data)) {
-        setPositions(response.data);
-        setPagination(response.meta);
-      } else {
-        setPositions([]);
-        setPagination(null);
+      try {
+        setPositionsLoading(true);
+        setPositionsError(null);
+        const response = (await apiClient.getPositions(
+          portfolioId,
+          page,
+          limit,
+          currentSortBy,
+          currentSortOrder,
+        )) as { data: Position[]; meta: PaginationInfo };
+
+        if (response && response.data && Array.isArray(response.data)) {
+          setPositions(response.data);
+          setPagination(response.meta);
+        } else {
+          setPositions([]);
+          setPagination(null);
+        }
+      } catch (err) {
+        setPositionsError(
+          err instanceof Error ? err.message : "Failed to fetch positions",
+        );
+      } finally {
+        setPositionsLoading(false);
       }
-    } catch (err) {
-      setPositionsError(err instanceof Error ? err.message : 'Failed to fetch positions');
-    } finally {
-      setPositionsLoading(false);
-    }
-  }, [isAuthenticated, authError, apiClient, portfolioId, pageSize, sortBy, sortOrder]);
-
+    },
+    [
+      isAuthenticated,
+      authError,
+      apiClient,
+      portfolioId,
+      pageSize,
+      sortBy,
+      sortOrder,
+    ],
+  );
 
   // Handler for price synchronization
   const handleSyncPrices = async () => {
@@ -183,7 +243,7 @@ export default function PortfolioDetailPage() {
     try {
       await apiClient.syncPrices();
       // Wait a moment for the backend to process before refetching
-      await new Promise(resolve => setTimeout(resolve, 2000)); 
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       await Promise.all([
         fetchSummary(),
         fetchPositions(pagination?.page || 1, sortBy, sortOrder, pageSize),
@@ -203,7 +263,17 @@ export default function PortfolioDetailPage() {
       fetchSummary();
       fetchPositions(1, sortBy, sortOrder, pageSize);
     }
-  }, [portfolioId, isAuthenticated, authLoading, fetchPortfolio, fetchSummary, fetchPositions, sortBy, sortOrder, pageSize]);
+  }, [
+    portfolioId,
+    isAuthenticated,
+    authLoading,
+    fetchPortfolio,
+    fetchSummary,
+    fetchPositions,
+    sortBy,
+    sortOrder,
+    pageSize,
+  ]);
 
   // Handler for pagination
   const fetchPage = (page: number) => {
@@ -212,7 +282,8 @@ export default function PortfolioDetailPage() {
 
   // Handler for sorting
   const handleSort = (field: string) => {
-    const newSortOrder = sortBy === field && sortOrder === 'desc' ? 'asc' : 'desc';
+    const newSortOrder =
+      sortBy === field && sortOrder === "desc" ? "asc" : "desc";
     setSortBy(field);
     setSortOrder(newSortOrder);
     fetchPositions(1, field, newSortOrder, pageSize);
@@ -239,7 +310,9 @@ export default function PortfolioDetailPage() {
     }
 
     // Temporarily disabled - see TODO in button above
-    console.warn('AddPosition feature is temporarily disabled pending API migration');
+    console.warn(
+      "AddPosition feature is temporarily disabled pending API migration",
+    );
     setIsAddPositionModalOpen(false);
     return;
 
@@ -279,12 +352,12 @@ export default function PortfolioDetailPage() {
   const formatCurrency = (amount: number | null | undefined) => {
     // Handle null, undefined, or NaN values
     if (amount == null || isNaN(amount)) {
-      return 'N/A';
+      return "N/A";
     }
-    
-    const currencyCode = selectedPortfolio?.currencyCode || 'USD';
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
+
+    const currencyCode = selectedPortfolio?.currencyCode || "USD";
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
       currency: currencyCode,
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
@@ -292,11 +365,9 @@ export default function PortfolioDetailPage() {
   };
 
   const formatPercent = (percent: number) => {
-    if (percent == null || isNaN(percent)) return '0.00%';
-    return `${percent >= 0 ? '+' : ''}${Number(percent).toFixed(2)}%`;
+    if (percent == null || isNaN(percent)) return "0.00%";
+    return `${percent >= 0 ? "+" : ""}${Number(percent).toFixed(2)}%`;
   };
-
-
 
   if (isLoading || authLoading) {
     return (
@@ -307,23 +378,37 @@ export default function PortfolioDetailPage() {
   }
 
   if (!user) {
-    redirect('/api/auth/login');
+    redirect("/api/auth/login");
   }
 
   // Handle auth errors - redirect to login
-  if (portfolioError && (portfolioError.includes('Authentication') || portfolioError.includes('401'))) {
-    redirect('/api/auth/login');
+  if (
+    portfolioError &&
+    (portfolioError.includes("Authentication") ||
+      portfolioError.includes("401"))
+  ) {
+    redirect("/api/auth/login");
   }
 
-  if (!selectedPortfolio && !portfolioLoading && !authLoading && isAuthenticated) {
+  if (
+    !selectedPortfolio &&
+    !portfolioLoading &&
+    !authLoading &&
+    isAuthenticated
+  ) {
     // If there's an error, show it instead of "Not Found"
     if (portfolioError) {
       return (
         <AppLayout>
           <div className="text-center py-12">
-            <h1 className="text-2xl font-semibold text-gray-900 mb-4">Error Loading Portfolio</h1>
+            <h1 className="text-2xl font-semibold text-gray-900 mb-4">
+              Error Loading Portfolio
+            </h1>
             <p className="text-gray-600 mb-6">{portfolioError}</p>
-            <Link href="/en/portfolio" className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+            <Link
+              href="/en/portfolio"
+              className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+            >
               Back to Portfolios
             </Link>
           </div>
@@ -334,9 +419,16 @@ export default function PortfolioDetailPage() {
     return (
       <AppLayout>
         <div className="text-center py-12">
-          <h1 className="text-2xl font-semibold text-gray-900 mb-4">Portfolio Not Found</h1>
-          <p className="text-gray-600 mb-6">The portfolio you&apos;re looking for doesn&apos;t exist.</p>
-          <Link href="/en/portfolio" className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors">
+          <h1 className="text-2xl font-semibold text-gray-900 mb-4">
+            Portfolio Not Found
+          </h1>
+          <p className="text-gray-600 mb-6">
+            The portfolio you&apos;re looking for doesn&apos;t exist.
+          </p>
+          <Link
+            href="/en/portfolio"
+            className="bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors"
+          >
             Back to Portfolios
           </Link>
         </div>
@@ -352,12 +444,15 @@ export default function PortfolioDetailPage() {
           <div className="flex items-center justify-between">
             <div>
               <div className="flex items-center space-x-2 mb-2">
-                <Link href="/en/dashboard" className="text-blue-600 hover:text-blue-500">
+                <Link
+                  href="/en/dashboard"
+                  className="text-blue-600 hover:text-blue-500"
+                >
                   ← Back to Dashboard
                 </Link>
               </div>
               <h1 className="text-2xl font-semibold text-gray-900 flex items-center">
-                {selectedPortfolio?.name || 'Loading...'}
+                {selectedPortfolio?.name || "Loading..."}
                 {selectedPortfolio && (
                   <span className="ml-3 text-lg text-blue-600">
                     {selectedPortfolio.currency.symbol}
@@ -365,7 +460,8 @@ export default function PortfolioDetailPage() {
                 )}
               </h1>
               <p className="mt-1 text-sm text-gray-600">
-                {selectedPortfolio?.description || 'Manage your dividend investments'}
+                {selectedPortfolio?.description ||
+                  "Manage your dividend investments"}
               </p>
             </div>
           </div>
@@ -393,8 +489,11 @@ export default function PortfolioDetailPage() {
               value={formatCurrency(portfolioSummary.totalValue)}
               change={{
                 value: Math.abs(portfolioSummary.totalGainPercent),
-                type: portfolioSummary.totalGainPercent >= 0 ? 'increase' : 'decrease',
-                period: 'total return'
+                type:
+                  portfolioSummary.totalGainPercent >= 0
+                    ? "increase"
+                    : "decrease",
+                period: "total return",
               }}
               icon={DollarSignIcon}
               iconColor="blue"
@@ -412,11 +511,15 @@ export default function PortfolioDetailPage() {
               value={formatCurrency(portfolioSummary.totalGain)}
               change={{
                 value: Math.abs(portfolioSummary.totalGainPercent),
-                type: portfolioSummary.totalGain >= 0 ? 'increase' : 'decrease',
-                period: 'return'
+                type: portfolioSummary.totalGain >= 0 ? "increase" : "decrease",
+                period: "return",
               }}
-              icon={portfolioSummary.totalGain >= 0 ? TrendingUpIcon : TrendingDownIcon}
-              iconColor={portfolioSummary.totalGain >= 0 ? 'green' : 'red'}
+              icon={
+                portfolioSummary.totalGain >= 0
+                  ? TrendingUpIcon
+                  : TrendingDownIcon
+              }
+              iconColor={portfolioSummary.totalGain >= 0 ? "green" : "red"}
             />
           </MetricCardsGrid>
         )}
@@ -443,7 +546,11 @@ export default function PortfolioDetailPage() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>
-                Positions ({pagination ? `${positions.length} of ${pagination.total}` : positions.length})
+                Positions (
+                {pagination
+                  ? `${positions.length} of ${pagination.total}`
+                  : positions.length}
+                )
               </CardTitle>
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
@@ -453,7 +560,9 @@ export default function PortfolioDetailPage() {
                   <select
                     id="pageSize"
                     value={pageSize}
-                    onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+                    onChange={(e) =>
+                      handlePageSizeChange(Number(e.target.value))
+                    }
                     className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value={10}>10</option>
@@ -465,17 +574,21 @@ export default function PortfolioDetailPage() {
                 </div>
                 {pagination && pagination.totalPages > 1 && (
                   <div className="flex items-center space-x-2 text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1 rounded-md border border-gray-200">
-                    <span>Page {pagination.page} of {pagination.totalPages}</span>
+                    <span>
+                      Page {pagination.page} of {pagination.totalPages}
+                    </span>
                   </div>
                 )}
-                 <Button
+                <Button
                   onClick={handleSyncPrices}
                   size="sm"
                   variant="secondary"
                   disabled={isSyncing}
                 >
-                  <RefreshIcon className={`h-4 w-4 mr-2 ${isSyncing ? 'animate-spin' : ''}`} />
-                  {isSyncing ? 'Syncing...' : 'Refresh Prices'}
+                  <RefreshIcon
+                    className={`h-4 w-4 mr-2 ${isSyncing ? "animate-spin" : ""}`}
+                  />
+                  {isSyncing ? "Syncing..." : "Refresh Prices"}
                 </Button>
                 {/* TODO: AddPositionModal is temporarily disabled
                     The modal needs to be updated to work with the new Listing model API.
@@ -503,29 +616,68 @@ export default function PortfolioDetailPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Symbol</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Shares</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Price</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Current Price</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cost</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Market Value</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unrealized P&L</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Portfolio %</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Symbol
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Company
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Shares
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Avg. Price
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Current Price
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Total Cost
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Market Value
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Unrealized P&L
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Portfolio %
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {[...Array(pageSize)].map((_, i) => (
                       <tr key={i} className="animate-pulse">
-                        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-16"></div></td>
-                        <td className="px-6 py-4"><div className="h-4 bg-gray-200 rounded w-32"></div></td>
-                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-12 ml-auto"></div></td>
-                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
-                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div></td>
-                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div></td>
-                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div></td>
-                        <td className="px-6 py-4 text-right"><div className="h-4 bg-gray-200 rounded w-24 ml-auto"></div></td>
-                        <td className="px-6 py-4 text-right"><div className="flex items-center justify-end"><div className="h-4 bg-gray-200 rounded w-12 mr-2"></div><div className="w-16 bg-gray-200 rounded-full h-2"></div></div></td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-gray-200 rounded w-16"></div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="h-4 bg-gray-200 rounded w-32"></div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="h-4 bg-gray-200 rounded w-12 ml-auto"></div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="h-4 bg-gray-200 rounded w-16 ml-auto"></div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="h-4 bg-gray-200 rounded w-20 ml-auto"></div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="h-4 bg-gray-200 rounded w-24 ml-auto"></div>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end">
+                            <div className="h-4 bg-gray-200 rounded w-12 mr-2"></div>
+                            <div className="w-16 bg-gray-200 rounded-full h-2"></div>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -548,41 +700,131 @@ export default function PortfolioDetailPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <SortableHeader field="stockSymbol" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort}>Symbol</SortableHeader>
-                      <SortableHeader field="companyName" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort}>Company</SortableHeader>
-                      <SortableHeader field="currentQuantity" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Shares</SortableHeader>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Avg. Price</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Current Price</th>
-                      <SortableHeader field="totalCost" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Total Cost</SortableHeader>
-                      <SortableHeader field="marketValue" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Market Value</SortableHeader>
-                      <SortableHeader field="unrealizedGain" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Unrealized P&L</SortableHeader>
-                      <SortableHeader field="portfolioPercentage" currentSortBy={sortBy} currentSortOrder={sortOrder} onSort={handleSort} className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Portfolio %</SortableHeader>
+                      <SortableHeader
+                        field="stockSymbol"
+                        currentSortBy={sortBy}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                      >
+                        Symbol
+                      </SortableHeader>
+                      <SortableHeader
+                        field="companyName"
+                        currentSortBy={sortBy}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                      >
+                        Company
+                      </SortableHeader>
+                      <SortableHeader
+                        field="currentQuantity"
+                        currentSortBy={sortBy}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Shares
+                      </SortableHeader>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Avg. Price
+                      </th>
+                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Current Price
+                      </th>
+                      <SortableHeader
+                        field="totalCost"
+                        currentSortBy={sortBy}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Total Cost
+                      </SortableHeader>
+                      <SortableHeader
+                        field="marketValue"
+                        currentSortBy={sortBy}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Market Value
+                      </SortableHeader>
+                      <SortableHeader
+                        field="unrealizedGain"
+                        currentSortBy={sortBy}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Unrealized P&L
+                      </SortableHeader>
+                      <SortableHeader
+                        field="portfolioPercentage"
+                        currentSortBy={sortBy}
+                        currentSortOrder={sortOrder}
+                        onSort={handleSort}
+                        className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        Portfolio %
+                      </SortableHeader>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {positions.map((position) => (
-                      <tr key={position.tickerSymbol} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm font-medium text-gray-900">{position.tickerSymbol}</div></td>
-                        <td className="px-6 py-4 whitespace-nowrap"><div className="text-sm text-gray-900 max-w-xs truncate">{position.companyName}</div></td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">{position.currentQuantity ? position.currentQuantity.toLocaleString() : 'N/A'}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
-                          {position.currentQuantity > 0 ? formatCurrency(position.totalCost / position.currentQuantity) : 'N/A'}
+                      <tr
+                        key={position.tickerSymbol}
+                        className="hover:bg-gray-50"
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">
+                            {position.tickerSymbol}
+                          </div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900 font-medium">{formatCurrency(position.currentPrice)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">{formatCurrency(position.totalCost)}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">{formatCurrency(position.marketValue)}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-900 max-w-xs truncate">
+                            {position.companyName}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                          {position.currentQuantity
+                            ? position.currentQuantity.toLocaleString()
+                            : "N/A"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                          {position.currentQuantity > 0
+                            ? formatCurrency(
+                                position.totalCost / position.currentQuantity,
+                              )
+                            : "N/A"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900 font-medium">
+                          {formatCurrency(position.currentPrice)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-900">
+                          {formatCurrency(position.totalCost)}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-bold text-gray-900">
+                          {formatCurrency(position.marketValue)}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                          <GainLossDisplay value={position.unrealizedGain} percent={position.unrealizedGainPercent} />
+                          <GainLossDisplay
+                            value={position.unrealizedGain}
+                            percent={position.unrealizedGainPercent}
+                          />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium text-gray-900">
                           <div className="flex items-center justify-end">
                             <span className="mr-2">
-                              {position.portfolioPercentage != null ? `${position.portfolioPercentage.toFixed(2)}%` : '0.00%'}
+                              {position.portfolioPercentage != null
+                                ? `${position.portfolioPercentage.toFixed(2)}%`
+                                : "0.00%"}
                             </span>
                             <div className="w-16 bg-gray-200 rounded-full h-2">
                               <div
                                 className="bg-blue-600 h-2 rounded-full"
-                                style={{ width: `${Math.min(position.portfolioPercentage || 0, 100)}%` }}
+                                style={{
+                                  width: `${Math.min(position.portfolioPercentage || 0, 100)}%`,
+                                }}
                               ></div>
                             </div>
                           </div>
@@ -598,9 +840,12 @@ export default function PortfolioDetailPage() {
             {!positionsLoading && pagination && pagination.total > 0 && (
               <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-200">
                 <div className="text-sm text-gray-600">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
-                  {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
-                  {pagination.total} positions
+                  Showing {(pagination.page - 1) * pagination.limit + 1} to{" "}
+                  {Math.min(
+                    pagination.page * pagination.limit,
+                    pagination.total,
+                  )}{" "}
+                  of {pagination.total} positions
                 </div>
                 {pagination.totalPages > 1 && (
                   <div className="flex items-center space-x-2">

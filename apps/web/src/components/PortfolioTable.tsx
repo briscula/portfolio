@@ -1,15 +1,32 @@
-'use client';
+"use client";
 
-import React from 'react';
-import Link from 'next/link';
-import { Button, IconButton, EmptyState } from './ui';
-import { PortfolioWithMetrics, formatCurrency, formatPercentage } from '../lib/portfolio-metrics';
-import { cn } from '../lib/utils';
-import { ChevronUpIcon, ChevronDownIcon, EllipsisVerticalIcon, EyeIcon, PencilIcon } from './ui/icons';
-import { useDropdownManager } from '../hooks/useDropdownManager';
+import React from "react";
+import Link from "next/link";
+import { Button, IconButton, EmptyState } from "./ui";
+import {
+  PortfolioWithMetrics,
+  formatCurrency,
+  formatPercentage,
+} from "../lib/portfolio-metrics";
+import { cn } from "../lib/utils";
+import {
+  ChevronUpIcon,
+  ChevronDownIcon,
+  EllipsisVerticalIcon,
+  EyeIcon,
+  PencilIcon,
+} from "./ui/icons";
+import { useDropdownManager } from "../hooks/useDropdownManager";
 
-export type SortField = 'name' | 'currency' | 'value' | 'gain' | 'yield' | 'positions' | 'updated';
-export type SortDirection = 'asc' | 'desc';
+export type SortField =
+  | "name"
+  | "currency"
+  | "value"
+  | "gain"
+  | "yield"
+  | "positions"
+  | "updated";
+export type SortDirection = "asc" | "desc";
 
 export interface PortfolioTableProps {
   portfolios: PortfolioWithMetrics[];
@@ -36,14 +53,14 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({
   currentDirection,
   onSort,
   children,
-  className
+  className,
 }) => {
   const isActive = currentField === field;
-  const nextDirection: SortDirection = 
-    isActive && currentDirection === 'desc' ? 'asc' : 'desc';
+  const nextDirection: SortDirection =
+    isActive && currentDirection === "desc" ? "asc" : "desc";
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       onSort(field, nextDirection);
     }
@@ -54,8 +71,8 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({
     if (!isActive) {
       return `Sort by ${children}`;
     }
-    const direction = currentDirection === 'asc' ? 'ascending' : 'descending';
-    return `Sorted by ${children} in ${direction} order. Click to sort in ${nextDirection === 'asc' ? 'ascending' : 'descending'} order.`;
+    const direction = currentDirection === "asc" ? "ascending" : "descending";
+    return `Sorted by ${children} in ${direction} order. Click to sort in ${nextDirection === "asc" ? "ascending" : "descending"} order.`;
   };
 
   return (
@@ -63,30 +80,30 @@ const SortableHeader: React.FC<SortableHeaderProps> = ({
       onClick={() => onSort(field, nextDirection)}
       onKeyDown={handleKeyDown}
       className={cn(
-        'flex items-center space-x-1 text-left font-medium text-gray-900 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm transition-colors touch-manipulation min-h-[44px] py-2',
-        isActive && 'text-blue-600',
-        className
+        "flex items-center space-x-1 text-left font-medium text-gray-900 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded-sm transition-colors touch-manipulation min-h-[44px] py-2",
+        isActive && "text-blue-600",
+        className,
       )}
       aria-label={getSortDescription()}
       tabIndex={0}
     >
       <span>{children}</span>
       <div className="flex flex-col" aria-hidden="true">
-        <ChevronUpIcon 
+        <ChevronUpIcon
           className={cn(
-            'h-3 w-3 transition-colors',
-            isActive && currentDirection === 'asc' 
-              ? 'text-blue-600' 
-              : 'text-gray-400'
-          )} 
+            "h-3 w-3 transition-colors",
+            isActive && currentDirection === "asc"
+              ? "text-blue-600"
+              : "text-gray-400",
+          )}
         />
-        <ChevronDownIcon 
+        <ChevronDownIcon
           className={cn(
-            'h-3 w-3 -mt-1 transition-colors',
-            isActive && currentDirection === 'desc' 
-              ? 'text-blue-600' 
-              : 'text-gray-400'
-          )} 
+            "h-3 w-3 -mt-1 transition-colors",
+            isActive && currentDirection === "desc"
+              ? "text-blue-600"
+              : "text-gray-400",
+          )}
         />
       </div>
     </button>
@@ -102,10 +119,18 @@ interface PortfolioRowProps {
 const PortfolioRow: React.FC<PortfolioRowProps> = ({
   portfolio,
   onEdit,
-  onViewDividends
+  onViewDividends,
 }) => {
-  const { showActions, setShowActions, dropdownRef, handleToggleActions, handleDropdownKeyDown } = useDropdownManager();
-  const gainFormatted = formatPercentage(portfolio.metrics.unrealizedGainPercent);
+  const {
+    showActions,
+    setShowActions,
+    dropdownRef,
+    handleToggleActions,
+    handleDropdownKeyDown,
+  } = useDropdownManager();
+  const gainFormatted = formatPercentage(
+    portfolio.metrics.unrealizedGainPercent,
+  );
 
   return (
     <tr className="hover:bg-gray-50 transition-colors">
@@ -137,18 +162,31 @@ const PortfolioRow: React.FC<PortfolioRowProps> = ({
       {/* Unrealized Gain/Loss - Hidden on small screens */}
       <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm">
         <div className="flex flex-col">
-          <span className={cn(
-            'font-medium',
-            gainFormatted.color === 'green' ? 'text-green-600' :
-            gainFormatted.color === 'red' ? 'text-red-600' : 'text-gray-600'
-          )}>
-            {formatCurrency(portfolio.metrics.unrealizedGain, portfolio.currencyCode)}
+          <span
+            className={cn(
+              "font-medium",
+              gainFormatted.color === "green"
+                ? "text-green-600"
+                : gainFormatted.color === "red"
+                  ? "text-red-600"
+                  : "text-gray-600",
+            )}
+          >
+            {formatCurrency(
+              portfolio.metrics.unrealizedGain,
+              portfolio.currencyCode,
+            )}
           </span>
-          <span className={cn(
-            'text-xs',
-            gainFormatted.color === 'green' ? 'text-green-600' :
-            gainFormatted.color === 'red' ? 'text-red-600' : 'text-gray-600'
-          )}>
+          <span
+            className={cn(
+              "text-xs",
+              gainFormatted.color === "green"
+                ? "text-green-600"
+                : gainFormatted.color === "red"
+                  ? "text-red-600"
+                  : "text-gray-600",
+            )}
+          >
             {gainFormatted.text}
           </span>
         </div>
@@ -228,9 +266,9 @@ const PortfolioRow: React.FC<PortfolioRowProps> = ({
               onClick={handleToggleActions}
               className="touch-manipulation min-h-[44px] min-w-[44px]"
             />
-            
+
             {showActions && (
-              <div 
+              <div
                 ref={dropdownRef}
                 className="absolute right-0 mt-2 w-52 bg-white rounded-lg shadow-lg border border-gray-200 z-10"
                 role="menu"
@@ -310,7 +348,7 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
   onEdit,
   onViewDividends,
   sortField,
-  sortDirection
+  sortDirection,
 }) => {
   // Show empty state when not loading and no portfolios
   if (!loading && portfolios.length === 0) {
@@ -326,7 +364,7 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
   return (
     <div className="bg-white shadow-sm border border-gray-200 rounded-lg overflow-hidden">
       <div className="overflow-x-auto scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
-        <table 
+        <table
           className="min-w-full divide-y divide-gray-200"
           role="grid"
           aria-label={`Portfolio table with ${portfolios.length} portfolios. Use arrow keys to navigate and Enter to activate sort buttons.`}
@@ -335,14 +373,16 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
         >
           <thead className="bg-gray-50" role="rowgroup">
             <tr role="row">
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 role="columnheader"
                 scope="col"
                 aria-sort={
-                  sortField === 'name' 
-                    ? sortDirection === 'asc' ? 'ascending' : 'descending'
-                    : 'none'
+                  sortField === "name"
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
                 }
               >
                 <SortableHeader
@@ -354,14 +394,16 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
                   Portfolio
                 </SortableHeader>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 role="columnheader"
                 scope="col"
                 aria-sort={
-                  sortField === 'currency' 
-                    ? sortDirection === 'asc' ? 'ascending' : 'descending'
-                    : 'none'
+                  sortField === "currency"
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
                 }
               >
                 <SortableHeader
@@ -373,14 +415,16 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
                   Currency
                 </SortableHeader>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 role="columnheader"
                 scope="col"
                 aria-sort={
-                  sortField === 'value' 
-                    ? sortDirection === 'asc' ? 'ascending' : 'descending'
-                    : 'none'
+                  sortField === "value"
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
                 }
               >
                 <SortableHeader
@@ -392,14 +436,16 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
                   Total Value
                 </SortableHeader>
               </th>
-              <th 
+              <th
                 className="hidden md:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 role="columnheader"
                 scope="col"
                 aria-sort={
-                  sortField === 'gain' 
-                    ? sortDirection === 'asc' ? 'ascending' : 'descending'
-                    : 'none'
+                  sortField === "gain"
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
                 }
               >
                 <SortableHeader
@@ -411,14 +457,16 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
                   Gain/Loss
                 </SortableHeader>
               </th>
-              <th 
+              <th
                 className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 role="columnheader"
                 scope="col"
                 aria-sort={
-                  sortField === 'yield' 
-                    ? sortDirection === 'asc' ? 'ascending' : 'descending'
-                    : 'none'
+                  sortField === "yield"
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
                 }
               >
                 <SortableHeader
@@ -430,14 +478,16 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
                   Dividend Yield
                 </SortableHeader>
               </th>
-              <th 
+              <th
                 className="hidden lg:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 role="columnheader"
                 scope="col"
                 aria-sort={
-                  sortField === 'positions' 
-                    ? sortDirection === 'asc' ? 'ascending' : 'descending'
-                    : 'none'
+                  sortField === "positions"
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
                 }
               >
                 <SortableHeader
@@ -449,14 +499,16 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
                   Positions
                 </SortableHeader>
               </th>
-              <th 
+              <th
                 className="hidden xl:table-cell px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
                 role="columnheader"
                 scope="col"
                 aria-sort={
-                  sortField === 'updated' 
-                    ? sortDirection === 'asc' ? 'ascending' : 'descending'
-                    : 'none'
+                  sortField === "updated"
+                    ? sortDirection === "asc"
+                      ? "ascending"
+                      : "descending"
+                    : "none"
                 }
               >
                 <SortableHeader
@@ -468,7 +520,7 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
                   Last Updated
                 </SortableHeader>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
                 role="columnheader"
                 scope="col"
@@ -478,22 +530,20 @@ export const PortfolioTable: React.FC<PortfolioTableProps> = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200" role="rowgroup">
-            {loading ? (
-              // Show skeleton rows while loading
-              Array.from({ length: 3 }).map((_, index) => (
-                <SkeletonRow key={index} />
-              ))
-            ) : (
-              // Show actual portfolio data
-              portfolios.map((portfolio) => (
-                <PortfolioRow
-                  key={portfolio.id}
-                  portfolio={portfolio}
-                  onEdit={onEdit}
-                  onViewDividends={onViewDividends}
-                />
-              ))
-            )}
+            {loading
+              ? // Show skeleton rows while loading
+                Array.from({ length: 3 }).map((_, index) => (
+                  <SkeletonRow key={index} />
+                ))
+              : // Show actual portfolio data
+                portfolios.map((portfolio) => (
+                  <PortfolioRow
+                    key={portfolio.id}
+                    portfolio={portfolio}
+                    onEdit={onEdit}
+                    onViewDividends={onViewDividends}
+                  />
+                ))}
           </tbody>
         </table>
       </div>

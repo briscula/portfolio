@@ -52,7 +52,10 @@ describe('PortfoliosController', () => {
         { provide: UsersService, useValue: mockUsersService },
         { provide: PositionsService, useValue: mockPositionsService },
         { provide: TransactionsService, useValue: mockTransactionsService },
-        { provide: DividendAnalyticsService, useValue: mockDividendAnalyticsService },
+        {
+          provide: DividendAnalyticsService,
+          useValue: mockDividendAnalyticsService,
+        },
       ],
     })
       .overrideGuard(UnifiedAuthGuard)

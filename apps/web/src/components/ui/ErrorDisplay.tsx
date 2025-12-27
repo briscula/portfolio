@@ -1,16 +1,16 @@
-'use client';
+"use client";
 
-import React from 'react';
+import React from "react";
 
-import { 
-  parseError, 
-  isRetryableError, 
-  isActionableError, 
+import {
+  parseError,
+  isRetryableError,
+  isActionableError,
   getErrorSuggestions,
   ErrorSeverity,
-  getErrorSeverity 
-} from '@/lib/error-messages';
-import { ErrorIcon, WarningIcon, InfoIcon, RefreshIcon } from './icons';
+  getErrorSeverity,
+} from "@/lib/error-messages";
+import { ErrorIcon, WarningIcon, InfoIcon, RefreshIcon } from "./icons";
 
 export interface ErrorDisplayProps {
   /** The error to display */
@@ -32,9 +32,9 @@ export interface ErrorDisplayProps {
   /** Additional CSS classes */
   className?: string;
   /** Size variant */
-  size?: 'small' | 'medium' | 'large';
+  size?: "small" | "medium" | "large";
   /** Display variant */
-  variant?: 'inline' | 'card' | 'banner';
+  variant?: "inline" | "card" | "banner";
 }
 
 /**
@@ -46,12 +46,12 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   message,
   showRetry = true,
   showSuggestions = true,
-  showTechnicalDetails = process.env.NODE_ENV === 'development',
+  showTechnicalDetails = process.env.NODE_ENV === "development",
   onRetry,
   onDismiss,
-  className = '',
-  size = 'medium',
-  variant = 'card',
+  className = "",
+  size = "medium",
+  variant = "card",
 }) => {
   const errorConfig = parseError(error);
   const severity = getErrorSeverity(error);
@@ -64,48 +64,49 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
     switch (severity) {
       case ErrorSeverity.CRITICAL:
         return {
-          bg: 'bg-red-50',
-          border: 'border-red-200',
-          icon: 'text-red-500',
-          title: 'text-red-800',
-          message: 'text-red-700',
-          button: 'bg-red-100 text-red-700 hover:bg-red-200 border-red-300',
+          bg: "bg-red-50",
+          border: "border-red-200",
+          icon: "text-red-500",
+          title: "text-red-800",
+          message: "text-red-700",
+          button: "bg-red-100 text-red-700 hover:bg-red-200 border-red-300",
         };
       case ErrorSeverity.HIGH:
         return {
-          bg: 'bg-red-50',
-          border: 'border-red-200',
-          icon: 'text-red-500',
-          title: 'text-red-800',
-          message: 'text-red-700',
-          button: 'bg-red-100 text-red-700 hover:bg-red-200 border-red-300',
+          bg: "bg-red-50",
+          border: "border-red-200",
+          icon: "text-red-500",
+          title: "text-red-800",
+          message: "text-red-700",
+          button: "bg-red-100 text-red-700 hover:bg-red-200 border-red-300",
         };
       case ErrorSeverity.MEDIUM:
         return {
-          bg: 'bg-yellow-50',
-          border: 'border-yellow-200',
-          icon: 'text-yellow-500',
-          title: 'text-yellow-800',
-          message: 'text-yellow-700',
-          button: 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-300',
+          bg: "bg-yellow-50",
+          border: "border-yellow-200",
+          icon: "text-yellow-500",
+          title: "text-yellow-800",
+          message: "text-yellow-700",
+          button:
+            "bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-yellow-300",
         };
       case ErrorSeverity.LOW:
         return {
-          bg: 'bg-blue-50',
-          border: 'border-blue-200',
-          icon: 'text-blue-500',
-          title: 'text-blue-800',
-          message: 'text-blue-700',
-          button: 'bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300',
+          bg: "bg-blue-50",
+          border: "border-blue-200",
+          icon: "text-blue-500",
+          title: "text-blue-800",
+          message: "text-blue-700",
+          button: "bg-blue-100 text-blue-700 hover:bg-blue-200 border-blue-300",
         };
       default:
         return {
-          bg: 'bg-gray-50',
-          border: 'border-gray-200',
-          icon: 'text-gray-500',
-          title: 'text-gray-800',
-          message: 'text-gray-700',
-          button: 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-300',
+          bg: "bg-gray-50",
+          border: "border-gray-200",
+          icon: "text-gray-500",
+          title: "text-gray-800",
+          message: "text-gray-700",
+          button: "bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-300",
         };
     }
   };
@@ -130,29 +131,29 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   // Get size classes
   const getSizeClasses = () => {
     switch (size) {
-      case 'small':
+      case "small":
         return {
-          container: 'p-3',
-          icon: 'h-4 w-4',
-          title: 'text-sm font-medium',
-          message: 'text-sm',
-          button: 'px-2 py-1 text-xs',
+          container: "p-3",
+          icon: "h-4 w-4",
+          title: "text-sm font-medium",
+          message: "text-sm",
+          button: "px-2 py-1 text-xs",
         };
-      case 'large':
+      case "large":
         return {
-          container: 'p-6',
-          icon: 'h-6 w-6',
-          title: 'text-lg font-semibold',
-          message: 'text-base',
-          button: 'px-4 py-2 text-sm',
+          container: "p-6",
+          icon: "h-6 w-6",
+          title: "text-lg font-semibold",
+          message: "text-base",
+          button: "px-4 py-2 text-sm",
         };
       default: // medium
         return {
-          container: 'p-4',
-          icon: 'h-5 w-5',
-          title: 'text-base font-medium',
-          message: 'text-sm',
-          button: 'px-3 py-2 text-sm',
+          container: "p-4",
+          icon: "h-5 w-5",
+          title: "text-base font-medium",
+          message: "text-sm",
+          button: "px-3 py-2 text-sm",
         };
     }
   };
@@ -162,9 +163,9 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   // Get variant classes
   const getVariantClasses = () => {
     switch (variant) {
-      case 'inline':
+      case "inline":
         return `${colors.bg} ${colors.border} border-l-4 ${sizeClasses.container}`;
-      case 'banner':
+      case "banner":
         return `${colors.bg} ${colors.border} border-t border-b ${sizeClasses.container}`;
       default: // card
         return `${colors.bg} ${colors.border} border rounded-md ${sizeClasses.container}`;
@@ -177,9 +178,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
   return (
     <div className={`${getVariantClasses()} ${className}`}>
       <div className="flex">
-        <div className="flex-shrink-0">
-          {getIcon()}
-        </div>
+        <div className="flex-shrink-0">{getIcon()}</div>
         <div className="ml-3 flex-1">
           {/* Title */}
           <h3 className={`${sizeClasses.title} ${colors.title}`}>
@@ -206,10 +205,14 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
           {/* Technical details (development only) */}
           {showTechnicalDetails && errorConfig.technicalDetails && (
             <details className="mt-3">
-              <summary className={`${sizeClasses.message} ${colors.message} cursor-pointer hover:underline`}>
+              <summary
+                className={`${sizeClasses.message} ${colors.message} cursor-pointer hover:underline`}
+              >
                 Technical Details
               </summary>
-              <div className={`mt-2 p-2 bg-gray-100 rounded text-xs font-mono text-gray-800 whitespace-pre-wrap break-words`}>
+              <div
+                className={`mt-2 p-2 bg-gray-100 rounded text-xs font-mono text-gray-800 whitespace-pre-wrap break-words`}
+              >
                 {errorConfig.technicalDetails}
               </div>
             </details>
@@ -227,7 +230,7 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
                   Try Again
                 </button>
               )}
-              
+
               {onDismiss && (
                 <button
                   onClick={onDismiss}
@@ -247,20 +250,20 @@ export const ErrorDisplay: React.FC<ErrorDisplayProps> = ({
 /**
  * Compact error display for inline use
  */
-export const InlineError: React.FC<Omit<ErrorDisplayProps, 'variant' | 'size'>> = (props) => (
-  <ErrorDisplay {...props} variant="inline" size="small" />
-);
+export const InlineError: React.FC<
+  Omit<ErrorDisplayProps, "variant" | "size">
+> = (props) => <ErrorDisplay {...props} variant="inline" size="small" />;
 
 /**
  * Banner error display for page-level errors
  */
-export const ErrorBanner: React.FC<Omit<ErrorDisplayProps, 'variant'>> = (props) => (
-  <ErrorDisplay {...props} variant="banner" />
-);
+export const ErrorBanner: React.FC<Omit<ErrorDisplayProps, "variant">> = (
+  props,
+) => <ErrorDisplay {...props} variant="banner" />;
 
 /**
  * Card error display for component-level errors
  */
-export const ErrorCard: React.FC<Omit<ErrorDisplayProps, 'variant'>> = (props) => (
-  <ErrorDisplay {...props} variant="card" />
-);
+export const ErrorCard: React.FC<Omit<ErrorDisplayProps, "variant">> = (
+  props,
+) => <ErrorDisplay {...props} variant="card" />;

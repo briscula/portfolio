@@ -5,6 +5,7 @@ This directory contains the Mock Service Worker configuration for frontend devel
 ## Overview
 
 MSW intercepts network requests at the service worker level, allowing you to:
+
 - Develop frontend features without a backend
 - Test components with realistic API responses
 - Simulate different network conditions and errors
@@ -49,6 +50,7 @@ The mock data is organized in the `data/` directory:
 ## API Endpoints Mocked
 
 ### Portfolios
+
 - `GET /portfolios` - List portfolios with pagination
 - `GET /portfolios/:id` - Get portfolio details
 - `POST /portfolios` - Create portfolio
@@ -56,9 +58,11 @@ The mock data is organized in the `data/` directory:
 - `DELETE /portfolios/:id` - Delete portfolio
 
 ### Positions
+
 - `GET /portfolios/:id/positions` - Get positions with pagination/sorting
 
 ### Transactions
+
 - `GET /transactions` - List transactions with pagination
 - `GET /portfolios/:id/transactions` - Portfolio-specific transactions
 - `POST /portfolios/:id/transactions` - Create transaction
@@ -66,15 +70,18 @@ The mock data is organized in the `data/` directory:
 - `GET /transactions/recent` - Recent activity
 
 ### Dividends
+
 - `GET /portfolios/:id/dividends/monthly` - Monthly dividend data
 - `GET /dividends/upcoming` - Upcoming dividends
 
 ### Authentication
+
 - `GET /api/auth/token` - Auth0 token endpoint (returns mock token)
 
 ## Features
 
 ### Realistic Behavior
+
 - **Pagination**: All list endpoints support pagination with metadata
 - **Sorting**: Support for sorting by various fields
 - **Filtering**: Basic filtering capabilities
@@ -82,9 +89,11 @@ The mock data is organized in the `data/` directory:
 - **CRUD Operations**: Full create, read, update, delete support
 
 ### Error Simulation
+
 Add `?mockError=true` to any URL to simulate a 500 error response.
 
 ### Data Persistence
+
 - In-memory storage during session
 - CRUD operations modify mock data
 - Data resets on page refresh
@@ -94,8 +103,8 @@ Add `?mockError=true` to any URL to simulate a 500 error response.
 MSW handlers can be imported in Jest tests:
 
 ```typescript
-import { handlers } from '../mocks/handlers';
-import { setupServer } from 'msw/node';
+import { handlers } from "../mocks/handlers";
+import { setupServer } from "msw/node";
 
 const server = setupServer(...handlers);
 
@@ -122,16 +131,19 @@ src/mocks/
 ## Troubleshooting
 
 ### MSW Not Working
+
 1. Check that `NEXT_PUBLIC_ENABLE_MSW=true` is set
 2. Verify the service worker is registered in browser dev tools
 3. Check console for MSW initialization messages
 
 ### Service Worker Issues
+
 1. Clear browser cache and reload
 2. Check that `mockServiceWorker.js` exists in `public/` directory
 3. Verify service worker registration in browser dev tools
 
 ### API Calls Not Intercepted
+
 1. Ensure API calls use the correct base URL (`http://localhost:3000`)
 2. Check that MSW handlers match the exact endpoint patterns
 3. Verify authentication headers are properly set

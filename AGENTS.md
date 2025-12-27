@@ -43,13 +43,13 @@ portfolio/
 
 ## Documentation Index
 
-| Document | Description |
-|----------|-------------|
-| [docs/README.md](./docs/README.md) | Full documentation index |
-| [docs/PATTERNS.md](./docs/PATTERNS.md) | Code patterns and examples |
-| [docs/SETUP.md](./docs/SETUP.md) | Development setup |
-| [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Deployment guide |
-| [docs/architecture/](./docs/architecture/) | System architecture |
+| Document                                   | Description                |
+| ------------------------------------------ | -------------------------- |
+| [docs/README.md](./docs/README.md)         | Full documentation index   |
+| [docs/PATTERNS.md](./docs/PATTERNS.md)     | Code patterns and examples |
+| [docs/SETUP.md](./docs/SETUP.md)           | Development setup          |
+| [docs/DEPLOYMENT.md](./docs/DEPLOYMENT.md) | Deployment guide           |
+| [docs/architecture/](./docs/architecture/) | System architecture        |
 
 ---
 
@@ -75,12 +75,12 @@ pnpm --filter @repo/database db:studio         # Prisma Studio
 
 ## Technology Overview
 
-| Layer | Stack |
-|-------|-------|
-| **Frontend** | Next.js 15, TypeScript, Tailwind CSS v4, Auth0 |
-| **Backend** | NestJS, TypeScript, Prisma, PostgreSQL |
-| **Validation** | Zod (both frontend and backend) |
-| **Deployment** | Vercel (frontend + backend) |
+| Layer          | Stack                                          |
+| -------------- | ---------------------------------------------- |
+| **Frontend**   | Next.js 15, TypeScript, Tailwind CSS v4, Auth0 |
+| **Backend**    | NestJS, TypeScript, Prisma, PostgreSQL         |
+| **Validation** | Zod (both frontend and backend)                |
+| **Deployment** | Vercel (frontend + backend)                    |
 
 ---
 
@@ -114,15 +114,15 @@ Swagger UI available at `/api` endpoint.
 
 ## Backend Modules
 
-| Module | Purpose |
-|--------|---------|
-| AuthModule | Multi-provider auth (Auth0 + Email/Password) |
-| UsersModule | User management |
-| PortfoliosModule | Portfolio CRUD |
-| TransactionsModule | BUY, SELL, DIVIDEND, TAX transactions |
-| PositionsModule | Portfolio position tracking |
-| DividendAnalyticsModule | Dividend analysis and reporting |
-| PriceUpdaterModule | Stock price updates from Yahoo Finance |
+| Module                  | Purpose                                      |
+| ----------------------- | -------------------------------------------- |
+| AuthModule              | Multi-provider auth (Auth0 + Email/Password) |
+| UsersModule             | User management                              |
+| PortfoliosModule        | Portfolio CRUD                               |
+| TransactionsModule      | BUY, SELL, DIVIDEND, TAX transactions        |
+| PositionsModule         | Portfolio position tracking                  |
+| DividendAnalyticsModule | Dividend analysis and reporting              |
+| PriceUpdaterModule      | Stock price updates from Yahoo Finance       |
 
 ---
 

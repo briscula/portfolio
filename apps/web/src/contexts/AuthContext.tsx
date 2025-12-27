@@ -1,8 +1,15 @@
-'use client';
+"use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
-import { useUser } from '@auth0/nextjs-auth0/client';
-import { useRouter } from 'next/navigation';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
+import { useUser } from "@auth0/nextjs-auth0/client";
+import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   accessToken: string | null;
@@ -38,25 +45,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setIsLoading(true);
       setError(null);
       setHasAttemptedTokenFetch(true);
-      
-      const response = await fetch('/api/auth/token');
+
+      const response = await fetch("/api/auth/token");
       if (!response.ok) {
         if (response.status === 401 || response.status === 500) {
           // Token expired or invalid - user needs to re-authenticate
           setAccessToken(null);
-          setError('Authentication expired. Please sign in again.');
+          setError("Authentication expired. Please sign in again.");
           setShouldRedirect(true);
           return;
         }
         throw new Error(`Failed to get access token: ${response.status}`);
       }
-      
+
       const { accessToken: token } = await response.json();
       setAccessToken(token);
       setError(null);
       setShouldRedirect(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to get access token');
+      setError(
+        err instanceof Error ? err.message : "Failed to get access token",
+      );
       setAccessToken(null);
       setShouldRedirect(true);
     } finally {
@@ -78,21 +87,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   // Handle redirect when authentication fails
   useEffect(() => {
     if (shouldRedirect && !isLoading) {
-      router.push('/api/auth/login');
+      router.push("/api/auth/login");
     }
   }, [shouldRedirect, isLoading, router]);
 
   const isAuthenticated = !!user && !!accessToken;
 
   return (
-    <AuthContext.Provider value={{ accessToken, isLoading, error, isAuthenticated, refreshToken }}>
+    <AuthContext.Provider
+      value={{ accessToken, isLoading, error, isAuthenticated, refreshToken }}
+    >
       {shouldRedirect && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-sm mx-4">
             <div className="flex items-center space-x-3">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
               <div>
-                <h3 className="text-lg font-medium text-gray-900">Session Expired</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  Session Expired
+                </h3>
                 <p className="text-sm text-gray-600">Redirecting to login...</p>
               </div>
             </div>
@@ -107,7 +120,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error("useAuth must be used within an AuthProvider");
   }
   return context;
 }

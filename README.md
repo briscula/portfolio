@@ -39,6 +39,7 @@ pnpm --filter @repo/database db:generate
 ### Environment Variables
 
 1. **Backend** (`apps/api/.env`):
+
    ```bash
    cp apps/api/.env.example apps/api/.env
    # Edit apps/api/.env with your database URL and other secrets
@@ -76,17 +77,17 @@ pnpm --filter @repo/web build
 
 ## 📝 Common Commands
 
-| Command | Description |
-|---------|-------------|
-| `pnpm dev` | Start all apps in development mode |
-| `pnpm build` | Build all apps and packages |
-| `pnpm test` | Run all tests |
-| `pnpm lint` | Lint all code |
-| `pnpm typecheck` | Type check all TypeScript |
-| `pnpm clean` | Clean all build artifacts and node_modules |
-| `pnpm db:generate` | Generate Prisma client |
-| `pnpm db:migrate` | Run database migrations |
-| `pnpm db:studio` | Open Prisma Studio |
+| Command            | Description                                |
+| ------------------ | ------------------------------------------ |
+| `pnpm dev`         | Start all apps in development mode         |
+| `pnpm build`       | Build all apps and packages                |
+| `pnpm test`        | Run all tests                              |
+| `pnpm lint`        | Lint all code                              |
+| `pnpm typecheck`   | Type check all TypeScript                  |
+| `pnpm clean`       | Clean all build artifacts and node_modules |
+| `pnpm db:generate` | Generate Prisma client                     |
+| `pnpm db:migrate`  | Run database migrations                    |
+| `pnpm db:studio`   | Open Prisma Studio                         |
 
 ## 🗂️ Project Structure
 
@@ -132,19 +133,19 @@ Both apps can import Prisma types from the shared database package:
 
 ```typescript
 // In both apps/api and apps/web
-import { PrismaClient, User, Transaction } from '@repo/database';
+import { PrismaClient, User, Transaction } from "@repo/database";
 ```
 
 ### Using Shared Types
 
 ```typescript
-import { ApiResponse, PaginatedResponse } from '@repo/shared';
+import { ApiResponse, PaginatedResponse } from "@repo/shared";
 ```
 
 ### Using Shared Validators
 
 ```typescript
-import { emailSchema, passwordSchema } from '@repo/shared';
+import { emailSchema, passwordSchema } from "@repo/shared";
 ```
 
 ## 📚 Adding Dependencies
@@ -168,11 +169,13 @@ pnpm add -w <package>
 Both apps are deployed separately to Vercel:
 
 ### Backend (apps/api)
+
 - **Root Directory**: `apps/api`
 - **Build Command**: `cd ../.. && pnpm run build --filter=@repo/api`
 - **Output Directory**: `dist`
 
 ### Frontend (apps/web)
+
 - **Root Directory**: `apps/web`
 - **Build Command**: `cd ../.. && pnpm run build --filter=@repo/web`
 - **Output Directory**: `.next`

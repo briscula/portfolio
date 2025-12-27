@@ -6,7 +6,7 @@ const FmpQuoteSchema = z.array(
     symbol: z.string(),
     price: z.number(),
     // other fields can be added here if needed in the future
-  })
+  }),
 );
 
 export class FmpQuoteDto extends createZodDto(FmpQuoteSchema) {}

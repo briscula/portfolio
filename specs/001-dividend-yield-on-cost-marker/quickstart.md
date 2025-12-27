@@ -56,16 +56,17 @@ This guide provides the steps for a developer to implement the scheduled price u
 #### Step 3: Implement the Price Updater Service
 
 1.  **Define DTOs**: Create a DTO file `apps/api/src/price-updater/dto/fmp-quote.dto.ts` with a Zod schema to validate the FMP API response.
+
     ```typescript
-    import { createZodDto } from 'nestjs-zod';
-    import { z } from 'zod';
+    import { createZodDto } from "nestjs-zod";
+    import { z } from "zod";
 
     const FmpQuoteSchema = z.array(
       z.object({
         symbol: z.string(),
         price: z.number(),
         // ... other fields if needed
-      })
+      }),
     );
 
     export class FmpQuoteDto extends createZodDto(FmpQuoteSchema) {}

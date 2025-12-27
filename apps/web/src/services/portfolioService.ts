@@ -1,5 +1,11 @@
-import { ApiClient } from '@/lib/apiClient';
-import type { Portfolio, Position, PaginationInfo, PortfolioSummary, TransactionPayload } from '@/types';
+import { ApiClient } from "@/lib/apiClient";
+import type {
+  Portfolio,
+  Position,
+  PaginationInfo,
+  PortfolioSummary,
+  TransactionPayload,
+} from "@/types";
 
 export interface PortfolioMetrics {
   totalValue: number;
@@ -47,12 +53,19 @@ export class PortfolioService {
     return response as Portfolio;
   }
 
-  async createPortfolio(data: { name: string; description: string; currencyCode: string }): Promise<Portfolio> {
+  async createPortfolio(data: {
+    name: string;
+    description: string;
+    currencyCode: string;
+  }): Promise<Portfolio> {
     const response = await this.apiClient.createPortfolio(data);
     return response as Portfolio;
   }
 
-  async updatePortfolio(id: string, data: { name: string; description: string; currencyCode: string }): Promise<Portfolio> {
+  async updatePortfolio(
+    id: string,
+    data: { name: string; description: string; currencyCode: string },
+  ): Promise<Portfolio> {
     const response = await this.apiClient.updatePortfolio(id, data);
     return response as Portfolio;
   }
@@ -65,21 +78,29 @@ export class PortfolioService {
   async getPositions(
     portfolioId: string,
     page: number = 1,
-    pageSize: number = 50
+    pageSize: number = 50,
   ): Promise<{ data: Position[]; pagination?: PaginationInfo }> {
-    const response = await this.apiClient.getPositions(portfolioId, page, pageSize);
+    const response = await this.apiClient.getPositions(
+      portfolioId,
+      page,
+      pageSize,
+    );
 
     // Check if response has pagination
-    if (response && (response as any).data && Array.isArray((response as any).data)) {
+    if (
+      response &&
+      (response as any).data &&
+      Array.isArray((response as any).data)
+    ) {
       return {
         data: (response as any).data,
-        pagination: (response as any).pagination || undefined
+        pagination: (response as any).pagination || undefined,
       };
     }
 
     // Fallback for non-paginated response
     return {
-      data: Array.isArray(response) ? response as Position[] : []
+      data: Array.isArray(response) ? (response as Position[]) : [],
     };
   }
 
@@ -119,7 +140,7 @@ export class PortfolioService {
   private setCache<T>(key: string, data: T): void {
     this.cache.set(key, {
       data,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     });
   }
 
@@ -129,12 +150,22 @@ export class PortfolioService {
 
   // Metrics Calculation
   calculatePortfolioMetrics(positions: Position[]): PortfolioMetrics {
-    const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalCost || 0), 0));
-    const totalValue = positions.reduce((sum, pos) => sum + (pos.marketValue || pos.totalCost || 0), 0);
-    const totalDividends = positions.reduce((sum, pos) => sum + (pos.totalDividends || 0), 0);
+    const totalCost = Math.abs(
+      positions.reduce((sum, pos) => sum + Math.abs(pos.totalCost || 0), 0),
+    );
+    const totalValue = positions.reduce(
+      (sum, pos) => sum + (pos.marketValue || pos.totalCost || 0),
+      0,
+    );
+    const totalDividends = positions.reduce(
+      (sum, pos) => sum + (pos.totalDividends || 0),
+      0,
+    );
     const unrealizedGain = totalValue - totalCost;
-    const unrealizedGainPercent = totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
-    const dividendYield = totalValue > 0 ? (totalDividends / totalValue) * 100 : 0;
+    const unrealizedGainPercent =
+      totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
+    const dividendYield =
+      totalValue > 0 ? (totalDividends / totalValue) * 100 : 0;
 
     return {
       totalValue,
@@ -143,17 +174,26 @@ export class PortfolioService {
       unrealizedGainPercent,
       dividendYield,
       positionCount: positions.length,
-      lastUpdated: new Date()
+      lastUpdated: new Date(),
     };
   }
 
   calculatePortfolioSummary(positions: Position[]): PortfolioSummary {
-    const totalCost = Math.abs(positions.reduce((sum, pos) => sum + Math.abs(pos.totalCost || 0), 0));
-    const totalValue = positions.reduce((sum, pos) => sum + (pos.marketValue || pos.totalCost || 0), 0);
-    const totalDividends = positions.reduce((sum, pos) => sum + (pos.totalDividends || 0), 0);
+    const totalCost = Math.abs(
+      positions.reduce((sum, pos) => sum + Math.abs(pos.totalCost || 0), 0),
+    );
+    const totalValue = positions.reduce(
+      (sum, pos) => sum + (pos.marketValue || pos.totalCost || 0),
+      0,
+    );
+    const totalDividends = positions.reduce(
+      (sum, pos) => sum + (pos.totalDividends || 0),
+      0,
+    );
     const totalGain = totalValue - totalCost;
     const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
-    const dividendYield = totalValue > 0 ? (totalDividends / totalValue) * 100 : 0;
+    const dividendYield =
+      totalValue > 0 ? (totalDividends / totalValue) * 100 : 0;
 
     return {
       totalValue,
@@ -165,19 +205,28 @@ export class PortfolioService {
     };
   }
 
-  calculateDashboardSummary(portfolios: PortfolioWithMetrics[]): DashboardSummary {
-    const totalValue = portfolios.reduce((sum, p) => sum + p.metrics.totalValue, 0);
-    const totalCost = portfolios.reduce((sum, p) => sum + p.metrics.totalCost, 0);
+  calculateDashboardSummary(
+    portfolios: PortfolioWithMetrics[],
+  ): DashboardSummary {
+    const totalValue = portfolios.reduce(
+      (sum, p) => sum + p.metrics.totalValue,
+      0,
+    );
+    const totalCost = portfolios.reduce(
+      (sum, p) => sum + p.metrics.totalCost,
+      0,
+    );
     const totalGain = totalValue - totalCost;
     const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
 
     // Calculate weighted average dividend yield
-    const overallDividendYield = totalValue > 0
-      ? portfolios.reduce((sum, p) => {
-          const weight = p.metrics.totalValue / totalValue;
-          return sum + (p.metrics.dividendYield * weight);
-        }, 0)
-      : 0;
+    const overallDividendYield =
+      totalValue > 0
+        ? portfolios.reduce((sum, p) => {
+            const weight = p.metrics.totalValue / totalValue;
+            return sum + p.metrics.dividendYield * weight;
+          }, 0)
+        : 0;
 
     return {
       totalValue,
@@ -185,19 +234,21 @@ export class PortfolioService {
       totalGain,
       totalGainPercent,
       overallDividendYield,
-      portfolioCount: portfolios.length
+      portfolioCount: portfolios.length,
     };
   }
 
   // Portfolio with Metrics
-  async getPortfolioWithMetrics(portfolioId: string): Promise<PortfolioWithMetrics> {
+  async getPortfolioWithMetrics(
+    portfolioId: string,
+  ): Promise<PortfolioWithMetrics> {
     const portfolio = await this.getPortfolio(portfolioId);
     const positions = await this.getPositionsWithCache(portfolioId);
     const metrics = this.calculatePortfolioMetrics(positions);
 
     return {
       ...portfolio,
-      metrics
+      metrics,
     };
   }
 
@@ -211,10 +262,13 @@ export class PortfolioService {
 
         return {
           ...portfolio,
-          metrics
+          metrics,
         };
       } catch (err) {
-        console.error(`Error fetching positions for portfolio ${portfolio.id}:`, err);
+        console.error(
+          `Error fetching positions for portfolio ${portfolio.id}:`,
+          err,
+        );
 
         // Return portfolio with empty metrics if positions fetch fails
         return {
@@ -227,7 +281,7 @@ export class PortfolioService {
             dividendYield: 0,
             positionCount: 0,
             lastUpdated: new Date(),
-          }
+          },
         };
       }
     });
@@ -238,7 +292,7 @@ export class PortfolioService {
   // Transaction Operations
   async createTransaction(
     portfolioId: string,
-    transaction: TransactionPayload
+    transaction: TransactionPayload,
   ): Promise<unknown> {
     // Generate UUID v7 for reference if not provided
     const reference = transaction.notes || crypto.randomUUID();
@@ -262,7 +316,7 @@ export class PortfolioService {
       tax: transaction.tax || 0,
       taxPercentage: transaction.taxPercentage || 0,
       date: transaction.date || new Date().toISOString(),
-      notes: transaction.notes || '',
+      notes: transaction.notes || "",
       type: transaction.type,
     };
 

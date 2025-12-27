@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
-import { Button } from './Button';
-import { CreatePortfolioModal, EditPortfolioModal } from './PortfolioModals';
-import { ResponsivePortfolioTable } from '../ResponsivePortfolioTable';
-import { SortField, SortDirection } from '../PortfolioTable';
-import { PortfolioWithMetrics } from '@/lib/portfolio-metrics';
-import { PlusIcon } from './icons';
+import React, { useState, useMemo } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "./Button";
+import { CreatePortfolioModal, EditPortfolioModal } from "./PortfolioModals";
+import { ResponsivePortfolioTable } from "../ResponsivePortfolioTable";
+import { SortField, SortDirection } from "../PortfolioTable";
+import { PortfolioWithMetrics } from "@/lib/portfolio-metrics";
+import { PlusIcon } from "./icons";
 
 interface Portfolio {
   id: string;
@@ -44,12 +44,14 @@ export const PortfolioTableSection: React.FC<PortfolioTableSectionProps> = ({
   onSort,
   enablePagination = true,
   enableVirtualScrolling = false,
-  initialPageSize = 25
+  initialPageSize = 25,
 }) => {
   const router = useRouter();
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(null);
+  const [selectedPortfolio, setSelectedPortfolio] = useState<Portfolio | null>(
+    null,
+  );
 
   // Sort portfolios based on current sort field and direction
   const sortedPortfolios = useMemo(() => {
@@ -60,31 +62,31 @@ export const PortfolioTableSection: React.FC<PortfolioTableSectionProps> = ({
       let bValue: string | number;
 
       switch (sortField) {
-        case 'name':
+        case "name":
           aValue = a.name.toLowerCase();
           bValue = b.name.toLowerCase();
           break;
-        case 'currency':
+        case "currency":
           aValue = a.currencyCode;
           bValue = b.currencyCode;
           break;
-        case 'value':
+        case "value":
           aValue = a.metrics.totalValue;
           bValue = b.metrics.totalValue;
           break;
-        case 'gain':
+        case "gain":
           aValue = a.metrics.unrealizedGain;
           bValue = b.metrics.unrealizedGain;
           break;
-        case 'yield':
+        case "yield":
           aValue = a.metrics.dividendYield;
           bValue = b.metrics.dividendYield;
           break;
-        case 'positions':
+        case "positions":
           aValue = a.metrics.positionCount;
           bValue = b.metrics.positionCount;
           break;
-        case 'updated':
+        case "updated":
           aValue = new Date(a.metrics.lastUpdated).getTime();
           bValue = new Date(b.metrics.lastUpdated).getTime();
           break;
@@ -92,8 +94,8 @@ export const PortfolioTableSection: React.FC<PortfolioTableSectionProps> = ({
           return 0;
       }
 
-      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
-      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      if (aValue < bValue) return sortDirection === "asc" ? -1 : 1;
+      if (aValue > bValue) return sortDirection === "asc" ? 1 : -1;
       return 0;
     });
   }, [portfolios, sortField, sortDirection]);
@@ -104,7 +106,7 @@ export const PortfolioTableSection: React.FC<PortfolioTableSectionProps> = ({
       name: portfolio.name,
       description: portfolio.description,
       currencyCode: portfolio.currencyCode,
-      createdAt: portfolio.createdAt
+      createdAt: portfolio.createdAt,
     });
     setShowEditModal(true);
   };
@@ -127,7 +129,9 @@ export const PortfolioTableSection: React.FC<PortfolioTableSectionProps> = ({
       {/* Section Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="min-w-0 flex-1">
-          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">My Portfolios</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-gray-900">
+            My Portfolios
+          </h2>
           <p className="text-sm text-gray-600 mt-1">
             Manage and track your investment portfolios
           </p>
@@ -163,7 +167,9 @@ export const PortfolioTableSection: React.FC<PortfolioTableSectionProps> = ({
         <div className="bg-red-50 border border-red-200 rounded-md p-4">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-red-800 font-medium">Error loading portfolios</p>
+              <p className="text-red-800 font-medium">
+                Error loading portfolios
+              </p>
               <p className="text-red-600 text-sm mt-1">{error}</p>
             </div>
             {onRetry && (

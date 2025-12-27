@@ -1,27 +1,27 @@
-import React from 'react';
-import { cn } from '@/lib/utils';
+import React from "react";
+import { cn } from "@/lib/utils";
 
 export interface FormFieldProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Field label
    */
   label?: string;
-  
+
   /**
    * Field description or help text
    */
   description?: string;
-  
+
   /**
    * Error message
    */
   error?: string;
-  
+
   /**
    * Whether the field is required
    */
   required?: boolean;
-  
+
   /**
    * Unique identifier for the field
    */
@@ -30,7 +30,7 @@ export interface FormFieldProps extends React.HTMLAttributes<HTMLDivElement> {
 
 /**
  * Form field wrapper with label and error handling
- * 
+ *
  * @example
  * ```tsx
  * <FormField label="Email" required error={errors.email}>
@@ -39,24 +39,27 @@ export interface FormFieldProps extends React.HTMLAttributes<HTMLDivElement> {
  * ```
  */
 export const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
-  ({ 
-    className,
-    label,
-    description,
-    error,
-    required = false,
-    htmlFor,
-    children,
-    ...props 
-  }, ref) => {
+  (
+    {
+      className,
+      label,
+      description,
+      error,
+      required = false,
+      htmlFor,
+      children,
+      ...props
+    },
+    ref,
+  ) => {
     return (
-      <div ref={ref} className={cn('space-y-2', className)} {...props}>
+      <div ref={ref} className={cn("space-y-2", className)} {...props}>
         {label && (
           <label
             htmlFor={htmlFor}
             className={cn(
-              'block text-sm font-medium leading-6',
-              error ? 'text-red-900' : 'text-gray-900'
+              "block text-sm font-medium leading-6",
+              error ? "text-red-900" : "text-gray-900",
             )}
           >
             {label}
@@ -67,17 +70,13 @@ export const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
             )}
           </label>
         )}
-        
+
         {description && !error && (
-          <p className="text-sm text-gray-600">
-            {description}
-          </p>
+          <p className="text-sm text-gray-600">{description}</p>
         )}
-        
-        <div className="relative">
-          {children}
-        </div>
-        
+
+        <div className="relative">{children}</div>
+
         {error && (
           <p className="text-sm text-red-600 flex items-center">
             <svg
@@ -97,10 +96,10 @@ export const FormField = React.forwardRef<HTMLDivElement, FormFieldProps>(
         )}
       </div>
     );
-  }
+  },
 );
 
-FormField.displayName = 'FormField';
+FormField.displayName = "FormField";
 
 /**
  * Form container with consistent spacing
@@ -109,17 +108,17 @@ export interface FormProps extends React.FormHTMLAttributes<HTMLFormElement> {
   /**
    * Spacing between form fields
    */
-  spacing?: 'sm' | 'md' | 'lg';
+  spacing?: "sm" | "md" | "lg";
 }
 
 export const Form = React.forwardRef<HTMLFormElement, FormProps>(
-  ({ className, spacing = 'md', children, ...props }, ref) => {
+  ({ className, spacing = "md", children, ...props }, ref) => {
     const spacingClasses = {
-      sm: 'space-y-4',
-      md: 'space-y-6',
-      lg: 'space-y-8',
+      sm: "space-y-4",
+      md: "space-y-6",
+      lg: "space-y-8",
     };
-    
+
     return (
       <form
         ref={ref}
@@ -129,10 +128,10 @@ export const Form = React.forwardRef<HTMLFormElement, FormProps>(
         {children}
       </form>
     );
-  }
+  },
 );
 
-Form.displayName = 'Form';
+Form.displayName = "Form";
 
 /**
  * Form section with optional title and description
@@ -142,7 +141,7 @@ export interface FormSectionProps extends React.HTMLAttributes<HTMLDivElement> {
    * Section title
    */
   title?: string;
-  
+
   /**
    * Section description
    */
@@ -152,7 +151,7 @@ export interface FormSectionProps extends React.HTMLAttributes<HTMLDivElement> {
 export const FormSection = React.forwardRef<HTMLDivElement, FormSectionProps>(
   ({ className, title, description, children, ...props }, ref) => {
     return (
-      <div ref={ref} className={cn('space-y-6', className)} {...props}>
+      <div ref={ref} className={cn("space-y-6", className)} {...props}>
         {(title || description) && (
           <div className="space-y-1">
             {title && (
@@ -161,22 +160,18 @@ export const FormSection = React.forwardRef<HTMLDivElement, FormSectionProps>(
               </h3>
             )}
             {description && (
-              <p className="text-sm text-gray-600">
-                {description}
-              </p>
+              <p className="text-sm text-gray-600">{description}</p>
             )}
           </div>
         )}
-        
-        <div className="space-y-4">
-          {children}
-        </div>
+
+        <div className="space-y-4">{children}</div>
       </div>
     );
-  }
+  },
 );
 
-FormSection.displayName = 'FormSection';
+FormSection.displayName = "FormSection";
 
 /**
  * Form actions container (typically for buttons)
@@ -185,8 +180,8 @@ export interface FormActionsProps extends React.HTMLAttributes<HTMLDivElement> {
   /**
    * Alignment of actions
    */
-  align?: 'left' | 'center' | 'right';
-  
+  align?: "left" | "center" | "right";
+
   /**
    * Whether to add top border separator
    */
@@ -194,32 +189,35 @@ export interface FormActionsProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 export const FormActions = React.forwardRef<HTMLDivElement, FormActionsProps>(
-  ({ className, align = 'right', separator = false, children, ...props }, ref) => {
+  (
+    { className, align = "right", separator = false, children, ...props },
+    ref,
+  ) => {
     const alignClasses = {
-      left: 'justify-start',
-      center: 'justify-center',
-      right: 'justify-end',
+      left: "justify-start",
+      center: "justify-center",
+      right: "justify-end",
     };
-    
-    const separatorClasses = separator 
-      ? 'border-t border-gray-200 pt-6 mt-6' 
-      : '';
-    
+
+    const separatorClasses = separator
+      ? "border-t border-gray-200 pt-6 mt-6"
+      : "";
+
     return (
       <div
         ref={ref}
         className={cn(
-          'flex items-center gap-3',
+          "flex items-center gap-3",
           alignClasses[align],
           separatorClasses,
-          className
+          className,
         )}
         {...props}
       >
         {children}
       </div>
     );
-  }
+  },
 );
 
-FormActions.displayName = 'FormActions';
+FormActions.displayName = "FormActions";
