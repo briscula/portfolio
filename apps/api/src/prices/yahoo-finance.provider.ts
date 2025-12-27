@@ -40,7 +40,14 @@ export class YahooFinanceProvider implements PriceProvider {
 
     for (const req of symbolRequests) {
       const suffix = EXCHANGE_SUFFIXES[req.exchangeCode] ?? '';
-      const yahooSymbol = `${req.symbol}${suffix}`;
+      let symbol = req.symbol;
+
+      // Hong Kong stocks need to be padded to 4 digits (e.g., 1 -> 0001, 257 -> 0257)
+      if (req.exchangeCode === 'XHKG' && /^\d+$/.test(symbol)) {
+        symbol = symbol.padStart(4, '0');
+      }
+
+      const yahooSymbol = `${symbol}${suffix}`;
       symbolMap.set(yahooSymbol, req.symbol);
       yahooSymbols.push(yahooSymbol);
     }
@@ -53,10 +60,25 @@ export class YahooFinanceProvider implements PriceProvider {
       const quotes: Quote[] = results.map((result) => {
         // Map back to original symbol (without suffix)
         const originalSymbol = symbolMap.get(result.symbol) || result.symbol;
+
+        // Normalize GBp (British pence) to GBP
+        let currency = result.currency || 'USD';
+        let price = result.regularMarketPrice;
+        if (currency === 'GBp') {
+          currency = 'GBP';
+          price = price / 100; // Convert pence to pounds
+        }
+
+        // Get dividend yield (Yahoo returns as decimal, e.g., 0.0412 for 4.12%)
+        const dividendYield =
+          result.dividendYield ?? result.trailingAnnualDividendYield;
+
         return {
           symbol: originalSymbol,
-          price: result.regularMarketPrice,
-          currency: result.currency || 'USD',
+          price,
+          currency,
+          companyName: result.longName || result.shortName,
+          dividendYield,
         };
       });
       return quotes.filter((q) => q.price != null); // Filter out any quotes that failed to fetch a price

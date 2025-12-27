@@ -1,7 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { $Enums } from '@repo/database';
 import YahooFinance from 'yahoo-finance2';
+import {
+  PriceProvider,
+  SymbolRequest,
+} from '../prices/price-provider.interface';
 
 type DividendFrequency = $Enums.DividendFrequency;
 
@@ -11,14 +15,91 @@ const yahooFinance = new YahooFinance();
 export class PriceUpdaterService {
   private readonly logger = new Logger(PriceUpdaterService.name);
 
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    @Inject('PriceProvider') private readonly priceProvider: PriceProvider,
+  ) {}
+
+  // Common currency pairs to update (base currencies we support)
+  private readonly FX_PAIRS = [
+    { from: 'USD', to: 'EUR' },
+    { from: 'USD', to: 'GBP' },
+    { from: 'USD', to: 'HKD' },
+    { from: 'EUR', to: 'USD' },
+    { from: 'EUR', to: 'GBP' },
+    { from: 'EUR', to: 'HKD' },
+    { from: 'GBP', to: 'USD' },
+    { from: 'GBP', to: 'EUR' },
+    { from: 'GBP', to: 'HKD' },
+    { from: 'HKD', to: 'USD' },
+    { from: 'HKD', to: 'EUR' },
+    { from: 'HKD', to: 'GBP' },
+  ];
 
   // This method can be called manually or by an external scheduler
   async runPriceUpdate() {
     this.logger.log('Starting daily stock price update job...');
+    await this.updateFxRates();
     await this.updatePrices();
     await this.updateDividendInfo();
     this.logger.log('Finished daily stock price update job.');
+  }
+
+  /**
+   * Update FX rates for common currency pairs
+   */
+  private async updateFxRates() {
+    this.logger.log('Starting FX rate update...');
+
+    let successCount = 0;
+    let errorCount = 0;
+
+    for (const pair of this.FX_PAIRS) {
+      try {
+        const symbol = `${pair.from}${pair.to}=X`;
+        const result = (await yahooFinance.quote(symbol)) as
+          | { regularMarketPrice?: number }
+          | undefined;
+
+        if (result?.regularMarketPrice) {
+          await this.prisma.fxRate.upsert({
+            where: {
+              fromCurrency_toCurrency: {
+                fromCurrency: pair.from,
+                toCurrency: pair.to,
+              },
+            },
+            create: {
+              fromCurrency: pair.from,
+              toCurrency: pair.to,
+              rate: result.regularMarketPrice,
+              source: 'yahoo_finance',
+            },
+            update: {
+              rate: result.regularMarketPrice,
+              source: 'yahoo_finance',
+            },
+          });
+          this.logger.log(
+            `Updated FX rate ${pair.from}/${pair.to}: ${result.regularMarketPrice}`,
+          );
+          successCount++;
+        } else {
+          this.logger.warn(`No rate found for ${symbol}`);
+          errorCount++;
+        }
+      } catch (error) {
+        this.logger.error(
+          `Failed to fetch FX rate for ${pair.from}/${pair.to}`,
+          error,
+        );
+        errorCount++;
+      }
+    }
+
+    this.logger.log(
+      `FX rate update complete: ${successCount} succeeded, ${errorCount} failed.`,
+    );
   }
 
   private async updatePrices() {
@@ -33,88 +114,103 @@ export class PriceUpdaterService {
 
     this.logger.log(`Found ${listings.length} unique tickers to update.`);
 
-    let successCount = 0;
-    let errorCount = 0;
+    // Build symbol requests with exchange codes for proper suffix handling
+    const symbolRequests: SymbolRequest[] = listings
+      .filter((l) => l.tickerSymbol)
+      .map((l) => ({
+        symbol: l.tickerSymbol,
+        exchangeCode: l.exchangeCode,
+      }));
 
-    // Fetch quotes individually to handle errors per symbol
-    for (const listing of listings) {
-      try {
-        const quote = (await yahooFinance.quote(listing.tickerSymbol)) as
-          | {
-              regularMarketPrice?: number;
-              shortName?: string;
-              longName?: string;
-              symbol?: string;
-              dividendYield?: number; // Decimal (e.g., 0.0412 for 4.12%)
-              trailingAnnualDividendYield?: number; // Alternative field
-            }
-          | undefined;
-
-        if (!quote) {
-          this.logger.warn(`Symbol not found: ${listing.tickerSymbol}`);
-          errorCount++;
-          continue;
-        }
-
-        const price = quote.regularMarketPrice;
-        if (price === undefined || price === null) {
-          this.logger.warn(`No price for ${listing.tickerSymbol}`);
-          errorCount++;
-          continue;
-        }
-
-        // Build update data - always update price
-        const updateData: {
-          currentPrice: number;
-          priceLastUpdated: Date;
-          priceSource: string;
-          companyName?: string;
-          tickerSymbol?: string;
-          dividendYield?: number;
-        } = {
-          currentPrice: price,
-          priceLastUpdated: new Date(),
-          priceSource: 'yahoo_finance',
-        };
-
-        // Update companyName if available from Yahoo Finance
-        const companyName = quote.longName || quote.shortName;
-        if (companyName) {
-          updateData.companyName = companyName;
-        }
-
-        // Update tickerSymbol if available (fixes bad ticker symbols like "1")
-        if (quote.symbol) {
-          updateData.tickerSymbol = quote.symbol;
-        }
-
-        // Update dividend yield (Yahoo returns as decimal, convert to percentage)
-        const dividendYield =
-          quote.dividendYield ?? quote.trailingAnnualDividendYield;
-        if (dividendYield !== undefined && dividendYield !== null) {
-          // Yahoo returns as decimal (0.0412), convert to percentage (4.12)
-          updateData.dividendYield = dividendYield * 100;
-        }
-
-        await this.prisma.listing.update({
-          where: {
-            isin_exchangeCode: {
-              isin: listing.isin,
-              exchangeCode: listing.exchangeCode,
-            },
-          },
-          data: updateData,
-        });
-        successCount++;
-      } catch (error) {
-        this.logger.error(`Failed to fetch ${listing.tickerSymbol}`, error);
-        errorCount++;
-      }
-    }
-
-    this.logger.log(
-      `Price update complete: ${successCount} succeeded, ${errorCount} failed.`,
+    // Create a map from ticker symbol to listing for easy lookup
+    const listingMap = new Map(
+      listings.map((l) => [l.tickerSymbol, l]),
     );
+
+    try {
+      // Batch fetch all quotes using the provider (with exchange suffix support)
+      const quotes = await this.priceProvider.getQuotes(symbolRequests);
+
+      if (quotes.length === 0) {
+        this.logger.warn('Price provider returned no quotes.');
+        return;
+      }
+
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (const quote of quotes) {
+        const listing = listingMap.get(quote.symbol);
+        if (!listing) {
+          this.logger.warn(
+            `Could not find listing for quote symbol: ${quote.symbol}`,
+          );
+          errorCount++;
+          continue;
+        }
+
+        // Skip currencies that are not supported in our system
+        const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'HKD'];
+        if (!SUPPORTED_CURRENCIES.includes(quote.currency)) {
+          this.logger.warn(
+            `Skipping price update for ${listing.tickerSymbol} (${listing.isin}_${listing.exchangeCode}) because currency '${quote.currency}' is not supported.`,
+          );
+          continue;
+        }
+
+        try {
+          // Build update data
+          const updateData: {
+            currentPrice: number;
+            priceLastUpdated: Date;
+            priceSource: string;
+            companyName?: string;
+            dividendYield?: number;
+          } = {
+            currentPrice: quote.price,
+            priceLastUpdated: new Date(),
+            priceSource: 'yahoo_finance',
+          };
+
+          // Update companyName if available
+          if (quote.companyName) {
+            updateData.companyName = quote.companyName;
+          }
+
+          // Update dividend yield (convert from decimal to percentage)
+          if (quote.dividendYield !== undefined && quote.dividendYield !== null) {
+            updateData.dividendYield = quote.dividendYield * 100;
+          }
+
+          await this.prisma.listing.update({
+            where: {
+              isin_exchangeCode: {
+                isin: listing.isin,
+                exchangeCode: listing.exchangeCode,
+              },
+            },
+            data: updateData,
+          });
+
+          this.logger.log(
+            `Successfully updated price for ${listing.tickerSymbol} (${listing.isin}_${listing.exchangeCode}): ${quote.price} ${quote.currency}`,
+          );
+          successCount++;
+        } catch (error) {
+          this.logger.error(
+            `Failed to update listing ${listing.tickerSymbol}`,
+            error,
+          );
+          errorCount++;
+        }
+      }
+
+      this.logger.log(
+        `Price update complete: ${successCount} succeeded, ${errorCount} failed.`,
+      );
+    } catch (error) {
+      this.logger.error('Failed to fetch quotes from price provider', error);
+    }
   }
 
   /**

@@ -7,6 +7,9 @@ export interface Quote {
   symbol: string;
   price: number;
   currency: string;
+  // Optional fields for price updater
+  companyName?: string;
+  dividendYield?: number; // As decimal (0.0412 = 4.12%)
 }
 
 export interface FxRate {

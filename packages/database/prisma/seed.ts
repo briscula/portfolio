@@ -18,6 +18,16 @@ async function main() {
       name: "Euro",
       symbol: "€",
     },
+    {
+      code: "GBP",
+      name: "British Pound",
+      symbol: "£",
+    },
+    {
+      code: "HKD",
+      name: "Hong Kong Dollar",
+      symbol: "HK$",
+    },
   ];
 
   for (const currency of currencies) {

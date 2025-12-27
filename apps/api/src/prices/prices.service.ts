@@ -1,11 +1,6 @@
 import { Injectable, Logger, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import {
-  PriceProvider,
-  Quote,
-  FxRate,
-  SymbolRequest,
-} from './price-provider.interface';
+import { PriceProvider, SymbolRequest } from './price-provider.interface';
 
 interface CachedFxRate {
   rate: number;
@@ -29,14 +24,31 @@ export class PricesService {
     }
 
     const cacheKey = `${from}_${to}`;
-    const cached = this.fxCache.get(cacheKey);
 
+    // 1. Check memory cache first (fastest)
+    const cached = this.fxCache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < this.FX_CACHE_TTL) {
-      this.logger.log(`Using cached FX rate for ${cacheKey}`);
       return cached.rate;
     }
 
-    this.logger.log(`Fetching new FX rate for ${cacheKey}`);
+    // 2. Check database for persisted rate
+    const dbRate = await this.prisma.fxRate.findUnique({
+      where: {
+        fromCurrency_toCurrency: {
+          fromCurrency: from,
+          toCurrency: to,
+        },
+      },
+    });
+
+    if (dbRate) {
+      this.logger.log(`Using persisted FX rate for ${cacheKey}: ${dbRate.rate}`);
+      this.fxCache.set(cacheKey, { rate: dbRate.rate, timestamp: Date.now() });
+      return dbRate.rate;
+    }
+
+    // 3. Fall back to API if not in database
+    this.logger.log(`Fetching FX rate from API for ${cacheKey}`);
     const fxRate = await this.priceProvider.getFxRate(from, to);
     this.fxCache.set(cacheKey, { rate: fxRate.rate, timestamp: Date.now() });
 
@@ -144,7 +156,7 @@ export class PricesService {
         }
 
         // Skip currencies that are not supported in our system
-        const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP'];
+        const SUPPORTED_CURRENCIES = ['USD', 'EUR', 'GBP', 'HKD'];
         if (!SUPPORTED_CURRENCIES.includes(currency)) {
           this.logger.warn(
             `Skipping price update for ${matchedListing.tickerSymbol} (${matchedListing.isin}_${matchedListing.exchangeCode}) because currency '${quote.currency}' is not supported.`,

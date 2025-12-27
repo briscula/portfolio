@@ -4,7 +4,6 @@ import { PrismaModule } from '../prisma/prisma.module';
 import { PricesService } from './prices.service';
 import { PricesController } from './prices.controller';
 import { YahooFinanceProvider } from './yahoo-finance.provider';
-import { PriceProvider } from './price-provider.interface';
 
 @Module({
   imports: [PrismaModule, ConfigModule],
@@ -17,6 +16,6 @@ import { PriceProvider } from './price-provider.interface';
       useClass: YahooFinanceProvider,
     },
   ],
-  exports: [PricesService],
+  exports: [PricesService, 'PriceProvider'],
 })
 export class PricesModule {}

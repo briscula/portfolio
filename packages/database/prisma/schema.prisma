@@ -146,6 +146,22 @@ enum DividendFrequency {
   IRREGULAR
 }
 
+model FxRate {
+  /// The source currency code (e.g., "USD").
+  fromCurrency String   @db.VarChar(10)
+  /// The target currency code (e.g., "EUR").
+  toCurrency   String   @db.VarChar(10)
+  /// The exchange rate (1 fromCurrency = rate toCurrency).
+  rate         Float
+  /// The source of the rate (e.g., "yahoo_finance").
+  source       String   @default("yahoo_finance") @db.VarChar(50)
+  /// When the rate was last updated.
+  updatedAt    DateTime @updatedAt
+
+  @@id([fromCurrency, toCurrency])
+  @@map("fx_rate")
+}
+
 model CorporateAction {
   /// The unique identifier for the corporate action.
   id            Int                 @id @default(autoincrement())

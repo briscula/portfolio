@@ -162,14 +162,8 @@ export class PositionsService {
       where: { id: portfolioId },
     });
 
-    // 2. Get the exchange rate if the portfolio is not in USD
-    const fxRate =
-      portfolio.currencyCode === 'USD'
-        ? 1
-        : await this.pricesService.getExchangeRate(
-            'USD',
-            portfolio.currencyCode,
-          );
+    // 2. Portfolio's target currency
+    const portfolioCurrency = portfolio.currencyCode;
 
     // 3. Calculate aggregated transaction data for positions
     // Get BUY transactions for cost basis calculation
@@ -252,6 +246,7 @@ export class PositionsService {
         tickerSymbol: true,
         companyName: true,
         currentPrice: true,
+        currencyCode: true, // Currency of the price
       },
     });
 
@@ -289,30 +284,53 @@ export class PositionsService {
       {},
     );
 
-    // 5. Combine all data and convert to portfolio currency
+    // 5. Get FX rates for all unique listing currencies to portfolio currency
+    const uniqueCurrencies = [
+      ...new Set(listings.map((l) => l.currencyCode).filter(Boolean)),
+    ];
+    const fxRates: Record<string, number> = {};
+    for (const currency of uniqueCurrencies) {
+      if (currency === portfolioCurrency) {
+        fxRates[currency] = 1;
+      } else {
+        fxRates[currency] = await this.pricesService.getExchangeRate(
+          currency,
+          portfolioCurrency,
+        );
+      }
+    }
+
+    // 6. Combine all data and convert to portfolio currency
     const positionsWithValues = activePositions.map((pos) => {
       const listingInfo =
         listingMap[`${pos.listingIsin}_${pos.listingExchangeCode}`];
       const dividendInfo = dividendMap[
         `${pos.listingIsin}_${pos.listingExchangeCode}`
       ] || { totalDividends: 0, dividendCount: 0 };
-      const currentPriceUSD = listingInfo?.currentPrice ?? undefined;
 
-      const marketValueUSD =
-        currentPriceUSD !== undefined
-          ? pos.currentQuantity * currentPriceUSD
-          : pos.costBasis;
-      const unrealizedGainUSD = marketValueUSD - pos.costBasis;
+      const listingCurrency = listingInfo?.currencyCode || 'USD';
+      const fxRate = fxRates[listingCurrency] || 1;
+      const nativePrice = listingInfo?.currentPrice ?? undefined;
 
-      // Convert all monetary values to the portfolio's currency
-      const totalCost = pos.costBasis * fxRate;
-      const marketValue = marketValueUSD * fxRate;
-      const currentPrice =
-        currentPriceUSD !== undefined ? currentPriceUSD * fxRate : null;
-      const unrealizedGain = unrealizedGainUSD * fxRate;
+      // Calculate market value in listing's native currency, then convert
+      const nativeMarketValue =
+        nativePrice !== undefined
+          ? pos.currentQuantity * nativePrice
+          : pos.costBasis; // costBasis is already in portfolio currency
+
+      // Convert price and market value to portfolio currency
+      const currentPrice = nativePrice !== undefined ? nativePrice * fxRate : null;
+      const marketValue =
+        nativePrice !== undefined ? nativeMarketValue * fxRate : pos.costBasis;
+
+      // Cost basis is already in portfolio currency (from transactions)
+      const totalCost = pos.costBasis;
+      const unrealizedGain = marketValue - totalCost;
       const unrealizedGainPercent =
         totalCost > 0 ? (unrealizedGain / totalCost) * 100 : 0;
-      const totalDividends = dividendInfo.totalDividends * fxRate;
+
+      // Dividends are already in portfolio currency (from transactions)
+      const totalDividends = dividendInfo.totalDividends;
 
       return {
         tickerSymbol: listingInfo?.tickerSymbol,
@@ -334,7 +352,7 @@ export class PositionsService {
       };
     });
 
-    // 6. Calculate total portfolio value (now in portfolio's currency)
+    // 7. Calculate total portfolio value (now in portfolio's currency)
     const totalPortfolioValue = positionsWithValues.reduce(
       (sum, p) => sum + p.marketValue,
       0,
@@ -385,16 +403,9 @@ export class PositionsService {
       throw new NotFoundException('Portfolio not found or access denied.');
     }
 
-    // 2. Get the exchange rate if the portfolio is not in USD
-    const fxRate =
-      portfolio.currencyCode === 'USD'
-        ? 1
-        : await this.pricesService.getExchangeRate(
-            'USD',
-            portfolio.currencyCode,
-          );
+    const portfolioCurrency = portfolio.currencyCode;
 
-    // 3. Get BUY and SELL transactions separately for correct cost basis
+    // 2. Get BUY and SELL transactions separately for correct cost basis
     const buyTransactions = await this.prisma.transaction.groupBy({
       by: ['listingIsin', 'listingExchangeCode'],
       where: { portfolioId, type: 'BUY' },
@@ -440,19 +451,22 @@ export class PositionsService {
       })
       .filter((p) => p.currentQuantity > 0.000001);
 
-    // 4. Calculate total cost basis in USD
-    const totalCostUSD = activePositions.reduce(
+    // 3. Calculate total cost basis (already in portfolio currency from transactions)
+    const totalCost = activePositions.reduce(
       (sum, position) => sum + position.costBasis,
       0,
     );
 
-    // 5. Get listings with current prices
+    // 4. Get listings with current prices and currencies
     const listingIdentifiers = activePositions.map((p) => ({
       isin: p.listingIsin,
       exchangeCode: p.listingExchangeCode,
     }));
 
-    let priceMap: Record<string, number | null> = {};
+    let listingMap: Record<
+      string,
+      { currentPrice: number | null; currencyCode: string }
+    > = {};
 
     if (listingIdentifiers.length > 0) {
       const listings = await this.prisma.listing.findMany({
@@ -463,40 +477,69 @@ export class PositionsService {
           isin: true,
           exchangeCode: true,
           currentPrice: true,
+          currencyCode: true,
         },
       });
 
-      priceMap = listings.reduce(
+      listingMap = listings.reduce(
         (acc, l) => ({
           ...acc,
-          [`${l.isin}_${l.exchangeCode}`]: l.currentPrice,
+          [`${l.isin}_${l.exchangeCode}`]: {
+            currentPrice: l.currentPrice,
+            currencyCode: l.currencyCode,
+          },
         }),
-        {} as Record<string, number | null>,
+        {} as Record<
+          string,
+          { currentPrice: number | null; currencyCode: string }
+        >,
       );
     }
 
-    // 6. Calculate total value in USD
-    const totalValueUSD = activePositions.reduce((sum, position) => {
-      const currentPrice =
-        priceMap[`${position.listingIsin}_${position.listingExchangeCode}`];
-      const marketValue =
-        currentPrice !== undefined && currentPrice !== null
-          ? position.currentQuantity * currentPrice
-          : position.costBasis;
-      return sum + marketValue;
+    // 5. Get FX rates for all unique listing currencies to portfolio currency
+    const uniqueCurrencies = [
+      ...new Set(
+        Object.values(listingMap)
+          .map((l) => l.currencyCode)
+          .filter(Boolean),
+      ),
+    ];
+    const fxRates: Record<string, number> = {};
+    for (const currency of uniqueCurrencies) {
+      if (currency === portfolioCurrency) {
+        fxRates[currency] = 1;
+      } else {
+        fxRates[currency] = await this.pricesService.getExchangeRate(
+          currency,
+          portfolioCurrency,
+        );
+      }
+    }
+
+    // 6. Calculate total value (converting each position from its native currency)
+    const totalValue = activePositions.reduce((sum, position) => {
+      const listing =
+        listingMap[`${position.listingIsin}_${position.listingExchangeCode}`];
+      const currentPrice = listing?.currentPrice;
+      const listingCurrency = listing?.currencyCode || 'USD';
+      const fxRate = fxRates[listingCurrency] || 1;
+
+      if (currentPrice !== undefined && currentPrice !== null) {
+        // Convert from listing's currency to portfolio currency
+        return sum + position.currentQuantity * currentPrice * fxRate;
+      }
+      // Fall back to cost basis if no current price
+      return sum + position.costBasis;
     }, 0);
 
-    // 7. Get total dividends in USD
+    // 7. Get total dividends (already in portfolio currency from transactions)
     const dividendResult = await this.prisma.transaction.aggregate({
       where: { portfolioId, type: 'DIVIDEND' },
       _sum: { amount: true },
     });
-    const totalDividendsUSD = Math.abs(dividendResult._sum.amount || 0);
+    const totalDividends = Math.abs(dividendResult._sum.amount || 0);
 
-    // 8. Convert all monetary values to the portfolio's currency
-    const totalValue = totalValueUSD * fxRate;
-    const totalCost = totalCostUSD * fxRate;
-    const totalDividends = totalDividendsUSD * fxRate;
+    // 8. Calculate gains
     const totalGain = totalValue - totalCost;
     const totalGainPercent = totalCost > 0 ? (totalGain / totalCost) * 100 : 0;
 
