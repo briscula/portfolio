@@ -1,6 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
 import YahooFinance from 'yahoo-finance2';
-import { PriceProvider, Quote, FxRate, SymbolRequest } from './price-provider.interface';
+import {
+  PriceProvider,
+  Quote,
+  FxRate,
+  SymbolRequest,
+} from './price-provider.interface';
 
 // Yahoo Finance exchange suffixes
 // See: https://help.yahoo.com/kb/SLN2310.html
@@ -67,7 +72,7 @@ export class YahooFinanceProvider implements PriceProvider {
 
     try {
       // TODO: Improve typing when library's types are better understood
-      const result = await this.yahoo.quote(symbol) as any;
+      const result = (await this.yahoo.quote(symbol)) as any;
       if (result && result.regularMarketPrice) {
         return {
           from,
